@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
@@ -33,6 +33,7 @@ contract C3GovClient is Initializable {
         _;
     }
 
+    /* solhint-disable private-vars-leading-underscore */
     function initGov(address _gov) internal initializer {
         gov = _gov;
         emit ApplyGov(address(0), _gov, block.timestamp);

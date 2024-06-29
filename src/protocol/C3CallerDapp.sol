@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "./IC3Caller.sol";
 
@@ -20,6 +20,7 @@ abstract contract C3CallerDapp is IC3Dapp {
         dappID = _dappID;
     }
 
+    /* solhint-disable private-vars-leading-underscore */
     function isCaller(address addr) internal returns (bool) {
         return IC3CallerProxy(c3CallerProxy).isCaller(addr);
     }

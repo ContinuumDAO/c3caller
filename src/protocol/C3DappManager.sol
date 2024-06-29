@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "./C3GovClient.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -19,6 +19,7 @@ contract C3DappManager is C3GovClient, Pausable {
     }
     uint256 public dappID;
 
+    /* solhint-disable private-vars-leading-underscore */
     mapping(uint256 => DappConfig) private dappConfig;
     mapping(string => uint256) private c3DappAddr;
     mapping(uint256 => bool) private appBlacklist;
@@ -284,6 +285,7 @@ contract C3DappManager is C3GovClient, Pausable {
         emit SetDAppConfig(dappID, config.appAdmin, _feeToken, "", "");
     }
 
+    /* solhint-disable var-name-mixedcase */
     function deposit(
         uint256 _dappID,
         address _token,
