@@ -6,7 +6,8 @@
 
 This repository contains ContinuumDAO's `c3caller` code, the purpose of which to have a standalone reference of `c3caller` for replication on non-EVM chains.
 
-> **Notice**
+> _Notice_
+>
 > This codebase should not be used as the official reference for C3Caller. Please see [router-contract](https://github.com/ContinuumDAO/router-contract.git).
 
 ![c3caller inheritance chart](inheritance_chart.png)
@@ -14,6 +15,7 @@ This repository contains ContinuumDAO's `c3caller` code, the purpose of which to
 The following document is an overview of the interface and a brief description of each method in C3Caller, for purpose of replication on non-EVM chains, and as an aid for builders.
 
 > _Note_
+>
 > In the following text I use _caller_ to refer to the MPC network account that signs transactions on the destination chain.
 
 ## C3Caller
@@ -97,6 +99,7 @@ Require: message data is defined, message DApp ID target is equal to the specifi
 3. The storage value `context` is reset to empty context.
 
 > _Note_
+>
 > (The target address `to` should be a C3CallerDapp implementation. During the execution of the call, the DApp can query the `context` that is the storage value for the duration of the execution.)
 
 The message data, success/fail and return data of the execution is logged with `LogExecCall` (this happens whether the call succeeded or not).
