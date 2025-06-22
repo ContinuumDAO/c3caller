@@ -4,15 +4,19 @@
 
 ### Introduction
 
-This repository contains ContinuumDAO's `c3caller` code, the purpose of which to have a standalone reference of `c3caller` for replication on non-EVM chains.
+This repository contains ContinuumDAO's `c3caller` code, the purpose of which to
+have a standalone reference of `c3caller` for replication on non-EVM chains.
 
 > _Notice_
 >
-> This codebase should not be used as the official reference for C3Caller. Please see [router-contract](https://github.com/ContinuumDAO/router-contract.git).
+> This codebase should not be used as the official reference for C3Caller. Please
+see [router-contract](https://github.com/ContinuumDAO/router-contract.git).
 
 ![c3caller inheritance chart](inheritance_chart.png)
 
-The following document is an overview of the interface and a brief description of each method in C3Caller, for purpose of replication on non-EVM chains, and as an aid for builders.
+The following document is an overview of the interface and a brief description
+of each method in C3Caller, for purpose of replication on non-EVM chains, and as
+an aid for builders.
 
 > _Note_
 >
@@ -22,18 +26,19 @@ The following document is an overview of the interface and a brief description o
 
 ### **Notes**
 
-- `c3broadcast`: Why do we require that the length of the passed data is equal to the length of the chain ID array?
+- `c3broadcast`: Why do we require that the length of the passed data is equal
+to the length of the chain ID array?
 
 ### C3CallerStructLib
 
-```
+```solidity
 struct C3EvmMessage {
-	bytes32 uuid;
-	address to;
-	string fromChainID;
-	string sourceTx;
-	string fallbackTo;
-	bytes data;
+    bytes32 uuid;
+    address to;
+    string fromChainID;
+    string sourceTx;
+    string fallbackTo;
+    bytes data;
 }
 ```
 
@@ -41,15 +46,16 @@ This is a struct of a message that is received by the (EVM) destination chain.
 
 ### constructor
 
-```
+```solidity
 constructor(address _swapIDKeeper)
 ```
 
-Set the governance as the msg.sender, set the UUID keeper contract as the swap ID keeper argument.
+Set the governance as the msg.sender, set the UUID keeper contract as the swap
+ID keeper argument.
 
 ### c3call
 
-```
+```solidity
 function c3call(
 	uint256 _dappID,
 	address _caller,
@@ -66,7 +72,7 @@ The arguments listed above, along with a generated UUID, is logged with `LogC3Ca
 
 ### c3broadcast
 
-```
+```solidity
 function c3broadcast(
 	uint256 _dappID,
 	address _caller,
@@ -84,7 +90,7 @@ For each value of to address and to chain ID, a UUID is taken of the arguments l
 
 ### execute
 
-```
+```solidity
 function execute(
 	uint256 _dappID,
 	address _txSender,
@@ -110,7 +116,7 @@ If the above conditions are not met, the data is logged with `LogFallbackCall`.
 
 ### c3Fallback
 
-```
+```solidity
 function c3Fallback(
 	uint256 _dappID,
 	address _txSender,
@@ -128,7 +134,7 @@ The UUID is registered as complete in the UUID keeper, and the message context a
 
 ### toUint
 
-```
+```solidity
 function toUint(
 	bytes memory bs
 ) internal pure returns (bool, uint)
@@ -144,7 +150,7 @@ A low-level check is performed that the data has length 32, and that the lower o
 
 ### initialize
 
-```
+```solidity
 function intialize(address _c3caller) public initializer;
 ```
 
@@ -154,7 +160,7 @@ Transfer ownership to msg.sender, ie. governance.
 
 ### \_authorizeUpgrade
 
-```
+```solidity
 function _authorizeUpgrade(
 	address newImplementation
 ) internal override onlyOperator;
@@ -164,7 +170,7 @@ Authorize the upgrade for UUPS proxy pattern. In this case only governance can d
 
 ### isExecutor
 
-```
+```solidity
 function isExecutor(
 	address sender
 ) external view override returns (bool);
@@ -174,7 +180,7 @@ Checks that the given address is an executor, which is equivalent to operator.
 
 ### isCaller
 
-```
+```solidity
 function isCaller(
 	address sender
 ) external view override returns (bool);
@@ -184,7 +190,7 @@ Check that the given sender is the C3Caller contract. Not used in this contract.
 
 ### context
 
-```
+```solidity
 function context()
 	external
 	view
@@ -200,7 +206,7 @@ Returns the calling context of the C3Caller contract.
 
 ### c3call
 
-```
+```solidity
 function c3call(
 	uint256 _dappID,
 	string calldata _to,
@@ -213,7 +219,7 @@ Calls the `c3call` method on C3Caller with the given arguments, using msg.sender
 
 ### c3call
 
-```
+```solidity
 function c3call(
 	uint256 _dappID,
 	string calldata _to,
@@ -227,7 +233,7 @@ Calls the `c3call` method on C3Caller with the given arguments, using msg.sender
 
 ### c3broadcast
 
-```
+```solidity
 function c3broadcast(
 	uint256 _dappID,
 	string[] calldata _to,
@@ -240,7 +246,7 @@ Calls the `c3broadcast` method on C3Caller with the given arguments.
 
 ### execute
 
-```
+```solidity
 function execute(
 	uint256 _dappID,
 	C3CallerStructLib.C3EvmMessage calldata _message
@@ -251,7 +257,7 @@ Calls the `execute` method on C3Caller with the given DApp ID and message. Only 
 
 ### c3Fallback
 
-```
+```solidity
 function c3Fallback(
 	uint256 _dappID,
 	C3CallerStructLib.C3EvmMessage calldata _message
@@ -268,7 +274,7 @@ Calls the `c3Fallback` method on C3Caller with the given DApp ID and message. On
 
 ### onlyCaller
 
-```
+```solidity
 modifier onlyCaller();
 ```
 
@@ -276,7 +282,7 @@ Calls the proxy and checks that msg.sender is the C3Caller contract.
 
 ### constructor
 
-```
+```solidity
 constructor(
 	address _c3CallerProxy,
 	uint256 _dappID
@@ -287,7 +293,7 @@ Sets the values of C3CallerProxy and DApp ID.
 
 ### isCaller
 
-```
+```solidity
 function isCaller(address addr) internal returns (bool);
 ```
 
@@ -295,7 +301,7 @@ Checks that a given address is the C3Caller contract.
 
 ### \_c3Fallback
 
-```
+```solidity
 function _c3Fallback(
 	bytes4 selector,
 	bytes calldata data,
@@ -307,7 +313,7 @@ Must be implemented by dev in their DApp. Controls what to do (on the destinatio
 
 ### context
 
-```
+```solidity
 function context()
 	internal
 	view
@@ -322,7 +328,7 @@ Calls the `context` method on the proxy.
 
 ### c3call
 
-```
+```solidity
 function c3call(
 	string memory _to,
 	string memory _toChainID,
@@ -334,7 +340,7 @@ Internal method that gets called by the DApp for making a single cross-chain cal
 
 ### c3call
 
-```
+```solidity
 function c3call(
 	string memory _to,
 	string memory _toChainID,
@@ -347,7 +353,7 @@ Internal method that gets called by the DApp for making a single cross-chain cal
 
 ### c3broadcast
 
-```
+```solidity
 function c3broadcast(
 	string[] memory _to,
 	string[] memory _toChainIDs,
@@ -363,7 +369,7 @@ Internal method that gets called by the DApp for making a batch of cross-chain c
 
 ### autoIncreaseSwapoutNonce
 
-```
+```solidity
 modifier autoIncreaseSwapoutNonce();
 ```
 
@@ -371,7 +377,7 @@ Increments the swapout nonce before execution of the function.
 
 ### checkCompletion
 
-```
+```solidity
 modifier checkCompletion(bytes32 uuid);
 ```
 
@@ -379,7 +385,7 @@ Require: the completion flag for the given UUID to be false.
 
 ### constructor
 
-```
+```solidity
 constructor();
 ```
 
@@ -387,7 +393,7 @@ Set the governance as the msg.sender.
 
 ### isUUIDExist
 
-```
+```solidity
 function isUUIDExist(
 	bytes32 uuid
 ) external view returns (bool);
@@ -397,7 +403,7 @@ Checks if the nonce of the given UUID is ***not*** zero.
 
 ### isCompleted
 
-```
+```solidity
 function isCompleted(
 	bytes32 uuid
 ) external view returns (bool);
@@ -407,7 +413,7 @@ Checks if the flag for swapin completion for the given UUID is true.
 
 ### revokeSwapin
 
-```
+```solidity
 function revokeSwapin(
 	bytes32 uuid
 ) external onlyGov;
@@ -417,7 +423,7 @@ Sets the flag for swapin completion for the given UUID to false. Only governance
 
 ### registerUUID
 
-```
+```solidity
 function registerUUID(
 	bytes32 uuid
 ) external onlyOperator checkCompletion(uuid);
@@ -427,7 +433,7 @@ Sets the flag for swapin completion for the given UUID to true, given that: the 
 
 ### genUUID
 
-```
+```solidity
 function genUUID(
 	uint256 dappID,
 	string calldata to,
@@ -440,7 +446,7 @@ Generates and returns a UUID for the given data, and sets the nonce for that UUI
 
 ### calcCallerUUID
 
-```
+```solidity
 function calCallerUUID(
 	address from,
 	uint256 dappID,
@@ -454,7 +460,7 @@ Calculates the UUID for some given data using the given from address instead of 
 
 ### calcCallerEncode
 
-```
+```solidity
 function calcCallerEncode(
 	address from,
 	uint256 dappID,
@@ -472,7 +478,7 @@ Returns the concatenated bytes of the given data (abi.encode).
 
 ### onlyGov
 
-```
+```solidity
 modifier onlyGov();
 ```
 
@@ -480,7 +486,7 @@ Ensures msg.sender is the governance address.
 
 ### onlyOperator
 
-```
+```solidity
 modifier onlyOperator();
 ```
 
@@ -488,7 +494,7 @@ Ensures the msg.sender is either an operator or the governance address.
 
 ### initGov
 
-```
+```solidity
 function initGov(
 	address _gov
 ) internal initializer;
@@ -498,7 +504,7 @@ Initializer function. Sets the governance address.
 
 ### changeGov
 
-```
+```solidity
 function changeGov(
 	address _gov
 ) external onlyGov;
@@ -508,7 +514,7 @@ Set the pending governance address to a given address.
 
 ### applyGov
 
-```
+```solidity
 function applyGov() external;
 ```
 
@@ -518,7 +524,7 @@ Sets the governance address to whatever the pending governance address was set t
 
 ### \_addOperator
 
-```
+```solidity
 function _addOperator(
 	address _op
 ) internal;
@@ -528,7 +534,7 @@ Adds a given address as an operator. Operators have special priviliges in callin
 
 ### addOperator
 
-```
+```solidity
 function addOperator(
 	address _op
 ) external onlyGov;
@@ -538,7 +544,7 @@ External function for `_addOperator`.
 
 ### getAllOperators
 
-```
+```solidity
 function getAllOperators()
 	external
 	view
@@ -549,7 +555,7 @@ Return a full list of all existing operator addresses.
 
 ### revokeOperator
 
-```
+```solidity
 function revokeOperator(
 	address _op
 ) external onlyGov;
