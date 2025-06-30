@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+pragma solidity ^0.8.19;
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract C3GovClient is Initializable {
     address public gov;
@@ -20,6 +21,8 @@ contract C3GovClient is Initializable {
         address indexed newGov,
         uint256 timestamp
     );
+
+    event AddOperator(address indexed op);
     modifier onlyGov() {
         require(msg.sender == gov, "C3Gov: only Gov");
         _;
@@ -33,7 +36,6 @@ contract C3GovClient is Initializable {
         _;
     }
 
-    /* solhint-disable private-vars-leading-underscore */
     function initGov(address _gov) internal initializer {
         gov = _gov;
         emit ApplyGov(address(0), _gov, block.timestamp);
@@ -46,9 +48,9 @@ contract C3GovClient is Initializable {
 
     function applyGov() external {
         require(pendingGov != address(0), "C3Gov: empty pendingGov");
+        emit ApplyGov(gov, pendingGov, block.timestamp);
         gov = pendingGov;
         pendingGov = address(0);
-        emit ApplyGov(gov, pendingGov, block.timestamp);
     }
 
     function _addOperator(address op) internal {
@@ -56,6 +58,7 @@ contract C3GovClient is Initializable {
         require(!isOperator[op], "C3Caller: Operator already exists");
         isOperator[op] = true;
         operators.push(op);
+        emit AddOperator(op);
     }
 
     function addOperator(address _op) external onlyGov {

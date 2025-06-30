@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.19;
 
-import "./IUUIDKeeper.sol";
-import "./C3GovClient.sol";
+import {IUUIDKeeper} from "./IUUIDKeeper.sol";
+import {C3GovClient} from "./C3GovClient.sol";
 
 contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
     address public admin;

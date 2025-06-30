@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
 
-import "./C3GovClient.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+pragma solidity ^0.8.19;
+
+import {C3GovClient} from "./C3GovClient.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract C3Governor is C3GovClient {
     using Strings for *;
@@ -22,7 +23,6 @@ contract C3Governor is C3GovClient {
         bytes toData
     );
 
-    /* solhint-disable private-vars-leading-underscore */
     mapping(bytes32 => Proposal) internal proposal;
 
     constructor() {

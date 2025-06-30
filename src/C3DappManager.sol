@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
 
-import "./C3GovClient.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+pragma solidity ^0.8.19;
+
+import {C3GovClient} from "./C3GovClient.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract C3DappManager is C3GovClient, Pausable {
     using Strings for *;
@@ -19,10 +20,9 @@ contract C3DappManager is C3GovClient, Pausable {
     }
     uint256 public dappID;
 
-    /* solhint-disable private-vars-leading-underscore */
     mapping(uint256 => DappConfig) private dappConfig;
-    mapping(string => uint256) private c3DappAddr;
-    mapping(uint256 => bool) private appBlacklist;
+    mapping(string => uint256) public c3DappAddr;
+    mapping(uint256 => bool) public appBlacklist;
 
     // key is asset address, value is callPerByteFee
     mapping(address => uint256) public feeCurrencies;
@@ -32,8 +32,8 @@ contract C3DappManager is C3GovClient, Pausable {
 
     mapping(address => uint256) private fees;
 
-    mapping(uint256 => mapping(string => string)) private mpcPubkey; // key is mpc address
-    mapping(uint256 => string[]) private mpcAddrs;
+    mapping(uint256 => mapping(string => string)) public mpcPubkey; // key is mpc address
+    mapping(uint256 => string[]) public mpcAddrs;
 
     event SetDAppConfig(
         uint256 indexed dappID,
@@ -151,6 +151,7 @@ contract C3DappManager is C3GovClient, Pausable {
         emit SetDAppAddr(_subscribeID, _whitelist);
     }
 
+    // TODO add chains
     function addDappAddr(uint256 _dappID, string[] memory _whitelist) external {
         DappConfig memory config = dappConfig[_dappID];
 
@@ -250,7 +251,7 @@ contract C3DappManager is C3GovClient, Pausable {
                     uint256 tmp = mpcAddrs[_dappID].length - 1;
                     mpcAddrs[_dappID][j] = mpcAddrs[_dappID][tmp];
                     mpcAddrs[_dappID].pop();
-                    emit DelMpcAddr(dappID, _addrs[index], pk);
+                    emit DelMpcAddr(_dappID, _addrs[index], pk);
                 }
             }
         }
@@ -282,10 +283,9 @@ contract C3DappManager is C3GovClient, Pausable {
         config.feeToken = _feeToken;
         config.discount = _discount;
 
-        emit SetDAppConfig(dappID, config.appAdmin, _feeToken, "", "");
+        emit SetDAppConfig(_dappID, config.appAdmin, _feeToken, "", "");
     }
 
-    /* solhint-disable var-name-mixedcase */
     function deposit(
         uint256 _dappID,
         address _token,

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
 
-import "./IC3Caller.sol";
-import "./IUUIDKeeper.sol";
-import "./C3GovClient.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+pragma solidity ^0.8.19;
+
+import {IC3Caller, IC3Dapp, C3CallerStructLib} from "./IC3Caller.sol";
+import {IUUIDKeeper} from "./IUUIDKeeper.sol";
+import {C3GovClient} from "./C3GovClient.sol";
+import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract C3Caller is IC3Caller, C3GovClient, Pausable {
     using Address for address;
