@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import {IC3Caller, IC3Dapp, C3CallerStructLib} from "./IC3Caller.sol";
 import {IUUIDKeeper} from "./IUUIDKeeper.sol";
 import {C3GovClient} from "./C3GovClient.sol";
-import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract C3Caller is IC3Caller, C3GovClient, Pausable {
@@ -218,10 +218,7 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
 
         address _target = _message.to;
 
-        bytes memory _result = _target.functionCall(
-            _message.data,
-            "C3Caller: c3Fallback failed"
-        );
+        bytes memory _result = _target.functionCall(_message.data);
 
         context = C3Context({swapID: "", fromChainID: "", sourceTx: ""});
 
