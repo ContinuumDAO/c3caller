@@ -2,25 +2,24 @@
 
 pragma solidity ^0.8.19;
 
-import {IC3Caller, IC3Dapp, C3CallerStructLib} from "./IC3Caller.sol";
-import {IUUIDKeeper} from "./IUUIDKeeper.sol";
-import {C3GovClient} from "./C3GovClient.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-contract C3Caller is IC3Caller, C3GovClient, Pausable {
+import {IC3Caller, IC3Dapp, C3CallerStructLib} from  "./IC3Caller.sol";
+import {IUUIDKeeper} from "./IUUIDKeeper.sol";
+import {C3GovClientUpgradeable} from "./C3GovClientUpgradeable.sol";
+
+contract C3Caller is
+    IC3Caller,
+    UUPSUpgradeable,
+    C3GovClientUpgradeable,
+    OwnableUpgradeable,
+    PausableUpgradeable
+{
     using Address for address;
     using Address for address payable;
-
-    struct C3Context {
-        bytes32 swapID;
-        string fromChainID;
-        string sourceTx;
-    }
-
-    C3Context public override context;
-
-    address public uuidKeeper;
 
     event LogC3Call(
         uint256 indexed dappID,
@@ -61,27 +60,49 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
         bytes reason
     );
 
-    constructor(address _swapIDKeeper) {
-        initGov(msg.sender);
+    struct C3Context {
+        bytes32 swapID;
+        string fromChainID;
+        string sourceTx;
+    }
+
+    C3Context public context;
+    // address public c3caller;
+    address public uuidKeeper;
+
+    function initialize(address _swapIDKeeper) public initializer {
+        __UUPSUpgradeable_init();
+        __C3GovClient_init(msg.sender);
+        __Ownable_init(msg.sender);
+        __Pausable_init();
         uuidKeeper = _swapIDKeeper;
     }
 
-    function pause() external onlyOperator {
-        _pause();
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOperator {}
+
+    function isExecutor(address sender) external view returns (bool) {
+        return isOperator(sender);
     }
 
-    function unpause() external onlyOperator {
-        _unpause();
+    function c3caller() public view returns (address) {
+        return address(this);
     }
 
-    function c3call(
+    function isCaller(address sender) external view returns (bool) {
+        // return sender == c3caller;
+        return sender == address(this);
+    }
+
+    function _c3call(
         uint256 _dappID,
         address _caller,
         string calldata _to,
         string calldata _toChainID,
         bytes calldata _data,
         bytes memory _extra
-    ) external override whenNotPaused {
+    ) internal {
         require(_dappID > 0, "C3Caller: empty dappID");
         require(bytes(_to).length > 0, "C3Caller: empty _to");
         require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
@@ -95,13 +116,34 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
     }
 
-    function c3broadcast(
+    // called by dapp
+    function c3call(
+        uint256 _dappID,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data,
+        bytes memory _extra
+    ) external whenNotPaused {
+        _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
+    }
+
+    // called by dapp
+    function c3call(
+        uint256 _dappID,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data
+    ) external whenNotPaused {
+        _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
+    }
+
+    function _c3broadcast(
         uint256 _dappID,
         address _caller,
         string[] calldata _to,
         string[] calldata _toChainIDs,
         bytes calldata _data
-    ) external override whenNotPaused {
+    ) internal {
         require(_dappID > 0, "C3Caller: empty dappID");
         require(_to.length > 0, "C3Caller: empty _to");
         require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
@@ -130,11 +172,21 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
         }
     }
 
-    function execute(
+    // called by dapp
+    function c3broadcast(
+        uint256 _dappID,
+        string[] calldata _to,
+        string[] calldata _toChainIDs,
+        bytes calldata _data
+    ) external whenNotPaused {
+        _c3broadcast(_dappID, msg.sender, _to, _toChainIDs, _data);
+    }
+
+    function _execute(
         uint256 _dappID,
         address _txSender,
         C3CallerStructLib.C3EvmMessage calldata _message
-    ) external override onlyOperator whenNotPaused {
+    ) internal {
         require(_message.data.length > 0, "C3Caller: empty calldata");
         require(
             IC3Dapp(_message.to).isVaildSender(_txSender),
@@ -171,7 +223,8 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
             success,
             result
         );
-        (bool ok, uint rs) = toUint(result);
+
+        (bool ok, uint rs) = _toUint(result);
         if (success && ok && rs == 1) {
             IUUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
@@ -190,11 +243,19 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
         }
     }
 
-    function c3Fallback(
+    // called by mpc network
+    function execute(
+        uint256 _dappID,
+        C3CallerStructLib.C3EvmMessage calldata _message
+    ) external onlyOperator whenNotPaused {
+        _execute(_dappID, msg.sender, _message);
+    }
+
+    function _c3Fallback(
         uint256 _dappID,
         address _txSender,
         C3CallerStructLib.C3EvmMessage calldata _message
-    ) external override onlyOperator whenNotPaused {
+    ) internal {
         require(_message.data.length > 0, "C3Caller: empty calldata");
         require(
             !IUUIDKeeper(uuidKeeper).isCompleted(_message.uuid),
@@ -235,7 +296,15 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
         );
     }
 
-    function toUint(bytes memory bs) internal pure returns (bool, uint) {
+    // called by mpc network
+    function c3Fallback(
+        uint256 _dappID,
+        C3CallerStructLib.C3EvmMessage calldata _message
+    ) external onlyOperator whenNotPaused {
+        _c3Fallback(_dappID, msg.sender, _message);
+    }
+
+    function _toUint(bytes memory bs) internal pure returns (bool, uint) {
         if (bs.length < 32) {
             return (false, 0);
         }
