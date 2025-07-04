@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {IC3Caller, IC3Dapp, IC3CallerProxy} from "./IC3Caller.sol";
+import {IC3Caller, IC3Dapp/*, IC3CallerProxy*/} from "./IC3Caller.sol";
 
 abstract contract C3CallerDapp is IC3Dapp {
     address public c3CallerProxy;
@@ -10,7 +10,7 @@ abstract contract C3CallerDapp is IC3Dapp {
 
     modifier onlyCaller() {
         require(
-            IC3CallerProxy(c3CallerProxy).isCaller(msg.sender),
+            IC3Caller(c3CallerProxy).isCaller(msg.sender),
             "C3CallerDapp: onlyCaller"
         );
         _;
@@ -22,7 +22,7 @@ abstract contract C3CallerDapp is IC3Dapp {
     }
 
     function isCaller(address addr) internal returns (bool) {
-        return IC3CallerProxy(c3CallerProxy).isCaller(addr);
+        return IC3Caller(c3CallerProxy).isCaller(addr);
     }
 
     function _c3Fallback(
@@ -49,7 +49,7 @@ abstract contract C3CallerDapp is IC3Dapp {
             string memory sourceTx
         )
     {
-        return IC3CallerProxy(c3CallerProxy).context();
+        return IC3Caller(c3CallerProxy).context();
     }
 
     function c3call(
@@ -57,7 +57,7 @@ abstract contract C3CallerDapp is IC3Dapp {
         string memory _toChainID,
         bytes memory _data
     ) internal {
-        IC3CallerProxy(c3CallerProxy).c3call(
+        IC3Caller(c3CallerProxy).c3call(
             dappID,
             _to,
             _toChainID,
@@ -72,7 +72,7 @@ abstract contract C3CallerDapp is IC3Dapp {
         bytes memory _data,
         bytes memory _extra
     ) internal {
-        IC3CallerProxy(c3CallerProxy).c3call(
+        IC3Caller(c3CallerProxy).c3call(
             dappID,
             _to,
             _toChainID,
@@ -86,7 +86,7 @@ abstract contract C3CallerDapp is IC3Dapp {
         string[] memory _toChainIDs,
         bytes memory _data
     ) internal {
-        IC3CallerProxy(c3CallerProxy).c3broadcast(
+        IC3Caller(c3CallerProxy).c3broadcast(
             dappID,
             _to,
             _toChainIDs,

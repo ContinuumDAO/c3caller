@@ -13,52 +13,52 @@ library C3CallerStructLib {
     }
 }
 
-interface IC3CallerProxy {
-    function isExecutor(address sender) external returns (bool);
-
-    function isCaller(address sender) external returns (bool);
-
-    function context()
-        external
-        view
-        returns (
-            bytes32 swapID,
-            string memory fromChainID,
-            string memory sourceTx
-        );
-
-    function c3call(
-        uint256 _dappID,
-        string calldata _to,
-        string calldata _toChainID,
-        bytes calldata _data
-    ) external;
-
-    function c3call(
-        uint256 _dappID,
-        string calldata _to,
-        string calldata _toChainID,
-        bytes calldata _data,
-        bytes memory _extra
-    ) external;
-
-    function c3broadcast(
-        uint256 _dappID,
-        string[] calldata _to,
-        string[] calldata _toChainIDs,
-        bytes calldata _data
-    ) external;
-
-    function execute(
-        uint256 _dappID,
-        C3CallerStructLib.C3EvmMessage calldata _message
-    ) external;
-
-    function c3Fallback(
-        uint256 dappID,
-        C3CallerStructLib.C3EvmMessage calldata _message
-    ) external;
-}
+// interface IC3CallerProxy {
+//     function isExecutor(address sender) external returns (bool);
+// 
+//     function isCaller(address sender) external returns (bool);
+// 
+//     function context()
+//         external
+//         view
+//         returns (
+//             bytes32 swapID,
+//             string memory fromChainID,
+//             string memory sourceTx
+//         );
+// 
+//     function c3call(
+//         uint256 _dappID,
+//         string calldata _to,
+//         string calldata _toChainID,
+//         bytes calldata _data
+//     ) external;
+// 
+//     function c3call(
+//         uint256 _dappID,
+//         string calldata _to,
+//         string calldata _toChainID,
+//         bytes calldata _data,
+//         bytes memory _extra
+//     ) external;
+// 
+//     function c3broadcast(
+//         uint256 _dappID,
+//         string[] calldata _to,
+//         string[] calldata _toChainIDs,
+//         bytes calldata _data
+//     ) external;
+// 
+//     function execute(
+//         uint256 _dappID,
+//         C3CallerStructLib.C3EvmMessage calldata _message
+//     ) external;
+// 
+//     function c3Fallback(
+//         uint256 dappID,
+//         C3CallerStructLib.C3EvmMessage calldata _message
+//     ) external;
+// }
 
 interface IC3Dapp {
     function c3Fallback(
@@ -73,18 +73,23 @@ interface IC3Dapp {
 }
 
 interface IC3Caller {
-    function context()
-        external
-        view
-        returns (
-            bytes32 uuid,
-            string memory fromChainID,
-            string memory sourceTx
-        );
+    function isExecutor(address sender) external returns (bool);
+
+    function isCaller(address sender) external returns (bool);
+
+    function context() external view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx);
 
     function c3call(
         uint256 _dappID,
-        address _caller,
+        // address _caller,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data
+    ) external;
+
+    function c3call(
+        uint256 _dappID,
+        // address _caller,
         string calldata _to,
         string calldata _toChainID,
         bytes calldata _data,
@@ -93,7 +98,7 @@ interface IC3Caller {
 
     function c3broadcast(
         uint256 _dappID,
-        address _caller,
+        // address _caller,
         string[] calldata _to,
         string[] calldata _toChainIDs,
         bytes calldata _data
@@ -101,13 +106,13 @@ interface IC3Caller {
 
     function execute(
         uint256 _dappID,
-        address _txSender,
+        // address _txSender,
         C3CallerStructLib.C3EvmMessage calldata message
     ) external;
 
     function c3Fallback(
         uint256 dappID,
-        address _txSender,
+        // address _txSender,
         C3CallerStructLib.C3EvmMessage calldata message
     ) external;
 }
