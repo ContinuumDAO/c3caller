@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 import {IUUIDKeeper} from "./IUUIDKeeper.sol";
 import {C3GovClient} from "../gov/C3GovClient.sol";
 
-contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
+contract C3UUIDKeeper is IUUIDKeeper, C3GovClientUpgradeable {
     address public admin;
 
     mapping (bytes32 => bool) public completedSwapin;
@@ -24,7 +24,7 @@ contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
     }
 
     constructor() {
-        initGov(msg.sender);
+        __C3GovClient__init(msg.sender);
     }
 
     function isUUIDExist(bytes32 uuid) external view returns (bool) {
