@@ -20,7 +20,7 @@ interface IC3GovClient {
     function gov() external view returns (address);
     function pendingGov() external view returns (address);
     function isOperator(address sender) external view returns (bool);
-    function operators(uint256 index) external view returns (address);
+    // function operators(uint8 index) external view returns (address);
     function applyGov() external;
     function getAllOperators() external view returns (address[] memory);
 

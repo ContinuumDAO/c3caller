@@ -24,20 +24,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
         }
     }
 
-    event ChangeGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
-
-    event ApplyGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
-
-    event AddOperator(address indexed op);
-
     modifier onlyGov() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         require(msg.sender == $.gov, "C3Gov: only Gov");

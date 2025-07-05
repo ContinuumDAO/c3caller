@@ -69,7 +69,6 @@ contract C3Caller is
     }
 
     C3Context public context;
-    // address public c3caller;
     address public uuidKeeper;
 
     function initialize(address _swapIDKeeper) public initializer {
