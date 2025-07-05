@@ -146,7 +146,8 @@ contract C3DappManager is C3GovClient, Pausable {
         string[] memory _whitelist
     ) internal {
         for (uint256 i = 0; i < _whitelist.length; i++) {
-            require(c3DappAddr[_whitelist[i]] == 0, "C3M: addr already exist");
+            // NOTE: If address already registered on another chain, skip
+            if (c3DappAddr[_whitelist[i]] != 0) continue;
             c3DappAddr[_whitelist[i]] = _subscribeID;
         }
         emit SetDAppAddr(_subscribeID, _whitelist);

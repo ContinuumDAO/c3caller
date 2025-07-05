@@ -4,7 +4,9 @@ pragma solidity ^0.8.19;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract C3GovClientUpgradeable is Initializable {
+import {IC3GovClient} from "./IC3GovClient.sol";
+
+contract C3GovClientUpgradeable is IC3GovClient, Initializable {
     /// @custom:storage-location erc7201:c3caller.storage.C3GovClient
     struct C3GovClientStorage {
         address gov;

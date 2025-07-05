@@ -4,25 +4,14 @@ pragma solidity ^0.8.19;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract C3GovClient is Initializable {
+import {IC3GovClient} from "./IC3GovClient.sol";
+
+contract C3GovClient is IC3GovClient, Initializable {
     address public gov;
     address public pendingGov;
-    mapping(address => bool) public isOperator;
+    mapping (address => bool) public isOperator;
     address[] public operators;
 
-    event ChangeGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
-
-    event ApplyGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
-
-    event AddOperator(address indexed op);
     modifier onlyGov() {
         require(msg.sender == gov, "C3Gov: only Gov");
         _;

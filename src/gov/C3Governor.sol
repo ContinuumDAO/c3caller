@@ -24,7 +24,7 @@ contract C3Governor is C3GovClient {
         bytes toData
     );
 
-    mapping(bytes32 => Proposal) internal proposal;
+    mapping (bytes32 => Proposal) internal proposal;
 
     constructor() {
         initGov(msg.sender);

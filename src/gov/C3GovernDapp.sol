@@ -20,7 +20,7 @@ abstract contract C3GovernDapp is C3CallerDapp {
     address private _newGov;
     uint256 private _newGovEffectiveTime;
 
-    mapping(address => bool) txSenders;
+    mapping (address => bool) txSenders;
 
     constructor(
         address _gov,
