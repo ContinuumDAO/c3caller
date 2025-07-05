@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.19;
 
-interface IUUIDKeeper {
+import {IC3GovClient} from "../gov/IC3GovClient.sol";
+
+interface IUUIDKeeper is IC3GovClient {
     function registerUUID(bytes32 uuid) external;
 
     function genUUID(

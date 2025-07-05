@@ -8,10 +8,11 @@ import {C3GovClient} from "../gov/C3GovClient.sol";
 contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
     address public admin;
 
-    mapping(bytes32 => bool) public completedSwapin;
-    mapping(bytes32 => uint256) public uuid2Nonce;
+    mapping (bytes32 => bool) public completedSwapin;
+    mapping (bytes32 => uint256) public uuid2Nonce;
 
     uint256 public currentNonce;
+
     modifier autoIncreaseSwapoutNonce() {
         currentNonce++;
         _;
