@@ -5,9 +5,10 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {C3CallerDapp} from "./C3CallerDapp.sol";
-import {C3GovClient} from "./C3GovClient.sol";
-import {TheiaUtils} from "./TheiaUtils.sol";
+
+import {C3CallerDapp} from "../dapp/C3CallerDapp.sol";
+import {C3GovClient} from "../gov/C3GovClient.sol";
+import {TheiaUtils} from "../theia/TheiaUtils.sol";
 
 abstract contract C3GovernDapp is C3CallerDapp {
     using Strings for *;
@@ -40,7 +41,7 @@ abstract contract C3GovernDapp is C3CallerDapp {
         uint256 chainID
     );
 
-    event LogTxSender(address indexed txSender, bool vaild);
+    event LogTxSender(address indexed txSender, bool valid);
 
     modifier onlyGov() {
         require(msg.sender == gov() || isCaller(msg.sender), "Gov FORBIDDEN");
@@ -81,7 +82,7 @@ abstract contract C3GovernDapp is C3CallerDapp {
         emit LogTxSender(txSender, false);
     }
 
-    function isVaildSender(address txSender) external view returns (bool) {
+    function isValidSender(address txSender) external view returns (bool) {
         return txSenders[txSender];
     }
 

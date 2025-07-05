@@ -2,9 +2,10 @@
 
 pragma solidity ^0.8.19;
 
-import {IC3Caller, IC3Dapp/*, IC3CallerProxy*/} from "./IC3Caller.sol";
+import {IC3Caller} from "../IC3Caller.sol";
+import {IC3CallerDapp} from "./IC3CallerDapp.sol";
 
-abstract contract C3CallerDapp is IC3Dapp {
+abstract contract C3CallerDapp is IC3CallerDapp {
     address public c3CallerProxy;
     uint256 public dappID;
 

@@ -7,9 +7,11 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import {IC3Caller, IC3Dapp, C3CallerStructLib} from  "./IC3Caller.sol";
-import {IUUIDKeeper} from "./IUUIDKeeper.sol";
-import {C3GovClientUpgradeable} from "./C3GovClientUpgradeable.sol";
+import {IC3Caller} from  "./IC3Caller.sol";
+import {C3CallerStructLib} from "./C3CallerStructLib.sol";
+import {IC3CallerDapp} from "./dapp/IC3CallerDapp.sol";
+import {IUUIDKeeper} from "./uuid/IUUIDKeeper.sol";
+import {C3GovClientUpgradeable} from "./gov/C3GovClientUpgradeable.sol";
 
 contract C3Caller is
     IC3Caller,
@@ -189,12 +191,12 @@ contract C3Caller is
     ) internal {
         require(_message.data.length > 0, "C3Caller: empty calldata");
         require(
-            IC3Dapp(_message.to).isVaildSender(_txSender),
+            IC3CallerDapp(_message.to).isValidSender(_txSender),
             "C3Caller: txSender invalid"
         );
         // check dappID
         require(
-            IC3Dapp(_message.to).dappID() == _dappID,
+            IC3CallerDapp(_message.to).dappID() == _dappID,
             "C3Caller: dappID dismatch"
         );
 
@@ -233,7 +235,7 @@ contract C3Caller is
                 _message.uuid,
                 _message.fallbackTo,
                 abi.encodeWithSelector(
-                    IC3Dapp.c3Fallback.selector,
+                    IC3CallerDapp.c3Fallback.selector,
                     _dappID,
                     _message.data,
                     result
@@ -262,12 +264,12 @@ contract C3Caller is
             "C3Caller: already completed"
         );
         require(
-            IC3Dapp(_message.to).isVaildSender(_txSender),
+            IC3CallerDapp(_message.to).isValidSender(_txSender),
             "C3Caller: txSender invalid"
         );
 
         require(
-            IC3Dapp(_message.to).dappID() == _dappID,
+            IC3CallerDapp(_message.to).dappID() == _dappID,
             "C3Caller: dappID dismatch"
         );
 
