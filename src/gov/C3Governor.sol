@@ -1,36 +1,42 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3GovClient } from "./C3GovClient.sol";
 import { IC3Governor } from "./IC3Governor.sol";
+import { C3GovernDapp } from "./C3GovernDapp.sol";
 
-contract C3Governor is IC3Governor, C3GovClient {
+contract C3Governor is IC3Governor, C3GovernDapp {
     using Strings for *;
 
     struct Proposal {
-        bytes[] proposalData;
-        bool[] failed;
+        bytes[] data;
+        bool[] hasFailed;
     }
 
-    mapping(bytes32 => Proposal) internal proposal;
+    mapping (bytes32 => Proposal) private _proposal;
+    bytes32 public proposalId;
 
-    constructor() {
-        initGov(msg.sender);
+    function proposal(bytes32 _proposalId, uint256 offset) public view returns (bytes memory, bool) {
+        Proposal memory proposal_ = _proposal[_proposalId];
+        return (proposal_.data[offset], proposal_.hasFailed[offset]);
+    }
+
+    constructor (address _gov, address _c3CallerProxy, uint256 _dappID, address _txSender) {
+        __C3GovernDapp_init(_gov, _c3CallerProxy, _txSender, _dappID);
     }
 
     function chainID() internal view returns (uint256) {
         return block.chainid;
     }
 
-    // TODO gen nonce
+    // TODO: gen nonce
     function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
         require(_data.length > 0, "C3Governor: No data to sendParams");
 
-        proposal[_nonce].proposalData.push(_data);
-        proposal[_nonce].failed.push(false);
+        _proposal[_nonce].data.push(_data);
+        _proposal[_nonce].hasFailed.push(false);
 
         emit NewProposal(_nonce);
 
@@ -42,8 +48,8 @@ contract C3Governor is IC3Governor, C3GovClient {
 
         for (uint256 index = 0; index < _data.length; index++) {
             require(_data[index].length > 0, "C3Governor: No data passed to sendParams");
-            proposal[_nonce].proposalData.push(_data[index]);
-            proposal[_nonce].failed.push(false);
+            _proposal[_nonce].data.push(_data[index]);
+            _proposal[_nonce].hasFailed.push(false);
 
             _c3gov(_nonce, index);
         }
@@ -52,16 +58,14 @@ contract C3Governor is IC3Governor, C3GovClient {
 
     // Anyone can resend one of the cross chain calls in proposalId if it failed
     function doGov(bytes32 _nonce, uint256 offset) external {
-        require(
-            offset < proposal[_nonce].proposalData.length, "C3Governor: Reading beyond the length of the offset array"
-        );
-        require(proposal[_nonce].failed[offset] == false, "C3Governor: Do not resend if it did not fail");
+        require(offset < _proposal[_nonce].data.length, "C3Governor: Reading beyond the length of the offset array");
+        require(_proposal[_nonce].hasFailed[offset] == false, "C3Governor: Do not resend if it did not fail");
 
         _c3gov(_nonce, offset);
     }
 
     function getProposalData(bytes32 _nonce, uint256 offset) external view returns (bytes memory, bool) {
-        return (proposal[_nonce].proposalData[offset], proposal[_nonce].failed[offset]);
+        return (_proposal[_nonce].data[offset], _proposal[_nonce].hasFailed[offset]);
     }
 
     function _c3gov(bytes32 _nonce, uint256 offset) internal {
@@ -69,7 +73,7 @@ contract C3Governor is IC3Governor, C3GovClient {
         string memory target;
         bytes memory remoteData;
 
-        bytes memory rawData = proposal[_nonce].proposalData[offset];
+        bytes memory rawData = _proposal[_nonce].data[offset];
         // TODO add flag which config using gov to send or operator
         (chainId, target, remoteData) = abi.decode(rawData, (uint256, string, bytes));
 
@@ -77,10 +81,10 @@ contract C3Governor is IC3Governor, C3GovClient {
             address _to = toAddress(target);
             (bool success,) = _to.call(remoteData);
             if (success) {
-                proposal[_nonce].failed[offset] = true;
+                _proposal[_nonce].hasFailed[offset] = true;
             }
         } else {
-            proposal[_nonce].failed[offset] = true;
+            _proposal[_nonce].hasFailed[offset] = true;
             emit C3GovernorLog(_nonce, chainId, target, remoteData);
         }
     }
@@ -122,5 +126,20 @@ contract C3Governor is IC3Governor, C3GovClient {
 
     function version() public pure returns (uint256) {
         return (1);
+    }
+
+    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) internal override returns (bool) {
+        uint256 len = proposalLength();
+
+        _proposal[proposalId].hasFailed[len-1] = true;
+
+        emit LogFallback(selector, data, reason);
+        return true;
+    }
+
+    // The number of cross chain invocations in proposalId
+    function proposalLength() public view returns(uint256) {
+        uint256 len = _proposal[proposalId].data.length;
+        return(len);
     }
 }

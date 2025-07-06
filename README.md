@@ -1,3 +1,7 @@
+Inheritance order:
+contract MyToken is IMyToken, ERC20Upgradeable, OwnableUpgradeable, Initializable, UUPSUpgradeable
+
+
 # C3Caller Overview
 
 ## Basic C3Caller Solidity Code

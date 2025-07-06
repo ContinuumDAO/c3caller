@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
 import { C3GovClient } from "../gov/C3GovClient.sol";
-import { IUUIDKeeper } from "./IUUIDKeeper.sol";
 
-contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
+contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
     address public admin;
 
-    mapping(bytes32 => bool) public completedSwapin;
-    mapping(bytes32 => uint256) public uuid2Nonce;
+    mapping (bytes32 => bool) public completedSwapin;
+    mapping (bytes32 => uint256) public uuid2Nonce;
 
     uint256 public currentNonce;
 
@@ -23,8 +25,8 @@ contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
         _;
     }
 
-    constructor() {
-        initGov(msg.sender);
+    function initialize(address _gov) public initializer {
+        __C3GovClient_init(_gov);
     }
 
     function isUUIDExist(bytes32 uuid) external view returns (bool) {
@@ -79,4 +81,6 @@ contract C3UUIDKeeper is IUUIDKeeper, C3GovClient {
         uint256 nonce = currentNonce + 1;
         return abi.encode(address(this), from, block.chainid, dappID, to, toChainID, nonce, data);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 }

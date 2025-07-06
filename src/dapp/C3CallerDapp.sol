@@ -1,26 +1,57 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IC3Caller } from "../IC3Caller.sol";
 import { IC3CallerDapp } from "./IC3CallerDapp.sol";
 
-abstract contract C3CallerDapp is IC3CallerDapp {
-    address public c3CallerProxy;
-    uint256 public dappID;
+abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
+    /// @custom:storage-location erc7201:c3caller.storage.C3CallerDapp
+    struct C3CallerDappStorage {
+        address c3CallerProxy;
+        uint256 dappID;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3CallerDapp")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant C3CallerDappStorageLocation = 0xa39433114fd213b64ea52624936c26398cba31e0774cfae377a12cb547f1bb00;
+
+    function _getC3CallerDappStorage() private pure returns (C3CallerDappStorage storage $) {
+        assembly {
+            $.slot := C3CallerDappStorageLocation
+        }
+    }
+
+    function __C3CallerDapp_init(address _c3CallerProxy, uint256 _dappID) internal onlyInitializing {
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        $.c3CallerProxy = _c3CallerProxy;
+        $.dappID = _dappID;
+    }
+
+    constructor () {
+        _disableInitializers();
+    }
 
     modifier onlyCaller() {
-        require(IC3Caller(c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        require(IC3Caller($.c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");
         _;
     }
 
-    constructor(address _c3CallerProxy, uint256 _dappID) {
-        c3CallerProxy = _c3CallerProxy;
-        dappID = _dappID;
+    function isCaller(address addr) internal returns (bool) {
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        return IC3Caller($.c3CallerProxy).isCaller(addr);
     }
 
-    function isCaller(address addr) internal returns (bool) {
-        return IC3Caller(c3CallerProxy).isCaller(addr);
+    function c3CallerProxy() public view returns (address) {
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        return $.c3CallerProxy;
+    }
+
+    function dappID() public view returns (uint256) {
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        return $.dappID;
     }
 
     function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) internal virtual returns (bool);
@@ -31,23 +62,30 @@ abstract contract C3CallerDapp is IC3CallerDapp {
         onlyCaller
         returns (bool)
     {
-        require(_dappID == dappID, "dappID dismatch");
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        require(_dappID == $.dappID, "dappID dismatch");
         return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
     }
 
     function context() internal view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx) {
-        return IC3Caller(c3CallerProxy).context();
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        return IC3Caller($.c3CallerProxy).context();
     }
 
     function c3call(string memory _to, string memory _toChainID, bytes memory _data) internal {
-        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, "");
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, "");
     }
 
     function c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra) internal {
-        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, _extra);
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, _extra);
     }
 
     function c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal {
-        IC3Caller(c3CallerProxy).c3broadcast(dappID, _to, _toChainIDs, _data);
+        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
+        IC3Caller($.c3CallerProxy).c3broadcast($.dappID, _to, _toChainIDs, _data);
     }
+
+    function isValidSender(address txSender) external view virtual returns (bool);
 }

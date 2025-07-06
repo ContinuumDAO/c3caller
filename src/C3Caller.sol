@@ -1,55 +1,23 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
+
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { C3CallerStructLib } from "./C3CallerStructLib.sol";
 import { IC3Caller } from "./IC3Caller.sol";
 import { IC3CallerDapp } from "./dapp/IC3CallerDapp.sol";
 
-import { C3GovClientUpgradeable } from "./gov/C3GovClientUpgradeable.sol";
-import { IUUIDKeeper } from "./uuid/IUUIDKeeper.sol";
+import { C3GovClient } from "./gov/C3GovClient.sol";
+import { IC3UUIDKeeper } from "./uuid/IC3UUIDKeeper.sol";
 
-contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, OwnableUpgradeable, PausableUpgradeable {
+contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address;
     using Address for address payable;
-
-    event LogC3Call(
-        uint256 indexed dappID,
-        bytes32 indexed uuid,
-        address caller,
-        string toChainID,
-        string to,
-        bytes data,
-        bytes extra
-    );
-
-    event LogFallbackCall(uint256 indexed dappID, bytes32 indexed uuid, string to, bytes data, bytes reasons);
-
-    event LogExecCall(
-        uint256 indexed dappID,
-        address indexed to,
-        bytes32 indexed uuid,
-        string fromChainID,
-        string sourceTx,
-        bytes data,
-        bool success,
-        bytes reason
-    );
-
-    event LogExecFallback(
-        uint256 indexed dappID,
-        address indexed to,
-        bytes32 indexed uuid,
-        string fromChainID,
-        string sourceTx,
-        bytes data,
-        bytes reason
-    );
 
     struct C3Context {
         bytes32 swapID;
@@ -95,7 +63,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
         require(bytes(_to).length > 0, "C3Caller: empty _to");
         require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
         require(_data.length > 0, "C3Caller: empty calldata");
-        bytes32 _uuid = IUUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
+        bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
     }
 
@@ -132,7 +100,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
         require(_data.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
 
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
-            bytes32 _uuid = IUUIDKeeper(uuidKeeper).genUUID(_dappID, _to[i], _toChainIDs[i], _data);
+            bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to[i], _toChainIDs[i], _data);
             emit LogC3Call(_dappID, _uuid, _caller, _toChainIDs[i], _to[i], _data, "");
         }
     }
@@ -151,7 +119,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
         // check dappID
         require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
 
-        require(!IUUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
+        require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
 
         context = C3Context({ swapID: _message.uuid, fromChainID: _message.fromChainID, sourceTx: _message.sourceTx });
 
@@ -165,7 +133,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
 
         (bool ok, uint256 rs) = _toUint(result);
         if (success && ok && rs == 1) {
-            IUUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+            IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
             emit LogFallbackCall(
                 _dappID,
@@ -190,7 +158,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
         internal
     {
         require(_message.data.length > 0, "C3Caller: empty calldata");
-        require(!IUUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
+        require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
         require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
 
         require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
@@ -203,7 +171,7 @@ contract C3Caller is IC3Caller, UUPSUpgradeable, C3GovClientUpgradeable, Ownable
 
         context = C3Context({ swapID: "", fromChainID: "", sourceTx: "" });
 
-        IUUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+        IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
 
         emit LogExecFallback(
             _dappID, _message.to, _message.uuid, _message.fromChainID, _message.sourceTx, _message.data, _result

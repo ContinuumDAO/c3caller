@@ -1,10 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-// import {IC3GovClient} from "../gov/IC3GovClient.sol";
-
-interface IUUIDKeeper {
+interface IC3UUIDKeeper {
     function registerUUID(bytes32 uuid) external;
 
     function genUUID(uint256 dappID, string calldata to, string calldata toChainID, bytes calldata data)

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 interface IC3Governor {
     event NewProposal(bytes32 indexed uuid);
@@ -8,9 +8,25 @@ interface IC3Governor {
     // TODO: add isGov bool
     event C3GovernorLog(bytes32 indexed nonce, uint256 indexed toChainID, string to, bytes toData);
 
+    event LogChangeMPC(
+        address indexed oldMPC,
+        address indexed newMPC,
+        uint indexed effectiveTime,
+        uint256 chainID
+    );
+
+    event LogFallback(bytes4 selector, bytes data, bytes reason);
+    event LogChangeGov(address _gov, address gov);
+    event LogSendParams(
+        address target,
+        uint256 chainId,
+        bytes dataXChain
+    );
+
     function sendParams(bytes memory _data, bytes32 _nonce) external;
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external;
     function doGov(bytes32 _nonce, uint256 offset) external;
     function getProposalData(bytes32 _nonce, uint256 offset) external view returns (bytes memory, bool);
     function version() external pure returns (uint256);
+    // function isValidSender(address txSender) external view returns (bool);
 }

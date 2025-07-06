@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,8 +12,8 @@ import { C3GovClient } from "../gov/C3GovClient.sol";
 contract C3DappManager is C3GovClient, Pausable {
     using Strings for *;
     using SafeERC20 for IERC20;
-    // Dapp config
 
+    // Dapp config
     struct DappConfig {
         uint256 id;
         address appAdmin; // account who admin the application's config
@@ -23,20 +23,20 @@ contract C3DappManager is C3GovClient, Pausable {
 
     uint256 public dappID;
 
-    mapping(uint256 => DappConfig) private dappConfig;
-    mapping(string => uint256) public c3DappAddr;
-    mapping(uint256 => bool) public appBlacklist;
+    mapping (uint256 => DappConfig) private dappConfig;
+    mapping (string => uint256) public c3DappAddr;
+    mapping (uint256 => bool) public appBlacklist;
 
     // key is asset address, value is callPerByteFee
-    mapping(address => uint256) public feeCurrencies;
-    mapping(uint256 => mapping(address => uint256)) public dappStakePool;
+    mapping (address => uint256) public feeCurrencies;
+    mapping (uint256 => mapping(address => uint256)) public dappStakePool;
 
-    mapping(string => mapping(address => uint256)) public speChainFees;
+    mapping (string => mapping(address => uint256)) public speChainFees;
 
-    mapping(address => uint256) private fees;
+    mapping (address => uint256) private fees;
 
-    mapping(uint256 => mapping(string => string)) public mpcPubkey; // key is mpc address
-    mapping(uint256 => string[]) public mpcAddrs;
+    mapping (uint256 => mapping(string => string)) public mpcPubkey; // key is mpc address
+    mapping (uint256 => string[]) public mpcAddrs;
 
     event SetDAppConfig(
         uint256 indexed dappID, address indexed appAdmin, address indexed feeToken, string appDomain, string email
@@ -55,8 +55,8 @@ contract C3DappManager is C3GovClient, Pausable {
     event Withdraw(uint256 indexed dappID, address indexed token, uint256 amount, uint256 left);
     event Charging(uint256 indexed dappID, address indexed token, uint256 bill, uint256 amount, uint256 left);
 
-    constructor() {
-        initGov(msg.sender);
+    constructor () {
+        __C3GovClient_init(msg.sender);
     }
 
     function pause() public onlyGov {
@@ -128,7 +128,7 @@ contract C3DappManager is C3GovClient, Pausable {
         DappConfig memory config = dappConfig[_dappID];
 
         require(config.appAdmin != address(0), "C3M: app not exist");
-        require(msg.sender == gov || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || msg.sender == config.appAdmin, "C3M: forbid");
 
         _setDappAddrlist(_dappID, _whitelist);
     }
@@ -141,7 +141,7 @@ contract C3DappManager is C3GovClient, Pausable {
         DappConfig memory config = dappConfig[_dappID];
 
         require(config.appAdmin != address(0), "C3M: app not exist");
-        require(msg.sender == gov || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || msg.sender == config.appAdmin, "C3M: forbid");
 
         for (uint256 i = 0; i < _whitelist.length; i++) {
             require(c3DappAddr[_whitelist[i]] == _dappID, "C3M: addr not exist");
@@ -156,7 +156,7 @@ contract C3DappManager is C3GovClient, Pausable {
         DappConfig memory config = dappConfig[_dappID];
 
         require(config.appAdmin != address(0), "C3M: app not exist");
-        require(msg.sender == gov || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || msg.sender == config.appAdmin, "C3M: forbid");
         require(feeCurrencies[_feeToken] > 0, "C3M: fee token not supported");
 
         config.feeToken = _feeToken;
@@ -168,7 +168,7 @@ contract C3DappManager is C3GovClient, Pausable {
         DappConfig memory config = dappConfig[_dappID];
         require(config.appAdmin != address(0), "C3M: app not exist");
         require(_addrs.length == _pubkeys.length, "C3M: length dismatch");
-        require(msg.sender == gov || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || msg.sender == config.appAdmin, "C3M: forbid");
 
         for (uint256 index = 0; index < _addrs.length; index++) {
             mpcPubkey[_dappID][_addrs[index]] = _pubkeys[index];
@@ -180,7 +180,7 @@ contract C3DappManager is C3GovClient, Pausable {
     function removeTxSender(uint256 _dappID, string[] calldata _addrs) external {
         DappConfig memory config = dappConfig[_dappID];
         require(config.appAdmin != address(0), "C3M: app not exist");
-        require(msg.sender == gov || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || msg.sender == config.appAdmin, "C3M: forbid");
 
         for (uint256 index = 0; index < _addrs.length; index++) {
             string memory pk = mpcPubkey[_dappID][_addrs[index]];
@@ -200,7 +200,7 @@ contract C3DappManager is C3GovClient, Pausable {
         DappConfig storage config = dappConfig[_dappID];
 
         require(config.appAdmin != address(0), "C3M: app not exist");
-        require(msg.sender == gov || isOperator[msg.sender] || msg.sender == config.appAdmin, "C3M: forbid");
+        require(msg.sender == gov() || isOperator(msg.sender) || msg.sender == config.appAdmin, "C3M: forbid");
         config.appAdmin = _newAdmin;
     }
 
@@ -263,7 +263,7 @@ contract C3DappManager is C3GovClient, Pausable {
     }
 
     function withdrawFees(address[] calldata _tokens) external onlyGov {
-        _withdraw(_tokens, gov);
+        _withdraw(_tokens, gov());
     }
 
     function withdrawFeesTo(address[] calldata _tokens, address to) external onlyOperator {
