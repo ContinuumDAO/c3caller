@@ -2,35 +2,50 @@
 
 pragma solidity ^0.8.19;
 
+// import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3GovClient } from "./C3GovClient.sol";
+import { C3GovClientUpgradeable } from "./C3GovClientUpgradeable.sol";
 import { IC3Governor } from "./IC3Governor.sol";
 
-contract C3Governor is IC3Governor, C3GovClient {
+contract C3GovernorUpgradeable is IC3Governor, C3GovClientUpgradeable {
     using Strings for *;
 
     struct Proposal {
-        bytes[] proposalData;
-        bool[] failed;
+        bytes[] data;
+        bool[] hasFailed;
     }
 
-    mapping(bytes32 => Proposal) internal proposal;
+    /// @custom:storage-location erc7201:c3caller.storage.C3Governor
+    struct C3GovernorStorage {
+        mapping(bytes32 => Proposal) proposal;
+    }
 
-    constructor() {
-        initGov(msg.sender);
+    // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3Governor")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant C3GovernorStorageLocation =
+        0xaeb833df2c95c6ad4fba79fb2d58614f4067e4abf9a242627c00cf8ebb346000;
+
+    function _getC3GovernorStorage() private pure returns (C3GovernorStorage storage $) {
+        assembly {
+            $.slot := C3GovernorStorageLocation
+        }
+    }
+
+    function __C3Governor_init() internal initializer {
+        __C3GovClient_init(msg.sender);
     }
 
     function chainID() internal view returns (uint256) {
         return block.chainid;
     }
 
-    // TODO gen nonce
+    // TODO: gen nonce
     function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
         require(_data.length > 0, "C3Governor: No data to sendParams");
 
-        proposal[_nonce].proposalData.push(_data);
-        proposal[_nonce].failed.push(false);
+        C3GovernorStorage storage $ = _getC3GovernorStorage();
+        $.proposal[_nonce].data.push(_data);
+        $.proposal[_nonce].hasFailed.push(false);
 
         emit NewProposal(_nonce);
 
@@ -42,8 +57,9 @@ contract C3Governor is IC3Governor, C3GovClient {
 
         for (uint256 index = 0; index < _data.length; index++) {
             require(_data[index].length > 0, "C3Governor: No data passed to sendParams");
-            proposal[_nonce].proposalData.push(_data[index]);
-            proposal[_nonce].failed.push(false);
+            C3GovernorStorage storage $ = _getC3GovernorStorage();
+            $.proposal[_nonce].data.push(_data[index]);
+            $.proposal[_nonce].hasFailed.push(false);
 
             _c3gov(_nonce, index);
         }
@@ -52,24 +68,26 @@ contract C3Governor is IC3Governor, C3GovClient {
 
     // Anyone can resend one of the cross chain calls in proposalId if it failed
     function doGov(bytes32 _nonce, uint256 offset) external {
-        require(
-            offset < proposal[_nonce].proposalData.length, "C3Governor: Reading beyond the length of the offset array"
-        );
-        require(proposal[_nonce].failed[offset] == false, "C3Governor: Do not resend if it did not fail");
+        C3GovernorStorage storage $ = _getC3GovernorStorage();
+        require(offset < $.proposal[_nonce].data.length, "C3Governor: Reading beyond the length of the offset array");
+        require($.proposal[_nonce].hasFailed[offset] == false, "C3Governor: Do not resend if it did not fail");
 
         _c3gov(_nonce, offset);
     }
 
     function getProposalData(bytes32 _nonce, uint256 offset) external view returns (bytes memory, bool) {
-        return (proposal[_nonce].proposalData[offset], proposal[_nonce].failed[offset]);
+        C3GovernorStorage storage $ = _getC3GovernorStorage();
+        return ($.proposal[_nonce].data[offset], $.proposal[_nonce].hasFailed[offset]);
     }
 
     function _c3gov(bytes32 _nonce, uint256 offset) internal {
+        C3GovernorStorage storage $ = _getC3GovernorStorage();
+
         uint256 chainId;
         string memory target;
         bytes memory remoteData;
 
-        bytes memory rawData = proposal[_nonce].proposalData[offset];
+        bytes memory rawData = $.proposal[_nonce].data[offset];
         // TODO add flag which config using gov to send or operator
         (chainId, target, remoteData) = abi.decode(rawData, (uint256, string, bytes));
 
@@ -77,10 +95,10 @@ contract C3Governor is IC3Governor, C3GovClient {
             address _to = toAddress(target);
             (bool success,) = _to.call(remoteData);
             if (success) {
-                proposal[_nonce].failed[offset] = true;
+                $.proposal[_nonce].hasFailed[offset] = true;
             }
         } else {
-            proposal[_nonce].failed[offset] = true;
+            $.proposal[_nonce].hasFailed[offset] = true;
             emit C3GovernorLog(_nonce, chainId, target, remoteData);
         }
     }

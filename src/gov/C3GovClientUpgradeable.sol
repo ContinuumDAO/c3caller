@@ -2,21 +2,22 @@
 
 pragma solidity ^0.8.19;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import {IC3GovClient} from "./IC3GovClient.sol";
+import { IC3GovClient } from "./IC3GovClient.sol";
 
 contract C3GovClientUpgradeable is IC3GovClient, Initializable {
     /// @custom:storage-location erc7201:c3caller.storage.C3GovClient
     struct C3GovClientStorage {
         address gov;
         address pendingGov;
-        mapping (address => bool) isOperator;
+        mapping(address => bool) isOperator;
         address[] operators;
     }
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant C3GovClientStorageLocation = 0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+    bytes32 private constant C3GovClientStorageLocation =
+        0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
 
     function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
         assembly {
@@ -32,10 +33,7 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
 
     modifier onlyOperator() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        require(
-            msg.sender == $.gov || $.isOperator[msg.sender],
-            "C3Gov: only Operator"
-        );
+        require(msg.sender == $.gov || $.isOperator[msg.sender], "C3Gov: only Operator");
         _;
     }
 

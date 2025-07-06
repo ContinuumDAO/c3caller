@@ -3,17 +3,9 @@
 pragma solidity ^0.8.19;
 
 interface IC3GovClient {
-    event ChangeGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
+    event ChangeGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
 
-    event ApplyGov(
-        address indexed oldGov,
-        address indexed newGov,
-        uint256 timestamp
-    );
+    event ApplyGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
 
     event AddOperator(address indexed op);
 
