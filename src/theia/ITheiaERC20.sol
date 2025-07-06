@@ -17,16 +17,9 @@ interface ITheiaERC20 {
 
     function revokeMinter(address _auth) external;
 
-    function depositVault(
-        uint256 amount,
-        address to
-    ) external returns (uint256);
+    function depositVault(uint256 amount, address to) external returns (uint256);
 
-    function withdrawVault(
-        address from,
-        uint256 amount,
-        address to
-    ) external returns (uint256);
+    function withdrawVault(address from, uint256 amount, address to) external returns (uint256);
 
     function underlying() external view returns (address);
 

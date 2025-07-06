@@ -2,18 +2,15 @@
 
 pragma solidity ^0.8.19;
 
-import {IC3Caller} from "../IC3Caller.sol";
-import {IC3CallerDapp} from "./IC3CallerDapp.sol";
+import { IC3Caller } from "../IC3Caller.sol";
+import { IC3CallerDapp } from "./IC3CallerDapp.sol";
 
 abstract contract C3CallerDapp is IC3CallerDapp {
     address public c3CallerProxy;
     uint256 public dappID;
 
     modifier onlyCaller() {
-        require(
-            IC3Caller(c3CallerProxy).isCaller(msg.sender),
-            "C3CallerDapp: onlyCaller"
-        );
+        require(IC3Caller(c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");
         _;
     }
 
@@ -26,72 +23,31 @@ abstract contract C3CallerDapp is IC3CallerDapp {
         return IC3Caller(c3CallerProxy).isCaller(addr);
     }
 
-    function _c3Fallback(
-        bytes4 selector,
-        bytes calldata data,
-        bytes calldata reason
-    ) internal virtual returns (bool);
+    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) internal virtual returns (bool);
 
-    function c3Fallback(
-        uint256 _dappID,
-        bytes calldata _data,
-        bytes calldata _reason
-    ) external override onlyCaller returns (bool) {
+    function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason)
+        external
+        override
+        onlyCaller
+        returns (bool)
+    {
         require(_dappID == dappID, "dappID dismatch");
         return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
     }
 
-    function context()
-        internal
-        view
-        returns (
-            bytes32 uuid,
-            string memory fromChainID,
-            string memory sourceTx
-        )
-    {
+    function context() internal view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx) {
         return IC3Caller(c3CallerProxy).context();
     }
 
-    function c3call(
-        string memory _to,
-        string memory _toChainID,
-        bytes memory _data
-    ) internal {
-        IC3Caller(c3CallerProxy).c3call(
-            dappID,
-            _to,
-            _toChainID,
-            _data,
-            ""
-        );
+    function c3call(string memory _to, string memory _toChainID, bytes memory _data) internal {
+        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, "");
     }
 
-    function c3call(
-        string memory _to,
-        string memory _toChainID,
-        bytes memory _data,
-        bytes memory _extra
-    ) internal {
-        IC3Caller(c3CallerProxy).c3call(
-            dappID,
-            _to,
-            _toChainID,
-            _data,
-            _extra
-        );
+    function c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra) internal {
+        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, _extra);
     }
 
-    function c3broadcast(
-        string[] memory _to,
-        string[] memory _toChainIDs,
-        bytes memory _data
-    ) internal {
-        IC3Caller(c3CallerProxy).c3broadcast(
-            dappID,
-            _to,
-            _toChainIDs,
-            _data
-        );
+    function c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal {
+        IC3Caller(c3CallerProxy).c3broadcast(dappID, _to, _toChainIDs, _data);
     }
 }

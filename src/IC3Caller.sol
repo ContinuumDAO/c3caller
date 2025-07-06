@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.19;
 
-import {C3CallerStructLib} from "./C3CallerStructLib.sol";
+import { C3CallerStructLib } from "./C3CallerStructLib.sol";
 
-import {IC3GovClient} from "./gov/IC3GovClient.sol";
+import { IC3GovClient } from "./gov/IC3GovClient.sol";
 
 interface IC3Caller is IC3GovClient {
     function isExecutor(address sender) external returns (bool);
