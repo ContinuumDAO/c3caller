@@ -7,7 +7,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { C3GovClient } from "../gov/C3GovClient.sol";
 import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
 
-contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
+contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
     address public admin;
 
     mapping(bytes32 => bool) public completedSwapin;
