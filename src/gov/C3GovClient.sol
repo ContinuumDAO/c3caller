@@ -11,12 +11,13 @@ contract C3GovClient is IC3GovClient, Initializable {
     struct C3GovClientStorage {
         address gov;
         address pendingGov;
-        mapping (address => bool) isOperator;
+        mapping(address => bool) isOperator;
         address[] operators;
     }
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant C3GovClientStorageLocation = 0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+    bytes32 private constant C3GovClientStorageLocation =
+        0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
 
     function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
         assembly {

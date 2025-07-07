@@ -4,14 +4,14 @@ pragma solidity ^0.8.22;
 
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
 import { C3GovClient } from "../gov/C3GovClient.sol";
+import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
 
 contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
     address public admin;
 
-    mapping (bytes32 => bool) public completedSwapin;
-    mapping (bytes32 => uint256) public uuid2Nonce;
+    mapping(bytes32 => bool) public completedSwapin;
+    mapping(bytes32 => uint256) public uuid2Nonce;
 
     uint256 public currentNonce;
 
@@ -82,5 +82,5 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable 
         return abi.encode(address(this), from, block.chainid, dappID, to, toChainID, nonce, data);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 }

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IC3Caller } from "../IC3Caller.sol";
 import { IC3CallerDapp } from "./IC3CallerDapp.sol";
@@ -15,7 +15,8 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
     }
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3CallerDapp")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant C3CallerDappStorageLocation = 0xa39433114fd213b64ea52624936c26398cba31e0774cfae377a12cb547f1bb00;
+    bytes32 private constant C3CallerDappStorageLocation =
+        0xa39433114fd213b64ea52624936c26398cba31e0774cfae377a12cb547f1bb00;
 
     function _getC3CallerDappStorage() private pure returns (C3CallerDappStorage storage $) {
         assembly {
@@ -29,7 +30,7 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         $.dappID = _dappID;
     }
 
-    constructor () {
+    constructor() {
         _disableInitializers();
     }
 

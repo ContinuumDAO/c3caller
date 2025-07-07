@@ -4,8 +4,8 @@ pragma solidity ^0.8.22;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { IC3Governor } from "./IC3Governor.sol";
 import { C3GovernDapp } from "./C3GovernDapp.sol";
+import { IC3Governor } from "./IC3Governor.sol";
 
 contract C3Governor is IC3Governor, C3GovernDapp {
     using Strings for *;
@@ -15,15 +15,11 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         bool[] hasFailed;
     }
 
-    mapping (bytes32 => Proposal) private _proposal;
+    mapping(bytes32 => Proposal) private _proposal;
     bytes32 public proposalId;
 
-    function proposal(bytes32 _proposalId, uint256 offset) public view returns (bytes memory, bool) {
-        Proposal memory proposal_ = _proposal[_proposalId];
-        return (proposal_.data[offset], proposal_.hasFailed[offset]);
-    }
-
-    constructor (address _gov, address _c3CallerProxy, uint256 _dappID, address _txSender) {
+    // TODO: make the upgradeable contract work with this non-upgradeable contract
+    constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID) {
         __C3GovernDapp_init(_gov, _c3CallerProxy, _txSender, _dappID);
     }
 
@@ -32,7 +28,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
     }
 
     // TODO: gen nonce
-    function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
+    function sendParams(bytes memory _data, bytes32 _nonce) external /*onlyGov*/ {
         require(_data.length > 0, "C3Governor: No data to sendParams");
 
         _proposal[_nonce].data.push(_data);
@@ -43,7 +39,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         _c3gov(_nonce, 0);
     }
 
-    function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external onlyGov {
+    function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external /*onlyGov*/ {
         require(_data.length > 0, "C3Governor: No data to sendParams");
 
         for (uint256 index = 0; index < _data.length; index++) {
@@ -128,18 +124,22 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         return (1);
     }
 
-    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) internal override returns (bool) {
+    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason)
+        internal
+        override
+        returns (bool)
+    {
         uint256 len = proposalLength();
 
-        _proposal[proposalId].hasFailed[len-1] = true;
+        _proposal[proposalId].hasFailed[len - 1] = true;
 
         emit LogFallback(selector, data, reason);
         return true;
     }
 
     // The number of cross chain invocations in proposalId
-    function proposalLength() public view returns(uint256) {
+    function proposalLength() public view returns (uint256) {
         uint256 len = _proposal[proposalId].data.length;
-        return(len);
+        return (len);
     }
 }

@@ -23,20 +23,20 @@ contract C3DappManager is C3GovClient, Pausable {
 
     uint256 public dappID;
 
-    mapping (uint256 => DappConfig) private dappConfig;
-    mapping (string => uint256) public c3DappAddr;
-    mapping (uint256 => bool) public appBlacklist;
+    mapping(uint256 => DappConfig) private dappConfig;
+    mapping(string => uint256) public c3DappAddr;
+    mapping(uint256 => bool) public appBlacklist;
 
     // key is asset address, value is callPerByteFee
-    mapping (address => uint256) public feeCurrencies;
-    mapping (uint256 => mapping(address => uint256)) public dappStakePool;
+    mapping(address => uint256) public feeCurrencies;
+    mapping(uint256 => mapping(address => uint256)) public dappStakePool;
 
-    mapping (string => mapping(address => uint256)) public speChainFees;
+    mapping(string => mapping(address => uint256)) public speChainFees;
 
-    mapping (address => uint256) private fees;
+    mapping(address => uint256) private fees;
 
-    mapping (uint256 => mapping(string => string)) public mpcPubkey; // key is mpc address
-    mapping (uint256 => string[]) public mpcAddrs;
+    mapping(uint256 => mapping(string => string)) public mpcPubkey; // key is mpc address
+    mapping(uint256 => string[]) public mpcAddrs;
 
     event SetDAppConfig(
         uint256 indexed dappID, address indexed appAdmin, address indexed feeToken, string appDomain, string email
@@ -55,7 +55,7 @@ contract C3DappManager is C3GovClient, Pausable {
     event Withdraw(uint256 indexed dappID, address indexed token, uint256 amount, uint256 left);
     event Charging(uint256 indexed dappID, address indexed token, uint256 bill, uint256 amount, uint256 left);
 
-    constructor () {
+    constructor() {
         __C3GovClient_init(msg.sender);
     }
 

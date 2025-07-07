@@ -5,8 +5,9 @@ pragma solidity ^0.8.22;
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import { C3CallerStructLib } from "./C3CallerStructLib.sol";
 import { IC3Caller } from "./IC3Caller.sol";
