@@ -30,10 +30,6 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         $.dappID = _dappID;
     }
 
-    constructor() {
-        _disableInitializers();
-    }
-
     modifier onlyCaller() {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         require(IC3Caller($.c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");

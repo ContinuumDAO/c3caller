@@ -49,10 +49,6 @@ abstract contract C3GovernDapp is IC3GovernDapp, C3CallerDapp {
         $.txSenders[_txSender] = true;
     }
 
-    constructor() {
-        _disableInitializers();
-    }
-
     // TODO: replace c3caller.isCaller(address) with something else
     modifier onlyGov() {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();

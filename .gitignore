@@ -12,3 +12,6 @@ docs/
 
 # Dotenv file
 .env
+
+# NodeJS
+node_modules/
