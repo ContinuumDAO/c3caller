@@ -113,7 +113,13 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         _c3broadcast(_targets, _toChainIDs, _data);
     }
 
-    function isValidSender(address txSender) external view virtual override(IC3CallerDapp, C3CallerDapp) returns (bool) {
+    function isValidSender(address txSender)
+        external
+        view
+        virtual
+        override(IC3CallerDapp, C3CallerDapp)
+        returns (bool)
+    {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
         return $.txSenders[txSender];
     }

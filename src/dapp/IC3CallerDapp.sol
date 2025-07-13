@@ -3,7 +3,6 @@
 pragma solidity ^0.8.22;
 
 interface IC3CallerDapp {
-
     // INFO: externals
     function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason) external returns (bool);
     function isValidSender(address txSender) external view returns (bool);

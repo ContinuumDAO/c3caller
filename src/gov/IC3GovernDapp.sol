@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {IC3CallerDapp} from "../dapp/IC3CallerDapp.sol";
+import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
 
 interface IC3GovernDapp is IC3CallerDapp {
     event LogChangeGov(address indexed oldGov, address indexed newGov, uint256 indexed effectiveTime, uint256 chainID);
@@ -22,5 +22,6 @@ interface IC3GovernDapp is IC3CallerDapp {
     function gov() external view returns (address);
 
     // INFO: internals
-    // function __C3GovernDapp_init(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID) internal onlyInitializing;
+    // function __C3GovernDapp_init(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID) internal
+    // onlyInitializing;
 }

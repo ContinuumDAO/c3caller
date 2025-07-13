@@ -77,7 +77,10 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, "");
     }
 
-    function _c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra) internal virtual {
+    function _c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra)
+        internal
+        virtual
+    {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, _extra);
     }
@@ -87,7 +90,12 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         IC3Caller($.c3CallerProxy).c3broadcast($.dappID, _to, _toChainIDs, _data);
     }
 
-    function _context() internal view virtual returns (bytes32 uuid, string memory fromChainID, string memory sourceTx) {
+    function _context()
+        internal
+        view
+        virtual
+        returns (bytes32 uuid, string memory fromChainID, string memory sourceTx)
+    {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         return IC3Caller($.c3CallerProxy).context();
     }
