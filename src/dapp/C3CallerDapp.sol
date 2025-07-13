@@ -25,7 +25,7 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         }
     }
 
-    function __C3CallerDapp_init(address _c3CallerProxy, uint256 _dappID) internal virtual onlyInitializing {
+    function __C3CallerDapp_init(address _c3CallerProxy, uint256 _dappID) internal onlyInitializing {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         $.c3CallerProxy = _c3CallerProxy;
         $.dappID = _dappID;
