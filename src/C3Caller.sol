@@ -9,7 +9,6 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-import { C3CallerStructLib } from "./C3CallerStructLib.sol";
 import { IC3Caller } from "./IC3Caller.sol";
 import { IC3CallerDapp } from "./dapp/IC3CallerDapp.sol";
 
@@ -114,7 +113,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         _c3broadcast(_dappID, msg.sender, _to, _toChainIDs, _data);
     }
 
-    function _execute(uint256 _dappID, address _txSender, C3CallerStructLib.C3EvmMessage calldata _message) internal {
+    function _execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
         require(_message.data.length > 0, "C3Caller: empty calldata");
         require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
         // check dappID
@@ -147,7 +146,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     // called by mpc network
-    function execute(uint256 _dappID, C3CallerStructLib.C3EvmMessage calldata _message)
+    function execute(uint256 _dappID, C3EvmMessage calldata _message)
         external
         onlyOperator
         whenNotPaused
@@ -155,7 +154,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         _execute(_dappID, msg.sender, _message);
     }
 
-    function _c3Fallback(uint256 _dappID, address _txSender, C3CallerStructLib.C3EvmMessage calldata _message)
+    function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message)
         internal
     {
         require(_message.data.length > 0, "C3Caller: empty calldata");
@@ -180,7 +179,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     // called by mpc network
-    function c3Fallback(uint256 _dappID, C3CallerStructLib.C3EvmMessage calldata _message)
+    function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message)
         external
         onlyOperator
         whenNotPaused

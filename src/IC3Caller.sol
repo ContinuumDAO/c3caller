@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import { C3CallerStructLib } from "./C3CallerStructLib.sol";
+import { C3CallerStructLib } from "./utils/C3CallerStructLib.sol";
 
 import { IC3GovClient } from "./gov/IC3GovClient.sol";
 
@@ -40,6 +40,15 @@ interface IC3Caller is IC3GovClient {
         bytes reason
     );
 
+    struct C3EvmMessage {
+        bytes32 uuid;
+        address to;
+        string fromChainID;
+        string sourceTx;
+        string fallbackTo;
+        bytes data;
+    }
+
     function isExecutor(address sender) external returns (bool);
 
     function isCaller(address sender) external returns (bool);
@@ -59,7 +68,7 @@ interface IC3Caller is IC3GovClient {
     function c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)
         external;
 
-    function execute(uint256 _dappID, C3CallerStructLib.C3EvmMessage calldata message) external;
+    function execute(uint256 _dappID, C3EvmMessage calldata message) external;
 
-    function c3Fallback(uint256 dappID, C3CallerStructLib.C3EvmMessage calldata message) external;
+    function c3Fallback(uint256 dappID, C3EvmMessage calldata message) external;
 }
