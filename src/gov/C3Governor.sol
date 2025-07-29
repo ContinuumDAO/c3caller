@@ -4,9 +4,9 @@ pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { C3CallerUtils, Uint } from "../utils/C3CallerUtils.sol";
 import { C3GovernDapp } from "./C3GovernDapp.sol";
 import { IC3Governor } from "./IC3Governor.sol";
-import {Uint, C3CallerUtils} from "../utils/C3CallerUtils.sol";
 
 contract C3Governor is IC3Governor, C3GovernDapp {
     using Strings for *;
@@ -32,7 +32,9 @@ contract C3Governor is IC3Governor, C3GovernDapp {
     // TODO: gen nonce
     function sendParams(bytes memory _data, bytes32 _nonce) external /*onlyGov*/ {
         // require(_data.length > 0, "C3Governor: No data to sendParams");
-        if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
+        if (_data.length == 0) {
+            revert C3Governor_InvalidLength(Uint.Calldata);
+        }
 
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
@@ -44,51 +46,59 @@ contract C3Governor is IC3Governor, C3GovernDapp {
 
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external /*onlyGov*/ {
         // require(_data.length > 0, "C3Governor: No data to sendParams");
-        if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
+        if (_data.length == 0) {
+            revert C3Governor_InvalidLength(Uint.Calldata);
+        }
 
-        for (uint256 index = 0; index < _data.length; index++) {
+        for (uint256 _index = 0; _index < _data.length; _index++) {
             // require(_data[index].length > 0, "C3Governor: No data passed to sendParams");
-            if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
-            _proposal[_nonce].data.push(_data[index]);
+            if (_data.length == 0) {
+                revert C3Governor_InvalidLength(Uint.Calldata);
+            }
+            _proposal[_nonce].data.push(_data[_index]);
             _proposal[_nonce].hasFailed.push(false);
 
-            _c3gov(_nonce, index);
+            _c3gov(_nonce, _index);
         }
         emit NewProposal(_nonce);
     }
 
     // Anyone can resend one of the cross chain calls in proposalId if it failed
-    function doGov(bytes32 _nonce, uint256 offset) external {
+    function doGov(bytes32 _nonce, uint256 _offset) external {
         // require(offset < _proposal[_nonce].data.length, "C3Governor: Reading beyond the length of the offset array");
-        if (offset >= _proposal[_nonce].data.length) revert C3Governor_OutOfBounds();
+        if (_offset >= _proposal[_nonce].data.length) {
+            revert C3Governor_OutOfBounds();
+        }
         // require(_proposal[_nonce].hasFailed[offset] == true, "C3Governor: Do not resend if it did not fail");
-        if (!_proposal[_nonce].hasFailed[offset]) revert C3Governor_HasNotFailed();
+        if (!_proposal[_nonce].hasFailed[_offset]) {
+            revert C3Governor_HasNotFailed();
+        }
 
-        _c3gov(_nonce, offset);
+        _c3gov(_nonce, _offset);
     }
 
-    function getProposalData(bytes32 _nonce, uint256 offset) external view returns (bytes memory, bool) {
-        return (_proposal[_nonce].data[offset], _proposal[_nonce].hasFailed[offset]);
+    function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
+        return (_proposal[_nonce].data[_offset], _proposal[_nonce].hasFailed[_offset]);
     }
 
-    function _c3gov(bytes32 _nonce, uint256 offset) internal {
-        uint256 chainId;
-        string memory target;
-        bytes memory remoteData;
+    function _c3gov(bytes32 _nonce, uint256 _offset) internal {
+        uint256 _chainId;
+        string memory _target;
+        bytes memory _remoteData;
 
-        bytes memory rawData = _proposal[_nonce].data[offset];
+        bytes memory _rawData = _proposal[_nonce].data[_offset];
         // TODO add flag which config using gov to send or operator
-        (chainId, target, remoteData) = abi.decode(rawData, (uint256, string, bytes));
+        (_chainId, _target, _remoteData) = abi.decode(_rawData, (uint256, string, bytes));
 
-        if (chainId == chainID()) {
-            address _to = target.toAddress();
-            (bool success,) = _to.call(remoteData);
-            if (success) {
-                _proposal[_nonce].hasFailed[offset] = true;
+        if (_chainId == chainID()) {
+            address _to = _target.toAddress();
+            (bool _success,) = _to.call(_remoteData);
+            if (_success) {
+                _proposal[_nonce].hasFailed[_offset] = true;
             }
         } else {
-            _proposal[_nonce].hasFailed[offset] = true;
-            emit C3GovernorLog(_nonce, chainId, target, remoteData);
+            _proposal[_nonce].hasFailed[_offset] = true;
+            emit C3GovernorLog(_nonce, _chainId, _target, _remoteData);
         }
     }
 
@@ -96,22 +106,22 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         return (1);
     }
 
-    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason)
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override
         returns (bool)
     {
-        uint256 len = proposalLength();
+        uint256 _len = proposalLength();
 
-        _proposal[proposalId].hasFailed[len - 1] = true;
+        _proposal[proposalId].hasFailed[_len - 1] = true;
 
-        emit LogFallback(selector, data, reason);
+        emit LogFallback(_selector, _data, _reason);
         return true;
     }
 
     // The number of cross chain invocations in proposalId
     function proposalLength() public view returns (uint256) {
-        uint256 len = _proposal[proposalId].data.length;
-        return (len);
+        uint256 _len = _proposal[proposalId].data.length;
+        return (_len);
     }
 }

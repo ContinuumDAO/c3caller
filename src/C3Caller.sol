@@ -15,7 +15,7 @@ import { IC3CallerDapp } from "./dapp/IC3CallerDapp.sol";
 import { C3GovClient } from "./gov/C3GovClient.sol";
 import { IC3UUIDKeeper } from "./uuid/IC3UUIDKeeper.sol";
 
-import {Uint, Account} from "./utils/C3CallerUtils.sol";
+import { Account, Uint } from "./utils/C3CallerUtils.sol";
 
 contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address;
@@ -40,17 +40,17 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOperator { }
 
-    function isExecutor(address sender) external view returns (bool) {
-        return isOperator(sender);
+    function isExecutor(address _sender) external view returns (bool) {
+        return isOperator(_sender);
     }
 
     function c3caller() public view returns (address) {
         return address(this);
     }
 
-    function isCaller(address sender) external view returns (bool) {
+    function isCaller(address _sender) external view returns (bool) {
         // return sender == c3caller;
-        return sender == address(this);
+        return _sender == address(this);
     }
 
     function _c3call(
@@ -62,13 +62,21 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         bytes memory _extra
     ) internal {
         // require(_dappID > 0, "C3Caller: empty dappID");
-        if (_dappID == 0) revert C3Caller_IsZero(Uint.DAppID);
+        if (_dappID == 0) {
+            revert C3Caller_IsZero(Uint.DAppID);
+        }
         // require(bytes(_to).length > 0, "C3Caller: empty _to");
-        if (bytes(_to).length == 0) revert C3Caller_InvalidAccountLength(Account.To);
+        if (bytes(_to).length == 0) {
+            revert C3Caller_InvalidAccountLength(Account.To);
+        }
         // require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
-        if (bytes(_toChainID).length == 0) revert C3Caller_InvalidLength(Uint.ChainID);
+        if (bytes(_toChainID).length == 0) {
+            revert C3Caller_InvalidLength(Uint.ChainID);
+        }
         // require(_data.length > 0, "C3Caller: empty calldata");
-        if (_data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        if (_data.length == 0) {
+            revert C3Caller_InvalidLength(Uint.Calldata);
+        }
         bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
     }
@@ -100,15 +108,25 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         bytes calldata _data
     ) internal {
         // require(_dappID > 0, "C3Caller: empty dappID");
-        if (_dappID == 0) revert C3Caller_IsZero(Uint.DAppID);
+        if (_dappID == 0) {
+            revert C3Caller_IsZero(Uint.DAppID);
+        }
         // require(_to.length > 0, "C3Caller: empty _to");
-        if (_to.length == 0) revert C3Caller_InvalidAccountLength(Account.To);
+        if (_to.length == 0) {
+            revert C3Caller_InvalidAccountLength(Account.To);
+        }
         // require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
-        if (_toChainIDs.length == 0) revert C3Caller_InvalidLength(Uint.ChainID);
+        if (_toChainIDs.length == 0) {
+            revert C3Caller_InvalidLength(Uint.ChainID);
+        }
         // require(_data.length > 0, "C3Caller: empty calldata");
-        if (_data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        if (_data.length == 0) {
+            revert C3Caller_InvalidLength(Uint.Calldata);
+        }
         // require(_data.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
-        if (_data.length != _toChainIDs.length) revert C3Caller_LengthMismatch(Uint.Calldata, Uint.ChainID);
+        if (_data.length != _toChainIDs.length) {
+            revert C3Caller_LengthMismatch(Uint.Calldata, Uint.ChainID);
+        }
 
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
             bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to[i], _toChainIDs[i], _data);
@@ -126,16 +144,24 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
 
     function _execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
         // require(_message.data.length > 0, "C3Caller: empty calldata");
-        if (_message.data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        if (_message.data.length == 0) {
+            revert C3Caller_InvalidLength(Uint.Calldata);
+        }
         // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+            revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+        }
         // check dappID
         // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
         uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
-        if (expectedDAppID != _dappID) revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
+        if (expectedDAppID != _dappID) {
+            revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
+        }
 
         //  require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
-        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
+        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
+            revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
+        }
 
         context = C3Context({ swapID: _message.uuid, fromChainID: _message.fromChainID, sourceTx: _message.sourceTx });
 
@@ -162,27 +188,29 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     // called by mpc network
-    function execute(uint256 _dappID, C3EvmMessage calldata _message)
-        external
-        onlyOperator
-        whenNotPaused
-    {
+    function execute(uint256 _dappID, C3EvmMessage calldata _message) external onlyOperator whenNotPaused {
         _execute(_dappID, msg.sender, _message);
     }
 
-    function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message)
-        internal
-    {
+    function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
         // require(_message.data.length > 0, "C3Caller: empty calldata");
-        if (_message.data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        if (_message.data.length == 0) {
+            revert C3Caller_InvalidLength(Uint.Calldata);
+        }
         // require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
-        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
+        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
+            revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
+        }
         // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+            revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+        }
 
         // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
         uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
-        if (expectedDAppID != _dappID) revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
+        if (expectedDAppID != _dappID) {
+            revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
+        }
 
         context = C3Context({ swapID: _message.uuid, fromChainID: _message.fromChainID, sourceTx: _message.sourceTx });
 
@@ -200,11 +228,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     // called by mpc network
-    function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message)
-        external
-        onlyOperator
-        whenNotPaused
-    {
+    function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external onlyOperator whenNotPaused {
         _c3Fallback(_dappID, msg.sender, _message);
     }
 

@@ -10,8 +10,9 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import { C3CallerDapp } from "../dapp/C3CallerDapp.sol";
 import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
+
+import { Account, Uint } from "../utils/C3CallerUtils.sol";
 import { IC3GovernDapp } from "./IC3GovernDapp.sol";
-import {Uint, Account } from "../utils/C3CallerUtils.sol";
 
 abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     using Strings for *;
@@ -52,7 +53,9 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     modifier onlyGov() {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
         // require(msg.sender == gov() || _isCaller(msg.sender), "Gov FORBIDDEN");
-        if (msg.sender != gov() && !_isCaller(msg.sender)) revert C3GovernDApp_OnlyAuthorized(Account.Sender, Account.GovOrC3Caller);
+        if (msg.sender != gov() && !_isCaller(msg.sender)) {
+            revert C3GovernDApp_OnlyAuthorized(Account.Sender, Account.GovOrC3Caller);
+        }
         _;
     }
 
@@ -74,12 +77,14 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         return $._oldGov;
     }
 
-    function changeGov(address newGov) external virtual onlyGov {
+    function changeGov(address _newGov) external virtual onlyGov {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
         // require(newGov != address(0), "newGov is empty");
-        if (newGov == address(0)) revert C3GovernDApp_IsZeroAddress(Account.Gov);
+        if (_newGov == address(0)) {
+            revert C3GovernDApp_IsZeroAddress(Account.Gov);
+        }
         $._oldGov = gov();
-        $._newGov = newGov;
+        $._newGov = _newGov;
         $._newGovEffectiveTime = block.timestamp + $.delay;
         emit LogChangeGov($._oldGov, $._newGov, $._newGovEffectiveTime, block.chainid);
     }
@@ -89,16 +94,16 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         $.delay = _delay;
     }
 
-    function addTxSender(address txSender) external virtual onlyGov {
+    function addTxSender(address _txSender) external virtual onlyGov {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
-        $.txSenders[txSender] = true;
-        emit LogTxSender(txSender, true);
+        $.txSenders[_txSender] = true;
+        emit LogTxSender(_txSender, true);
     }
 
-    function disableTxSender(address txSender) external virtual onlyGov {
+    function disableTxSender(address _txSender) external virtual onlyGov {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
-        $.txSenders[txSender] = false;
-        emit LogTxSender(txSender, false);
+        $.txSenders[_txSender] = false;
+        emit LogTxSender(_txSender, false);
     }
 
     function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov {
@@ -111,11 +116,13 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         onlyGov
     {
         // require(_targets.length == _toChainIDs.length);
-        if (_targets.length != _toChainIDs.length) revert C3GovernDApp_LengthMismatch(Uint.Target, Uint.ChainID);
+        if (_targets.length != _toChainIDs.length) {
+            revert C3GovernDApp_LengthMismatch(Uint.Target, Uint.ChainID);
+        }
         _c3broadcast(_targets, _toChainIDs, _data);
     }
 
-    function isValidSender(address txSender)
+    function isValidSender(address _txSender)
         external
         view
         virtual
@@ -123,6 +130,6 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         returns (bool)
     {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
-        return $.txSenders[txSender];
+        return $.txSenders[_txSender];
     }
 }

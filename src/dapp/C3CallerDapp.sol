@@ -5,8 +5,9 @@ pragma solidity 0.8.27;
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IC3Caller } from "../IC3Caller.sol";
+
+import { Account } from "../utils/C3CallerUtils.sol";
 import { IC3CallerDapp } from "./IC3CallerDapp.sol";
-import {Account} from "../utils/C3CallerUtils.sol";
 
 abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
     /// @custom:storage-location erc7201:c3caller.storage.C3CallerDapp
@@ -36,7 +37,9 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
     modifier onlyCaller() {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         // require(IC3Caller($.c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");
-        if (IC3Caller($.c3CallerProxy).isCaller(msg.sender)) revert C3CallerDApp_OnlyAuthorized(Account.Sender, Account.C3Caller);
+        if (IC3Caller($.c3CallerProxy).isCaller(msg.sender)) {
+            revert C3CallerDApp_OnlyAuthorized(Account.Sender, Account.C3Caller);
+        }
         _;
     }
 
@@ -50,11 +53,13 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
     {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         // require(_dappID == $.dappID, "dappID dismatch");
-        if (_dappID != $.dappID) revert C3CallerDApp_InvalidDAppID($.dappID, _dappID);
+        if (_dappID != $.dappID) {
+            revert C3CallerDApp_InvalidDAppID($.dappID, _dappID);
+        }
         return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
     }
 
-    function isValidSender(address txSender) external view virtual returns (bool);
+    function isValidSender(address _txSender) external view virtual returns (bool);
 
     // INFO: public
     function c3CallerProxy() public view virtual returns (address) {
@@ -68,12 +73,15 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
     }
 
     // INFO: internal
-    function _isCaller(address addr) internal virtual returns (bool) {
+    function _isCaller(address _addr) internal virtual returns (bool) {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        return IC3Caller($.c3CallerProxy).isCaller(addr);
+        return IC3Caller($.c3CallerProxy).isCaller(_addr);
     }
 
-    function _c3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) internal virtual returns (bool);
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+        internal
+        virtual
+        returns (bool);
 
     function _c3call(string memory _to, string memory _toChainID, bytes memory _data) internal virtual {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();

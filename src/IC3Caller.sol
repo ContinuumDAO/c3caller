@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { IC3GovClient } from "./gov/IC3GovClient.sol";
-import {Uint, Account} from "./utils/C3CallerUtils.sol";
+import { Account, Uint } from "./utils/C3CallerUtils.sol";
 
 interface IC3Caller is IC3GovClient {
     event LogC3Call(
@@ -56,9 +56,9 @@ interface IC3Caller is IC3GovClient {
         bytes data;
     }
 
-    function isExecutor(address sender) external returns (bool);
+    function isExecutor(address _sender) external returns (bool);
 
-    function isCaller(address sender) external returns (bool);
+    function isCaller(address _sender) external returns (bool);
 
     function context() external view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx);
 
@@ -75,7 +75,7 @@ interface IC3Caller is IC3GovClient {
     function c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)
         external;
 
-    function execute(uint256 _dappID, C3EvmMessage calldata message) external;
+    function execute(uint256 _dappID, C3EvmMessage calldata _message) external;
 
-    function c3Fallback(uint256 dappID, C3EvmMessage calldata message) external;
+    function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external;
 }

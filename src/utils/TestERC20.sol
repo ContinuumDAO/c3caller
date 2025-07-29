@@ -4,13 +4,13 @@ pragma solidity 0.8.27;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import { ITestERC20, Address } from "./ITestERC20.sol";
+import { Address, ITestERC20 } from "./ITestERC20.sol";
 
 contract TestERC20 is ITestERC20, ERC20 {
     uint8 public _decimals;
     address public admin;
 
-    constructor (string memory _name, string memory _symbol, uint8 decimals_) ERC20(_name, _symbol) {
+    constructor(string memory _name, string memory _symbol, uint8 decimals_) ERC20(_name, _symbol) {
         _decimals = decimals_;
     }
 
@@ -21,19 +21,19 @@ contract TestERC20 is ITestERC20, ERC20 {
         _;
     }
 
-    function print(address to, uint256 amount) external {
-        _mint(to, amount);
+    function print(address _to, uint256 _amount) external {
+        _mint(_to, _amount);
     }
 
-    function mint(address to, uint256 amount) external onlyAdmin {
-        _mint(to, amount);
+    function mint(address _to, uint256 _amount) external onlyAdmin {
+        _mint(_to, _amount);
     }
 
-    function burn(address from) external onlyAdmin {
-        _burn(from, balanceOf(from));
+    function burn(address _from) external onlyAdmin {
+        _burn(_from, balanceOf(_from));
     }
 
-    function decimals() public override(ITestERC20, ERC20) view returns (uint8) {
+    function decimals() public view override(ITestERC20, ERC20) returns (uint8) {
         return _decimals;
     }
 }

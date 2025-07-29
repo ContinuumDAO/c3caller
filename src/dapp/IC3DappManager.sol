@@ -2,10 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import {Uint, Account} from "../utils/C3CallerUtils.sol";
+import { Account, Uint } from "../utils/C3CallerUtils.sol";
 
 interface IC3DAppManager {
-
     // Dapp config
     struct DappConfig {
         uint256 id;
@@ -17,19 +16,19 @@ interface IC3DAppManager {
     event SetDAppConfig(
         uint256 indexed dappID, address indexed appAdmin, address indexed feeToken, string appDomain, string email
     );
-    event SetBlacklists(uint256 dappID, bool flag);
+    event SetBlacklists(uint256 _dappID, bool _flag);
 
-    event SetDAppAddr(uint256 indexed dappID, string[] addresses);
+    event SetDAppAddr(uint256 _dappID, string[] _addresses);
 
-    event AddMpcAddr(uint256 indexed dappID, string addr, string pubkey);
+    event AddMpcAddr(uint256 _dappID, string _addr, string _pubkey);
 
-    event DelMpcAddr(uint256 indexed dappID, string addr, string pubkey);
+    event DelMpcAddr(uint256 _dappID, string _addr, string _pubkey);
 
-    event SetFeeConfig(address indexed token, string chain, uint256 callPerByteFee);
+    event SetFeeConfig(address _token, string _chain, uint256 _callPerByteFee);
 
-    event Deposit(uint256 indexed dappID, address indexed token, uint256 amount, uint256 left);
-    event Withdraw(uint256 indexed dappID, address indexed token, uint256 amount, uint256 left);
-    event Charging(uint256 indexed dappID, address indexed token, uint256 bill, uint256 amount, uint256 left);
+    event Deposit(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
+    event Withdraw(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
+    event Charging(uint256 _dappID, address _token, uint256 _bill, uint256 _amount, uint256 _left);
 
     error C3DAppManager_IsZero(Uint);
     error C3DAppManager_IsZeroAddress(Account);
@@ -37,5 +36,5 @@ interface IC3DAppManager {
     error C3DAppManager_NotZeroAddress(Account);
     error C3DAppManager_LengthMismatch(Uint, Uint);
     error C3DAppManager_OnlyAuthorized(Account, Account);
-    error C3DAppManager_InsufficientBalance(address);
+    error C3DAppManager_InsufficientBalance(address _token);
 }

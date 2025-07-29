@@ -20,9 +20,11 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
         _;
     }
 
-    modifier checkCompletion(bytes32 uuid) {
+    modifier checkCompletion(bytes32 _uuid) {
         // require(!completedSwapin[uuid], "C3SwapIDKeeper: uuid is completed");
-        if (completedSwapin[uuid]) revert C3UUIDKeeper_UUIDAlreadyCompleted(uuid);
+        if (completedSwapin[_uuid]) {
+            revert C3UUIDKeeper_UUIDAlreadyCompleted(_uuid);
+        }
         _;
     }
 
@@ -30,57 +32,60 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
         __C3GovClient_init(_gov);
     }
 
-    function isUUIDExist(bytes32 uuid) public view returns (bool) {
-        return uuid2Nonce[uuid] != 0;
+    function isUUIDExist(bytes32 _uuid) public view returns (bool) {
+        return uuid2Nonce[_uuid] != 0;
     }
 
-    function isCompleted(bytes32 uuid) external view returns (bool) {
-        return completedSwapin[uuid];
+    function isCompleted(bytes32 _uuid) external view returns (bool) {
+        return completedSwapin[_uuid];
     }
 
-    function revokeSwapin(bytes32 uuid) external onlyGov {
-        completedSwapin[uuid] = false;
+    function revokeSwapin(bytes32 _uuid) external onlyGov {
+        completedSwapin[_uuid] = false;
     }
 
-    function registerUUID(bytes32 uuid) external onlyOperator checkCompletion(uuid) {
-        completedSwapin[uuid] = true;
+    function registerUUID(bytes32 _uuid) external onlyOperator checkCompletion(_uuid) {
+        completedSwapin[_uuid] = true;
     }
 
-    function genUUID(uint256 dappID, string calldata to, string calldata toChainID, bytes calldata data)
+    function genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
         onlyOperator
         autoIncreaseSwapoutNonce
-        returns (bytes32 uuid)
+        returns (bytes32 _uuid)
     {
-        uuid =
-            keccak256(abi.encode(address(this), msg.sender, block.chainid, dappID, to, toChainID, currentNonce, data));
+        _uuid = keccak256(
+            abi.encode(address(this), msg.sender, block.chainid, _dappID, _to, _toChainID, currentNonce, _data)
+        );
         // require(!this.isUUIDExist(uuid), "uuid already exist");
-        if (isUUIDExist(uuid)) revert C3UUIDKeeper_UUIDAlreadyExists(uuid);
-        uuid2Nonce[uuid] = currentNonce;
-        return uuid;
+        if (isUUIDExist(_uuid)) {
+            revert C3UUIDKeeper_UUIDAlreadyExists(_uuid);
+        }
+        uuid2Nonce[_uuid] = currentNonce;
+        return _uuid;
     }
 
     function calcCallerUUID(
-        address from,
-        uint256 dappID,
-        string calldata to,
-        string calldata toChainID,
-        bytes calldata data
+        address _from,
+        uint256 _dappID,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data
     ) public view returns (bytes32) {
-        uint256 nonce = currentNonce + 1;
-        return keccak256(abi.encode(address(this), from, block.chainid, dappID, to, toChainID, nonce, data));
+        uint256 _nonce = currentNonce + 1;
+        return keccak256(abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data));
     }
 
     // TODO test code
     function calcCallerEncode(
-        address from,
-        uint256 dappID,
-        string calldata to,
-        string calldata toChainID,
-        bytes calldata data
+        address _from,
+        uint256 _dappID,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data
     ) public view returns (bytes memory) {
-        uint256 nonce = currentNonce + 1;
-        return abi.encode(address(this), from, block.chainid, dappID, to, toChainID, nonce, data);
+        uint256 _nonce = currentNonce + 1;
+        return abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }

@@ -13,7 +13,7 @@ interface ITestERC20 is IERC20 {
     error OnlyAuthorized(Address, Address);
 
     function decimals() external view returns (uint8);
-    function print(address to, uint256 amount) external;
-    function mint(address to, uint256 amount) external;
-    function burn(address from) external;
+    function print(address _to, uint256 _amount) external;
+    function mint(address _to, uint256 _amount) external;
+    function burn(address _from) external;
 }

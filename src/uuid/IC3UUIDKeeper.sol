@@ -6,11 +6,11 @@ interface IC3UUIDKeeper {
     error C3UUIDKeeper_UUIDAlreadyExists(bytes32);
     error C3UUIDKeeper_UUIDAlreadyCompleted(bytes32);
 
-    function registerUUID(bytes32 uuid) external;
+    function registerUUID(bytes32 _uuid) external;
 
-    function genUUID(uint256 dappID, string calldata to, string calldata toChainID, bytes calldata data)
+    function genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
-        returns (bytes32 uuid);
+        returns (bytes32 _uuid);
 
-    function isCompleted(bytes32 uuid) external view returns (bool);
+    function isCompleted(bytes32 _uuid) external view returns (bool);
 }

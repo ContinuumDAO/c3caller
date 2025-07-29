@@ -4,8 +4,8 @@ pragma solidity 0.8.27;
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+import { Account } from "../utils/C3CallerUtils.sol";
 import { IC3GovClient } from "./IC3GovClient.sol";
-import {Account} from "../utils/C3CallerUtils.sol";
 
 contract C3GovClient is IC3GovClient, Initializable {
     /// @custom:storage-location erc7201:c3caller.storage.C3GovClient
@@ -29,14 +29,18 @@ contract C3GovClient is IC3GovClient, Initializable {
     modifier onlyGov() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(msg.sender == $.gov, "C3Gov: only Gov");
-        if (msg.sender != $.gov) revert C3GovClient_OnlyAuthorized(Account.Sender, Account.Gov);
+        if (msg.sender != $.gov) {
+            revert C3GovClient_OnlyAuthorized(Account.Sender, Account.Gov);
+        }
         _;
     }
 
     modifier onlyOperator() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(msg.sender == $.gov || $.isOperator[msg.sender], "C3Gov: only Operator");
-        if (msg.sender != $.gov && $.isOperator[msg.sender]) revert C3GovClient_OnlyAuthorized(Account.Sender, Account.GovOrOperator);
+        if (msg.sender != $.gov && $.isOperator[msg.sender]) {
+            revert C3GovClient_OnlyAuthorized(Account.Sender, Account.GovOrOperator);
+        }
         _;
     }
 
@@ -55,21 +59,27 @@ contract C3GovClient is IC3GovClient, Initializable {
     function applyGov() external {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require($.pendingGov != address(0), "C3Gov: empty pendingGov");
-        if ($.pendingGov == address(0)) revert C3GovClient_IsZeroAddress(Account.Gov);
+        if ($.pendingGov == address(0)) {
+            revert C3GovClient_IsZeroAddress(Account.Gov);
+        }
         emit ApplyGov($.gov, $.pendingGov, block.timestamp);
         $.gov = $.pendingGov;
         $.pendingGov = address(0);
     }
 
-    function _addOperator(address op) internal {
+    function _addOperator(address _op) internal {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(op != address(0), "C3Caller: Operator is address(0)");
-        if (op == address(0)) revert C3GovClient_IsZeroAddress(Account.Operator);
+        if (_op == address(0)) {
+            revert C3GovClient_IsZeroAddress(Account.Operator);
+        }
         // require(!$.isOperator[op], "C3Caller: Operator already exists");
-        if ($.isOperator[op]) revert C3GovClient_AlreadyOperator(op);
-        $.isOperator[op] = true;
-        $.operators.push(op);
-        emit AddOperator(op);
+        if ($.isOperator[_op]) {
+            revert C3GovClient_AlreadyOperator(_op);
+        }
+        $.isOperator[_op] = true;
+        $.operators.push(_op);
+        emit AddOperator(_op);
     }
 
     function addOperator(address _op) external onlyGov {
@@ -104,12 +114,14 @@ contract C3GovClient is IC3GovClient, Initializable {
     function revokeOperator(address _op) external onlyGov {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require($.isOperator[_op], "C3Caller: Operator not found");
-        if (!$.isOperator[_op]) revert C3GovClient_IsNotOperator(_op);
+        if (!$.isOperator[_op]) {
+            revert C3GovClient_IsNotOperator(_op);
+        }
         $.isOperator[_op] = false;
-        uint256 length = $.operators.length;
-        for (uint256 i = 0; i < length; i++) {
-            if ($.operators[i] == _op) {
-                $.operators[i] = $.operators[length - 1];
+        uint256 _length = $.operators.length;
+        for (uint256 _i = 0; _i < _length; _i++) {
+            if ($.operators[_i] == _op) {
+                $.operators[_i] = $.operators[_length - 1];
                 $.operators.pop();
                 return;
             }

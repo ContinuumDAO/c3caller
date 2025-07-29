@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {Account} from "../utils/C3CallerUtils.sol";
+import { Account } from "../utils/C3CallerUtils.sol";
 
 interface IC3GovClient {
     event ChangeGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
@@ -16,11 +16,11 @@ interface IC3GovClient {
 
     function gov() external view returns (address);
     function pendingGov() external view returns (address);
-    function isOperator(address sender) external view returns (bool);
-    function operators(uint256 index) external view returns (address);
+    function isOperator(address _sender) external view returns (bool);
+    function operators(uint256 _index) external view returns (address);
     function applyGov() external;
     function getAllOperators() external view returns (address[] memory);
-    function changeGov(address gov) external;
-    function addOperator(address op) external;
-    function revokeOperator(address op) external;
+    function changeGov(address _gov) external;
+    function addOperator(address _op) external;
+    function revokeOperator(address _op) external;
 }
