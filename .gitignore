@@ -3,6 +3,9 @@ cache/
 out/
 sizes/
 
+# Legacy test files
+test-hardhat/
+
 # Ignores development broadcast logs
 !/broadcast
 /broadcast/*/31337/
