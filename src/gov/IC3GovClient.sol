@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.27;
 
 interface IC3GovClient {
     event ChangeGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
