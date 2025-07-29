@@ -15,6 +15,8 @@ import { IC3CallerDapp } from "./dapp/IC3CallerDapp.sol";
 import { C3GovClient } from "./gov/C3GovClient.sol";
 import { IC3UUIDKeeper } from "./uuid/IC3UUIDKeeper.sol";
 
+import {Uint, Account} from "./utils/C3CallerUtils.sol";
+
 contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address;
     using Address for address payable;
@@ -59,10 +61,14 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         bytes calldata _data,
         bytes memory _extra
     ) internal {
-        require(_dappID > 0, "C3Caller: empty dappID");
-        require(bytes(_to).length > 0, "C3Caller: empty _to");
-        require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
-        require(_data.length > 0, "C3Caller: empty calldata");
+        // require(_dappID > 0, "C3Caller: empty dappID");
+        if (_dappID == 0) revert C3Caller_IsZero(Uint.DAppID);
+        // require(bytes(_to).length > 0, "C3Caller: empty _to");
+        if (bytes(_to).length == 0) revert C3Caller_InvalidAccountLength(Account.To);
+        // require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
+        if (bytes(_toChainID).length == 0) revert C3Caller_InvalidLength(Uint.ChainID);
+        // require(_data.length > 0, "C3Caller: empty calldata");
+        if (_data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
         bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
     }
@@ -93,11 +99,16 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         string[] calldata _toChainIDs,
         bytes calldata _data
     ) internal {
-        require(_dappID > 0, "C3Caller: empty dappID");
-        require(_to.length > 0, "C3Caller: empty _to");
-        require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
-        require(_data.length > 0, "C3Caller: empty calldata");
-        require(_data.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
+        // require(_dappID > 0, "C3Caller: empty dappID");
+        if (_dappID == 0) revert C3Caller_IsZero(Uint.DAppID);
+        // require(_to.length > 0, "C3Caller: empty _to");
+        if (_to.length == 0) revert C3Caller_InvalidAccountLength(Account.To);
+        // require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
+        if (_toChainIDs.length == 0) revert C3Caller_InvalidLength(Uint.ChainID);
+        // require(_data.length > 0, "C3Caller: empty calldata");
+        if (_data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        // require(_data.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
+        if (_data.length != _toChainIDs.length) revert C3Caller_LengthMismatch(Uint.Calldata, Uint.ChainID);
 
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
             bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to[i], _toChainIDs[i], _data);
@@ -114,12 +125,17 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     function _execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
-        require(_message.data.length > 0, "C3Caller: empty calldata");
-        require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
+        // require(_message.data.length > 0, "C3Caller: empty calldata");
+        if (_message.data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
+        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
         // check dappID
-        require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
+        // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
+        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        if (expectedDAppID != _dappID) revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
 
-        require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
+        //  require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
+        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
 
         context = C3Context({ swapID: _message.uuid, fromChainID: _message.fromChainID, sourceTx: _message.sourceTx });
 
@@ -157,11 +173,16 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message)
         internal
     {
-        require(_message.data.length > 0, "C3Caller: empty calldata");
-        require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
-        require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
+        // require(_message.data.length > 0, "C3Caller: empty calldata");
+        if (_message.data.length == 0) revert C3Caller_InvalidLength(Uint.Calldata);
+        // require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
+        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
+        // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
+        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
 
-        require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
+        // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
+        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        if (expectedDAppID != _dappID) revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
 
         context = C3Context({ swapID: _message.uuid, fromChainID: _message.fromChainID, sourceTx: _message.sourceTx });
 

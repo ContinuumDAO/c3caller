@@ -2,9 +2,8 @@
 
 pragma solidity ^0.8.22;
 
-import { C3CallerStructLib } from "./utils/C3CallerStructLib.sol";
-
 import { IC3GovClient } from "./gov/IC3GovClient.sol";
+import {Uint, Account} from "./utils/C3CallerUtils.sol";
 
 interface IC3Caller is IC3GovClient {
     event LogC3Call(
@@ -39,6 +38,14 @@ interface IC3Caller is IC3GovClient {
         bytes data,
         bytes reason
     );
+
+    error C3Caller_OnlyAuthorized(Account, Account);
+    error C3Caller_InvalidLength(Uint);
+    error C3Caller_InvalidAccountLength(Account);
+    error C3Caller_LengthMismatch(Uint, Uint);
+    error C3Caller_InvalidDAppID(uint256, uint256);
+    error C3Caller_UUIDAlreadyCompleted(bytes32);
+    error C3Caller_IsZero(Uint);
 
     struct C3EvmMessage {
         bytes32 uuid;
