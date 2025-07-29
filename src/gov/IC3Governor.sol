@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Uint } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
 interface IC3Governor {
     event NewProposal(bytes32 indexed uuid);
@@ -18,13 +18,19 @@ interface IC3Governor {
     event LogChangeGov(address _gov, address _newGov);
     event LogSendParams(address _target, uint256 _chainId, bytes _dataXChain);
 
-    error C3Governor_InvalidLength(Uint);
+    error C3Governor_InvalidLength(C3ErrorParam);
     error C3Governor_OutOfBounds();
     error C3Governor_HasNotFailed();
+
+    struct Proposal {
+        bytes[] data;
+        bool[] hasFailed;
+    }
 
     function sendParams(bytes memory _data, bytes32 _nonce) external;
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external;
     function doGov(bytes32 _nonce, uint256 _offset) external;
     function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool);
     function version() external pure returns (uint256);
+    function proposalLength() external view returns (uint256);
 }

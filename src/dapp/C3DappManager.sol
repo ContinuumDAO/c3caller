@@ -8,7 +8,7 @@ import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { C3GovClient } from "../gov/C3GovClient.sol";
-import { Account, Uint } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 import { IC3DAppManager } from "./IC3DappManager.sol";
 
 contract C3DappManager is IC3DAppManager, C3GovClient, Pausable {
@@ -38,7 +38,7 @@ contract C3DappManager is IC3DAppManager, C3GovClient, Pausable {
 
     modifier onlyGovOrAdmin(uint256 _dappID) {
         if (msg.sender != gov() && msg.sender != dappConfig[_dappID].appAdmin) {
-            revert C3DAppManager_OnlyAuthorized(Account.Sender, Account.GovOrAdmin);
+            revert C3DAppManager_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin);
         }
         _;
     }
@@ -56,233 +56,207 @@ contract C3DappManager is IC3DAppManager, C3GovClient, Pausable {
         emit SetBlacklists(_dappID, _flag);
     }
 
-    function setFeeCurrencies(address[] calldata _tokens, uint256[] calldata _callfee) external onlyGov {
-        for (uint256 index = 0; index < _tokens.length; index++) {
-            feeCurrencies[_tokens[index]] = _callfee[index];
-            emit SetFeeConfig(_tokens[index], "0", _callfee[index]);
-        }
-    }
-
-    function disableFeeCurrency(address _token) external onlyGov {
-        delete feeCurrencies[_token];
-        emit SetFeeConfig(_token, "0", 0);
-    }
-
-    function setSpeFeeConfigByChain(address _token, string calldata _chain, uint256 _callfee) external onlyGov {
-        speChainFees[_chain][_token] = _callfee;
-        emit SetFeeConfig(_token, _chain, _callfee);
-    }
-
-    function initDappConfig(
+    function setDAppConfig(
+        uint256 _dappID,
+        address _appAdmin,
         address _feeToken,
-        string calldata _appDomain,
-        string calldata _email,
-        string[] calldata _whitelist
-    ) external {
-        if (feeCurrencies[_feeToken] == 0) {
-            revert C3DAppManager_IsZero(Uint.FeePerByte);
+        string memory _appDomain,
+        string memory _email
+    ) external onlyGov {
+        // require(_feeToken != address(0), "C3DappManager: feeToken is address(0)");
+        if (_feeToken == address(0)) {
+            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
+        // require(bytes(_appDomain).length > 0, "C3DappManager: appDomain is empty");
         if (bytes(_appDomain).length == 0) {
-            revert C3DAppManager_IsZero(Uint.AppDomain);
+            revert C3DAppManager_IsZero(C3ErrorParam.AppDomain);
         }
+        // require(bytes(_email).length > 0, "C3DappManager: email is empty");
         if (bytes(_email).length == 0) {
-            revert C3DAppManager_IsZero(Uint.Email);
+            revert C3DAppManager_IsZero(C3ErrorParam.Email);
         }
 
-        dappID++;
-        DappConfig storage config = dappConfig[dappID];
-        config.id = dappID;
-        config.appAdmin = msg.sender;
-        config.feeToken = _feeToken;
+        dappConfig[_dappID] = DappConfig({ id: _dappID, appAdmin: _appAdmin, feeToken: _feeToken, discount: 0 });
 
-        if (_whitelist.length > 0) {
-            _setDappAddrlist(dappID, _whitelist);
-        }
-
-        emit SetDAppConfig(dappID, msg.sender, _feeToken, _appDomain, _email);
+        emit SetDAppConfig(_dappID, _appAdmin, _feeToken, _appDomain, _email);
     }
 
-    function _setDappAddrlist(uint256 _subscribeID, string[] memory _whitelist) internal {
-        for (uint256 i = 0; i < _whitelist.length; i++) {
-            if (c3DappAddr[_whitelist[i]] != 0) {
-                continue;
-            }
-            c3DappAddr[_whitelist[i]] = _subscribeID;
+    function setDAppAddr(uint256 _dappID, string[] memory _addresses) external onlyGovOrAdmin(_dappID) {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            c3DappAddr[_addresses[i]] = _dappID;
         }
-        emit SetDAppAddr(_subscribeID, _whitelist);
+        emit SetDAppAddr(_dappID, _addresses);
     }
 
-    function addDappAddr(uint256 _dappID, string[] memory _whitelist) external onlyGovOrAdmin(_dappID) {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
+    function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
+        // require(_appAdmin != address(0), "C3DappManager: appAdmin is address(0)");
+        if (dappConfig[_dappID].appAdmin == address(0)) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
-        _setDappAddrlist(_dappID, _whitelist);
+        // require(bytes(_addr).length > 0, "C3DappManager: addr is empty");
+        if (bytes(_addr).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_pubkey).length > 0, "C3DappManager: pubkey is empty");
+        if (bytes(_pubkey).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(_appAdmin != address(0), "C3DappManager: appAdmin is not address(0)");
+        if (dappConfig[_dappID].appAdmin == address(0)) {
+            revert C3DAppManager_NotZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_addr).length > 0, "C3DappManager: addr is empty");
+        if (bytes(_addr).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_pubkey).length > 0, "C3DappManager: pubkey is empty");
+        if (bytes(_pubkey).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_addr).length == bytes(_pubkey).length, "C3DappManager: addr and pubkey length mismatch");
+        if (bytes(_addr).length != bytes(_pubkey).length) {
+            revert C3DAppManager_LengthMismatch(C3ErrorParam.Address, C3ErrorParam.PubKey);
+        }
+
+        mpcPubkey[_dappID][_addr] = _pubkey;
+        mpcAddrs[_dappID].push(_addr);
+
+        emit AddMpcAddr(_dappID, _addr, _pubkey);
     }
 
-    function getTxSenders(uint256 _dappID) external view returns (string[] memory) {
-        return mpcAddrs[_dappID];
-    }
+    function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
+        // require(_appAdmin != address(0), "C3DappManager: appAdmin is address(0)");
+        if (dappConfig[_dappID].appAdmin == address(0)) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_addr).length > 0, "C3DappManager: addr is empty");
+        if (bytes(_addr).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
+        // require(bytes(_pubkey).length > 0, "C3DappManager: pubkey is empty");
+        if (bytes(_pubkey).length == 0) {
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+        }
 
-    function delWhitelists(uint256 _dappID, string[] memory _whitelist) external onlyGovOrAdmin(_dappID) {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
-        }
-        for (uint256 i = 0; i < _whitelist.length; i++) {
-            if (c3DappAddr[_whitelist[i]] != _dappID) {
-                revert C3DAppManager_InvalidDAppID(_dappID);
-            }
-            c3DappAddr[_whitelist[i]] = 0;
-        }
-        emit SetDAppAddr(0, _whitelist);
-    }
+        delete mpcPubkey[_dappID][_addr];
 
-    function updateDAppConfig(uint256 _dappID, address _feeToken, string calldata _appID, string calldata _email)
-        external
-        onlyGovOrAdmin(_dappID)
-    {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_NotZeroAddress(Account.Admin);
-        }
-        if (feeCurrencies[_feeToken] == 0) {
-            revert C3DAppManager_IsZero(Uint.FeePerByte);
-        }
-        config.feeToken = _feeToken;
-        emit SetDAppConfig(dappID, msg.sender, _feeToken, _appID, _email);
-    }
-
-    function addTxSender(uint256 _dappID, string[] calldata _addrs, string[] calldata _pubkeys)
-        external
-        onlyGovOrAdmin(_dappID)
-    {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
-        }
-        if (_addrs.length != _pubkeys.length) {
-            revert C3DAppManager_LengthMismatch(Uint.Address, Uint.PubKey);
-        }
-        for (uint256 index = 0; index < _addrs.length; index++) {
-            mpcPubkey[_dappID][_addrs[index]] = _pubkeys[index];
-            mpcAddrs[_dappID].push(_addrs[index]);
-            emit AddMpcAddr(dappID, _addrs[index], _pubkeys[index]);
-        }
-    }
-
-    function removeTxSender(uint256 _dappID, string[] calldata _addrs) external onlyGovOrAdmin(_dappID) {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
-        }
-        for (uint256 index = 0; index < _addrs.length; index++) {
-            string memory pk = mpcPubkey[_dappID][_addrs[index]];
-            delete mpcPubkey[_dappID][_addrs[index]];
-            for (uint256 j = 0; j < mpcAddrs[_dappID].length; j++) {
-                if (mpcAddrs[_dappID][j].equal(_addrs[index])) {
-                    uint256 tmp = mpcAddrs[_dappID].length - 1;
-                    mpcAddrs[_dappID][j] = mpcAddrs[_dappID][tmp];
-                    mpcAddrs[_dappID].pop();
-                    emit DelMpcAddr(_dappID, _addrs[index], pk);
-                }
+        string[] storage addrs = mpcAddrs[_dappID];
+        for (uint256 i = 0; i < addrs.length; i++) {
+            if (keccak256(bytes(addrs[i])) == keccak256(bytes(_addr))) {
+                addrs[i] = addrs[addrs.length - 1];
+                addrs.pop();
+                break;
             }
         }
+
+        emit DelMpcAddr(_dappID, _addr, _pubkey);
     }
 
-    function resetAdmin(uint256 _dappID, address _newAdmin) external onlyGovOrAdmin(_dappID) {
-        DappConfig storage config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
+    function setFeeConfig(address _token, string memory _chain, uint256 _callPerByteFee) external onlyGov {
+        // require(_callPerByteFee > 0, "C3DappManager: callPerByteFee is 0");
+        if (_callPerByteFee == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
-        config.appAdmin = _newAdmin;
-    }
 
-    function updateDappByGov(uint256 _dappID, address _feeToken, uint256 _discount) external onlyOperator {
-        DappConfig storage config = dappConfig[_dappID];
-        if (config.appAdmin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(Account.Admin);
-        }
-        if (feeCurrencies[_feeToken] == 0) {
-            revert C3DAppManager_IsZero(Uint.FeePerByte);
-        }
-        config.feeToken = _feeToken;
-        config.discount = _discount;
-        emit SetDAppConfig(_dappID, config.appAdmin, _feeToken, "", "");
+        feeCurrencies[_token] = _callPerByteFee;
+        speChainFees[_chain][_token] = _callPerByteFee;
+
+        emit SetFeeConfig(_token, _chain, _callPerByteFee);
     }
 
     function deposit(uint256 _dappID, address _token, uint256 _amount) external {
-        DappConfig memory config = dappConfig[_dappID];
-        if (config.id == 0) {
-            revert C3DAppManager_InvalidDAppID(config.id);
+        // require(_callPerByteFee > 0, "C3DappManager: callPerByteFee is 0");
+        if (_amount == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
-        if (msg.sender != config.appAdmin) {
-            revert C3DAppManager_OnlyAuthorized(Account.Sender, Account.Admin);
-        }
-        if (feeCurrencies[_token] == 0) {
-            revert C3DAppManager_IsZero(Uint.FeePerByte);
-        }
-        uint256 old_balance = IERC20(_token).balanceOf(address(this));
+
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-        uint256 new_balance = IERC20(_token).balanceOf(address(this));
-        assert(new_balance >= old_balance && new_balance <= old_balance + _amount);
-        uint256 balance = new_balance - old_balance;
-        dappStakePool[_dappID][_token] += balance;
-        emit Deposit(_dappID, _token, balance, dappStakePool[_dappID][_token]);
+
+        dappStakePool[_dappID][_token] += _amount;
+
+        emit Deposit(_dappID, _token, _amount, dappStakePool[_dappID][_token]);
     }
 
-    function withdraw(uint256 _dappID, address _token, uint256 _amount) external {
+    function withdraw(uint256 _dappID, address _token, uint256 _amount) external onlyGovOrAdmin(_dappID) {
+        // require(_callPerByteFee > 0, "C3DappManager: callPerByteFee is 0");
+        if (_amount == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
+        }
+
+        // require(dappStakePool[_dappID][_token] >= _amount, "C3DappManager: insufficient balance");
         if (dappStakePool[_dappID][_token] < _amount) {
             revert C3DAppManager_InsufficientBalance(_token);
         }
-        if (IERC20(_token).balanceOf(address(this)) < _amount) {
-            revert C3DAppManager_InsufficientBalance(_token);
-        }
-        DappConfig memory config = dappConfig[_dappID];
-        if (msg.sender != config.appAdmin) {
-            revert C3DAppManager_OnlyAuthorized(Account.Sender, Account.Admin);
-        }
-        IERC20(_token).safeTransfer(msg.sender, _amount);
+
         dappStakePool[_dappID][_token] -= _amount;
+
+        IERC20(_token).safeTransfer(msg.sender, _amount);
+
         emit Withdraw(_dappID, _token, _amount, dappStakePool[_dappID][_token]);
     }
 
-    function charging(uint256[] calldata _dappIDs, address[] calldata _tokens, uint256[] calldata _amounts)
-        external
-        onlyOperator
-    {
-        if (_dappIDs.length != _tokens.length) {
-            revert C3DAppManager_LengthMismatch(Uint.DAppID, Uint.Token);
+    function charging(uint256 _dappID, address _token, uint256 _bill) external onlyGovOrAdmin(_dappID) {
+        // require(_callPerByteFee > 0, "C3DappManager: callPerByteFee is 0");
+        if (_bill == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
-        for (uint256 index = 0; index < _dappIDs.length; index++) {
-            uint256 _dappID = _dappIDs[index];
-            address _token = _tokens[index];
-            uint256 _amount = _amounts[index];
-            if (dappStakePool[_dappID][_token] > _amount) {
-                dappStakePool[_dappID][_token] -= _amount;
-            } else {
-                _amount = dappStakePool[_dappID][_token];
-                dappStakePool[_dappID][_token] = 0;
-            }
-            fees[_token] += _amount;
-            emit Charging(_dappID, _token, _amounts[index], _amount, dappStakePool[_dappID][_token]);
+
+        // require(dappStakePool[_dappID][_token] >= _bill, "C3DappManager: insufficient balance");
+        if (dappStakePool[_dappID][_token] < _bill) {
+            revert C3DAppManager_InsufficientBalance(_token);
         }
+
+        dappStakePool[_dappID][_token] -= _bill;
+
+        emit Charging(_dappID, _token, _bill, _bill, dappStakePool[_dappID][_token]);
     }
 
-    function withdrawFees(address[] calldata _tokens) external onlyGov {
-        _withdraw(_tokens, gov());
+    function getDappConfig(uint256 _dappID) external view returns (DappConfig memory) {
+        return dappConfig[_dappID];
     }
 
-    function withdrawFeesTo(address[] calldata _tokens, address _to) external onlyOperator {
-        _withdraw(_tokens, _to);
+    function getMpcAddrs(uint256 _dappID) external view returns (string[] memory) {
+        return mpcAddrs[_dappID];
     }
 
-    function _withdraw(address[] calldata _tokens, address _to) internal {
-        for (uint256 index = 0; index < _tokens.length; index++) {
-            if (fees[_tokens[index]] > 0) {
-                IERC20(_tokens[index]).safeTransfer(_to, fees[_tokens[index]]);
-                fees[_tokens[index]] = 0;
-            }
+    function getMpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory) {
+        return mpcPubkey[_dappID][_addr];
+    }
+
+    function getFeeCurrency(address _token) external view returns (uint256) {
+        return feeCurrencies[_token];
+    }
+
+    function getSpeChainFee(string memory _chain, address _token) external view returns (uint256) {
+        return speChainFees[_chain][_token];
+    }
+
+    function getDappStakePool(uint256 _dappID, address _token) external view returns (uint256) {
+        return dappStakePool[_dappID][_token];
+    }
+
+    function getFee(address _token) external view returns (uint256) {
+        return fees[_token];
+    }
+
+    function setFee(address _token, uint256 _fee) external onlyGov {
+        fees[_token] = _fee;
+    }
+
+    function setDappID(uint256 _dappID) external onlyGov {
+        dappID = _dappID;
+    }
+
+    function setDappConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) {
+        // require(_dappID > 0, "C3DappManager: dappID is 0");
+        if (_dappID == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.DAppID);
         }
+        // require(_token != address(0), "C3DappManager: token is address(0)");
+        if (_discount == 0) {
+            revert C3DAppManager_LengthMismatch(C3ErrorParam.DAppID, C3ErrorParam.Token);
+        }
+
+        dappConfig[_dappID].discount = _discount;
     }
 }

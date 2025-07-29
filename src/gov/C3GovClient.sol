@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { Account } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 import { IC3GovClient } from "./IC3GovClient.sol";
 
 contract C3GovClient is IC3GovClient, Initializable {
@@ -30,7 +30,7 @@ contract C3GovClient is IC3GovClient, Initializable {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(msg.sender == $.gov, "C3Gov: only Gov");
         if (msg.sender != $.gov) {
-            revert C3GovClient_OnlyAuthorized(Account.Sender, Account.Gov);
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
         }
         _;
     }
@@ -38,8 +38,8 @@ contract C3GovClient is IC3GovClient, Initializable {
     modifier onlyOperator() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(msg.sender == $.gov || $.isOperator[msg.sender], "C3Gov: only Operator");
-        if (msg.sender != $.gov && $.isOperator[msg.sender]) {
-            revert C3GovClient_OnlyAuthorized(Account.Sender, Account.GovOrOperator);
+        if (msg.sender != $.gov && !$.isOperator[msg.sender]) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrOperator);
         }
         _;
     }
@@ -60,7 +60,7 @@ contract C3GovClient is IC3GovClient, Initializable {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require($.pendingGov != address(0), "C3Gov: empty pendingGov");
         if ($.pendingGov == address(0)) {
-            revert C3GovClient_IsZeroAddress(Account.Gov);
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
         }
         emit ApplyGov($.gov, $.pendingGov, block.timestamp);
         $.gov = $.pendingGov;
@@ -71,7 +71,7 @@ contract C3GovClient is IC3GovClient, Initializable {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         // require(op != address(0), "C3Caller: Operator is address(0)");
         if (_op == address(0)) {
-            revert C3GovClient_IsZeroAddress(Account.Operator);
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
         }
         // require(!$.isOperator[op], "C3Caller: Operator already exists");
         if ($.isOperator[_op]) {

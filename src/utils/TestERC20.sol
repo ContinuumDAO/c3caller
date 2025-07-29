@@ -4,7 +4,8 @@ pragma solidity 0.8.27;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import { Address, ITestERC20 } from "./ITestERC20.sol";
+import { C3ErrorParam } from "./C3CallerUtils.sol";
+import { ITestERC20 } from "./ITestERC20.sol";
 
 contract TestERC20 is ITestERC20, ERC20 {
     uint8 public _decimals;
@@ -16,7 +17,7 @@ contract TestERC20 is ITestERC20, ERC20 {
 
     modifier onlyAdmin() {
         if (msg.sender != admin) {
-            revert OnlyAuthorized(Address.Sender, Address.Admin);
+            revert OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Admin);
         }
         _;
     }

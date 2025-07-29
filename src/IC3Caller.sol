@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { IC3GovClient } from "./gov/IC3GovClient.sol";
-import { Account, Uint } from "./utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "./utils/C3CallerUtils.sol";
 
 interface IC3Caller is IC3GovClient {
     event LogC3Call(
@@ -39,13 +39,19 @@ interface IC3Caller is IC3GovClient {
         bytes reason
     );
 
-    error C3Caller_OnlyAuthorized(Account, Account);
-    error C3Caller_InvalidLength(Uint);
-    error C3Caller_InvalidAccountLength(Account);
-    error C3Caller_LengthMismatch(Uint, Uint);
+    error C3Caller_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
+    error C3Caller_InvalidLength(C3ErrorParam);
+    error C3Caller_InvalidAccountLength(C3ErrorParam);
+    error C3Caller_LengthMismatch(C3ErrorParam, C3ErrorParam);
     error C3Caller_InvalidDAppID(uint256, uint256);
     error C3Caller_UUIDAlreadyCompleted(bytes32);
-    error C3Caller_IsZero(Uint);
+    error C3Caller_IsZero(C3ErrorParam);
+
+    struct C3Context {
+        bytes32 swapID;
+        string fromChainID;
+        string sourceTx;
+    }
 
     struct C3EvmMessage {
         bytes32 uuid;
@@ -56,10 +62,10 @@ interface IC3Caller is IC3GovClient {
         bytes data;
     }
 
+    function initialize(address _swapIDKeeper) external;
     function isExecutor(address _sender) external returns (bool);
-
     function isCaller(address _sender) external returns (bool);
-
+    function c3caller() external view returns (address);
     function context() external view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx);
 
     function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data) external;

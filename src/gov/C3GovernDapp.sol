@@ -11,7 +11,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { C3CallerDapp } from "../dapp/C3CallerDapp.sol";
 import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
 
-import { Account, Uint } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 import { IC3GovernDapp } from "./IC3GovernDapp.sol";
 
 abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
@@ -54,7 +54,7 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
         // require(msg.sender == gov() || _isCaller(msg.sender), "Gov FORBIDDEN");
         if (msg.sender != gov() && !_isCaller(msg.sender)) {
-            revert C3GovernDApp_OnlyAuthorized(Account.Sender, Account.GovOrC3Caller);
+            revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
         }
         _;
     }
@@ -81,7 +81,7 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
         // require(newGov != address(0), "newGov is empty");
         if (_newGov == address(0)) {
-            revert C3GovernDApp_IsZeroAddress(Account.Gov);
+            revert C3GovernDApp_IsZeroAddress(C3ErrorParam.Gov);
         }
         $._oldGov = gov();
         $._newGov = _newGov;
@@ -117,7 +117,7 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     {
         // require(_targets.length == _toChainIDs.length);
         if (_targets.length != _toChainIDs.length) {
-            revert C3GovernDApp_LengthMismatch(Uint.Target, Uint.ChainID);
+            revert C3GovernDApp_LengthMismatch(C3ErrorParam.Target, C3ErrorParam.ChainID);
         }
         _c3broadcast(_targets, _toChainIDs, _data);
     }

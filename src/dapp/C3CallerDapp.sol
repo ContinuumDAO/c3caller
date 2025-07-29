@@ -6,7 +6,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 
 import { IC3Caller } from "../IC3Caller.sol";
 
-import { Account } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 import { IC3CallerDapp } from "./IC3CallerDapp.sol";
 
 abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
@@ -38,7 +38,7 @@ abstract contract C3CallerDapp is IC3CallerDapp, Initializable {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
         // require(IC3Caller($.c3CallerProxy).isCaller(msg.sender), "C3CallerDapp: onlyCaller");
         if (IC3Caller($.c3CallerProxy).isCaller(msg.sender)) {
-            revert C3CallerDApp_OnlyAuthorized(Account.Sender, Account.C3Caller);
+            revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
         _;
     }

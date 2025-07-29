@@ -76,6 +76,17 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
         return keccak256(abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data));
     }
 
+    function calcCallerUUIDWithNonce(
+        address _from,
+        uint256 _dappID,
+        string calldata _to,
+        string calldata _toChainID,
+        bytes calldata _data,
+        uint256 _nonce
+    ) public view returns (bytes32) {
+        return keccak256(abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data));
+    }
+
     // TODO test code
     function calcCallerEncode(
         address _from,

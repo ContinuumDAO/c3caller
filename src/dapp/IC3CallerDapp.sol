@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { Account } from "../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
 interface IC3CallerDapp {
-    error C3CallerDApp_OnlyAuthorized(Account, Account);
+    error C3CallerDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3CallerDApp_InvalidDAppID(uint256, uint256);
 
     // INFO: externals

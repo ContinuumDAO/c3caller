@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-enum Uint {
+enum C3ErrorParam {
     ChainID,
     Calldata,
     DAppID,
@@ -12,10 +12,7 @@ enum Uint {
     Address,
     PubKey,
     Token,
-    Target
-}
-
-enum Account {
+    Target,
     Sender,
     C3Caller,
     To,

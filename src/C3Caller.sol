@@ -15,17 +15,11 @@ import { IC3CallerDapp } from "./dapp/IC3CallerDapp.sol";
 import { C3GovClient } from "./gov/C3GovClient.sol";
 import { IC3UUIDKeeper } from "./uuid/IC3UUIDKeeper.sol";
 
-import { Account, Uint } from "./utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "./utils/C3CallerUtils.sol";
 
 contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Address for address;
     using Address for address payable;
-
-    struct C3Context {
-        bytes32 swapID;
-        string fromChainID;
-        string sourceTx;
-    }
 
     C3Context public context;
     address public uuidKeeper;
@@ -63,19 +57,19 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     ) internal {
         // require(_dappID > 0, "C3Caller: empty dappID");
         if (_dappID == 0) {
-            revert C3Caller_IsZero(Uint.DAppID);
+            revert C3Caller_IsZero(C3ErrorParam.DAppID);
         }
         // require(bytes(_to).length > 0, "C3Caller: empty _to");
         if (bytes(_to).length == 0) {
-            revert C3Caller_InvalidAccountLength(Account.To);
+            revert C3Caller_InvalidLength(C3ErrorParam.To);
         }
         // require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
         if (bytes(_toChainID).length == 0) {
-            revert C3Caller_InvalidLength(Uint.ChainID);
+            revert C3Caller_InvalidLength(C3ErrorParam.ChainID);
         }
         // require(_data.length > 0, "C3Caller: empty calldata");
         if (_data.length == 0) {
-            revert C3Caller_InvalidLength(Uint.Calldata);
+            revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
         bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
@@ -109,23 +103,23 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     ) internal {
         // require(_dappID > 0, "C3Caller: empty dappID");
         if (_dappID == 0) {
-            revert C3Caller_IsZero(Uint.DAppID);
+            revert C3Caller_IsZero(C3ErrorParam.DAppID);
         }
         // require(_to.length > 0, "C3Caller: empty _to");
         if (_to.length == 0) {
-            revert C3Caller_InvalidAccountLength(Account.To);
+            revert C3Caller_InvalidLength(C3ErrorParam.To);
         }
         // require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
         if (_toChainIDs.length == 0) {
-            revert C3Caller_InvalidLength(Uint.ChainID);
+            revert C3Caller_InvalidLength(C3ErrorParam.ChainID);
         }
         // require(_data.length > 0, "C3Caller: empty calldata");
         if (_data.length == 0) {
-            revert C3Caller_InvalidLength(Uint.Calldata);
+            revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        // require(_data.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
-        if (_data.length != _toChainIDs.length) {
-            revert C3Caller_LengthMismatch(Uint.Calldata, Uint.ChainID);
+        // require(_to.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
+        if (_to.length != _toChainIDs.length) {
+            revert C3Caller_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
         }
 
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
@@ -145,11 +139,11 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     function _execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
         // require(_message.data.length > 0, "C3Caller: empty calldata");
         if (_message.data.length == 0) {
-            revert C3Caller_InvalidLength(Uint.Calldata);
+            revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
         // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
         if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
-            revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+            revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
         // check dappID
         // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
@@ -195,7 +189,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal {
         // require(_message.data.length > 0, "C3Caller: empty calldata");
         if (_message.data.length == 0) {
-            revert C3Caller_InvalidLength(Uint.Calldata);
+            revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
         // require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
         if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
@@ -203,7 +197,7 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
         }
         // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
         if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
-            revert C3Caller_OnlyAuthorized(Account.To, Account.Valid);
+            revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
 
         // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
@@ -233,13 +227,27 @@ contract C3Caller is IC3Caller, C3GovClient, OwnableUpgradeable, PausableUpgrade
     }
 
     function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
-        if (bs.length < 32) {
+        if (bs.length == 0) {
             return (false, 0);
         }
-        uint256 x;
-        assembly {
-            x := mload(add(bs, add(0x20, 0)))
+        if (bs.length == 1) {
+            return (true, uint256(uint8(bs[0])));
         }
-        return (true, x);
+        if (bs.length == 2) {
+            return (true, uint256(uint16(bytes2(bs))));
+        }
+        if (bs.length == 4) {
+            return (true, uint256(uint32(bytes4(bs))));
+        }
+        if (bs.length == 8) {
+            return (true, uint256(uint64(bytes8(bs))));
+        }
+        if (bs.length == 16) {
+            return (true, uint256(uint128(bytes16(bs))));
+        }
+        if (bs.length == 32) {
+            return (true, uint256(bytes32(bs)));
+        }
+        return (false, 0);
     }
 }
