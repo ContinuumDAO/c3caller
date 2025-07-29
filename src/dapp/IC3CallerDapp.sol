@@ -2,7 +2,12 @@
 
 pragma solidity 0.8.27;
 
+import {Account} from "../utils/C3CallerUtils.sol";
+
 interface IC3CallerDapp {
+    error C3CallerDApp_OnlyAuthorized(Account, Account);
+    error C3CallerDApp_InvalidDAppID(uint256, uint256);
+
     // INFO: externals
     function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason) external returns (bool);
     function isValidSender(address txSender) external view returns (bool);

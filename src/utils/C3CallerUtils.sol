@@ -5,12 +5,25 @@ pragma solidity 0.8.27;
 enum Uint {
     ChainID,
     Calldata,
-    DAppID
+    DAppID,
+    FeePerByte,
+    AppDomain,
+    Email,
+    Address,
+    PubKey,
+    Token
 }
 
 enum Account {
+    Sender,
+    C3Caller,
     To,
-    Valid
+    Valid,
+    Admin,
+    GovOrAdmin,
+    GovOrOperator,
+    Operator,
+    Gov
 }
 
 contract C3CallerUtils {}
