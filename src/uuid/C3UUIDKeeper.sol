@@ -21,7 +21,8 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
     }
 
     modifier checkCompletion(bytes32 uuid) {
-        require(!completedSwapin[uuid], "C3SwapIDKeeper: uuid is completed");
+        // require(!completedSwapin[uuid], "C3SwapIDKeeper: uuid is completed");
+        if (completedSwapin[uuid]) revert C3UUIDKeeper_UUIDAlreadyCompleted(uuid);
         _;
     }
 
@@ -29,14 +30,13 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
         __C3GovClient_init(_gov);
     }
 
-    function isUUIDExist(bytes32 uuid) external view returns (bool) {
+    function isUUIDExist(bytes32 uuid) public view returns (bool) {
         return uuid2Nonce[uuid] != 0;
     }
 
     function isCompleted(bytes32 uuid) external view returns (bool) {
         return completedSwapin[uuid];
     }
-    // TODO change name
 
     function revokeSwapin(bytes32 uuid) external onlyGov {
         completedSwapin[uuid] = false;
@@ -54,7 +54,8 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient, UUPSUpgradeable {
     {
         uuid =
             keccak256(abi.encode(address(this), msg.sender, block.chainid, dappID, to, toChainID, currentNonce, data));
-        require(!this.isUUIDExist(uuid), "uuid already exist");
+        // require(!this.isUUIDExist(uuid), "uuid already exist");
+        if (isUUIDExist(uuid)) revert C3UUIDKeeper_UUIDAlreadyExists(uuid);
         uuid2Nonce[uuid] = currentNonce;
         return uuid;
     }

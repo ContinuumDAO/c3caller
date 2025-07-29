@@ -10,7 +10,6 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import { C3CallerDapp } from "../dapp/C3CallerDapp.sol";
 import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
-import { TheiaUtils } from "../theia/TheiaUtils.sol";
 import { IC3GovernDapp } from "./IC3GovernDapp.sol";
 import {Uint, Account } from "../utils/C3CallerUtils.sol";
 
