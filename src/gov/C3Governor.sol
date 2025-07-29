@@ -6,9 +6,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { C3GovernDapp } from "./C3GovernDapp.sol";
 import { IC3Governor } from "./IC3Governor.sol";
+import {Uint, C3CallerUtils} from "../utils/C3CallerUtils.sol";
 
 contract C3Governor is IC3Governor, C3GovernDapp {
     using Strings for *;
+    using C3CallerUtils for string;
 
     struct Proposal {
         bytes[] data;
@@ -29,7 +31,8 @@ contract C3Governor is IC3Governor, C3GovernDapp {
 
     // TODO: gen nonce
     function sendParams(bytes memory _data, bytes32 _nonce) external /*onlyGov*/ {
-        require(_data.length > 0, "C3Governor: No data to sendParams");
+        // require(_data.length > 0, "C3Governor: No data to sendParams");
+        if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
 
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
@@ -40,10 +43,12 @@ contract C3Governor is IC3Governor, C3GovernDapp {
     }
 
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external /*onlyGov*/ {
-        require(_data.length > 0, "C3Governor: No data to sendParams");
+        // require(_data.length > 0, "C3Governor: No data to sendParams");
+        if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
 
         for (uint256 index = 0; index < _data.length; index++) {
-            require(_data[index].length > 0, "C3Governor: No data passed to sendParams");
+            // require(_data[index].length > 0, "C3Governor: No data passed to sendParams");
+            if (_data.length == 0) revert C3Governor_InvalidLength(Uint.Calldata);
             _proposal[_nonce].data.push(_data[index]);
             _proposal[_nonce].hasFailed.push(false);
 
@@ -54,8 +59,10 @@ contract C3Governor is IC3Governor, C3GovernDapp {
 
     // Anyone can resend one of the cross chain calls in proposalId if it failed
     function doGov(bytes32 _nonce, uint256 offset) external {
-        require(offset < _proposal[_nonce].data.length, "C3Governor: Reading beyond the length of the offset array");
-        require(_proposal[_nonce].hasFailed[offset] == false, "C3Governor: Do not resend if it did not fail");
+        // require(offset < _proposal[_nonce].data.length, "C3Governor: Reading beyond the length of the offset array");
+        if (offset >= _proposal[_nonce].data.length) revert C3Governor_OutOfBounds();
+        // require(_proposal[_nonce].hasFailed[offset] == true, "C3Governor: Do not resend if it did not fail");
+        if (!_proposal[_nonce].hasFailed[offset]) revert C3Governor_HasNotFailed();
 
         _c3gov(_nonce, offset);
     }
@@ -74,7 +81,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         (chainId, target, remoteData) = abi.decode(rawData, (uint256, string, bytes));
 
         if (chainId == chainID()) {
-            address _to = toAddress(target);
+            address _to = target.toAddress();
             (bool success,) = _to.call(remoteData);
             if (success) {
                 _proposal[_nonce].hasFailed[offset] = true;
@@ -83,41 +90,6 @@ contract C3Governor is IC3Governor, C3GovernDapp {
             _proposal[_nonce].hasFailed[offset] = true;
             emit C3GovernorLog(_nonce, chainId, target, remoteData);
         }
-    }
-
-    function hexStringToAddress(string memory s) internal pure returns (bytes memory) {
-        bytes memory ss = bytes(s);
-        require(ss.length % 2 == 0); // length must be even
-        bytes memory r = new bytes(ss.length / 2);
-        for (uint256 i = 0; i < ss.length / 2; ++i) {
-            r[i] = bytes1(fromHexChar(uint8(ss[2 * i])) * 16 + fromHexChar(uint8(ss[2 * i + 1])));
-        }
-
-        return r;
-    }
-
-    function fromHexChar(uint8 c) internal pure returns (uint8) {
-        if (bytes1(c) >= bytes1("0") && bytes1(c) <= bytes1("9")) {
-            return c - uint8(bytes1("0"));
-        }
-        if (bytes1(c) >= bytes1("a") && bytes1(c) <= bytes1("f")) {
-            return 10 + c - uint8(bytes1("a"));
-        }
-        if (bytes1(c) >= bytes1("A") && bytes1(c) <= bytes1("F")) {
-            return 10 + c - uint8(bytes1("A"));
-        }
-        return 0;
-    }
-
-    function toAddress(string memory s) internal pure returns (address) {
-        bytes memory _bytes = hexStringToAddress(s);
-        require(_bytes.length >= 1 + 20, "toAddress_outOfBounds");
-        address tempAddress;
-
-        assembly {
-            tempAddress := div(mload(add(add(_bytes, 0x20), 1)), 0x1000000000000000000000000)
-        }
-        return tempAddress;
     }
 
     function version() public pure returns (uint256) {

@@ -3,10 +3,15 @@
 pragma solidity 0.8.27;
 
 import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
+import {Uint, Account } from "../utils/C3CallerUtils.sol";
 
 interface IC3GovernDapp is IC3CallerDapp {
     event LogChangeGov(address indexed oldGov, address indexed newGov, uint256 indexed effectiveTime, uint256 chainID);
     event LogTxSender(address indexed txSender, bool valid);
+
+    error C3GovernDApp_OnlyAuthorized(Account, Account);
+    error C3GovernDApp_IsZeroAddress(Account);
+    error C3GovernDApp_LengthMismatch(Uint, Uint);
 
     // INFO: externals
     function changeGov(address newGov) external;

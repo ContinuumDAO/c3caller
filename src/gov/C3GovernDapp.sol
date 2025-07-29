@@ -12,6 +12,7 @@ import { C3CallerDapp } from "../dapp/C3CallerDapp.sol";
 import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
 import { TheiaUtils } from "../theia/TheiaUtils.sol";
 import { IC3GovernDapp } from "./IC3GovernDapp.sol";
+import {Uint, Account } from "../utils/C3CallerUtils.sol";
 
 abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     using Strings for *;
@@ -49,10 +50,10 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         $.txSenders[_txSender] = true;
     }
 
-    // TODO: replace c3caller.isCaller(address) with something else
     modifier onlyGov() {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
-        require(msg.sender == gov() || _isCaller(msg.sender), "Gov FORBIDDEN");
+        // require(msg.sender == gov() || _isCaller(msg.sender), "Gov FORBIDDEN");
+        if (msg.sender != gov() && !_isCaller(msg.sender)) revert C3GovernDApp_OnlyAuthorized(Account.Sender, Account.GovOrC3Caller);
         _;
     }
 
@@ -76,7 +77,8 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
 
     function changeGov(address newGov) external virtual onlyGov {
         C3GovernDappStorage storage $ = _getC3GovernDappStorage();
-        require(newGov != address(0), "newGov is empty");
+        // require(newGov != address(0), "newGov is empty");
+        if (newGov == address(0)) revert C3GovernDApp_IsZeroAddress(Account.Gov);
         $._oldGov = gov();
         $._newGov = newGov;
         $._newGovEffectiveTime = block.timestamp + $.delay;
@@ -109,7 +111,8 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
         virtual
         onlyGov
     {
-        require(_targets.length == _toChainIDs.length);
+        // require(_targets.length == _toChainIDs.length);
+        if (_targets.length != _toChainIDs.length) revert C3GovernDApp_LengthMismatch(Uint.Target, Uint.ChainID);
         _c3broadcast(_targets, _toChainIDs, _data);
     }
 

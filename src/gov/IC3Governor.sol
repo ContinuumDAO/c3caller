@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.27;
 
+import {Uint} from "../utils/C3CallerUtils.sol";
+
 interface IC3Governor {
     event NewProposal(bytes32 indexed uuid);
 
@@ -13,6 +15,10 @@ interface IC3Governor {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
     event LogChangeGov(address _gov, address gov);
     event LogSendParams(address target, uint256 chainId, bytes dataXChain);
+
+    error C3Governor_InvalidLength(Uint);
+    error C3Governor_OutOfBounds();
+    error C3Governor_HasNotFailed();
 
     function sendParams(bytes memory _data, bytes32 _nonce) external;
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external;
