@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import {console} from "forge-std/console.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
-import {MockC3GovernDapp} from "../helpers/MockC3GovernDapp.sol";
+import {MockC3GovernDapp} from "../helpers/mocks/MockC3GovernDapp.sol";
 import {IC3GovernDapp} from "../../src/gov/IC3GovernDapp.sol";
 import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 import {C3Caller} from "../../src/C3Caller.sol";

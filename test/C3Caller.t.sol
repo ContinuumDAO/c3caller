@@ -11,7 +11,7 @@ import {IC3CallerDapp} from "../src/dapp/IC3CallerDapp.sol";
 import {IC3GovClient} from "../src/gov/IC3GovClient.sol";
 import {C3ErrorParam} from "../src/utils/C3CallerUtils.sol";
 import {Helpers} from "./helpers/Helpers.sol";
-import {MockC3CallerDapp} from "./helpers/MockC3CallerDapp.sol";
+import {MockC3CallerDapp} from "./helpers/mocks/MockC3CallerDapp.sol";
 
 contract C3CallerTest is Helpers {
     C3UUIDKeeper c3UUIDKeeper;

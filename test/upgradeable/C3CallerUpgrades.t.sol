@@ -14,7 +14,7 @@ import {IC3CallerProxy} from "../../src/utils/IC3CallerProxy.sol";
 import {C3UUIDKeeperUpgradeable} from "../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
 import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
 
-import {MockC3CallerDapp} from "../helpers/MockC3CallerDapp.sol";
+import {MockC3CallerDapp} from "../helpers/mocks/MockC3CallerDapp.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
 

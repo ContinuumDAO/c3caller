@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {C3CallerDapp} from "../../src/dapp/C3CallerDapp.sol";
+import {C3CallerDapp} from "../../../src/dapp/C3CallerDapp.sol";
 
 contract MockC3CallerDapp is C3CallerDapp {
     uint256 public mockDappID;

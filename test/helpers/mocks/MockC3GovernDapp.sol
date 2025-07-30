@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {C3GovernDapp} from "../../src/gov/C3GovernDapp.sol";
+import {C3GovernDapp} from "../../../src/gov/C3GovernDapp.sol";
 
 contract MockC3GovernDapp is C3GovernDapp {
     bool public shouldRevert;
@@ -20,7 +20,7 @@ contract MockC3GovernDapp is C3GovernDapp {
         shouldRevert = _shouldRevert;
     }
 
-    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+    function _c3Fallback(bytes4 /*_selector*/, bytes calldata /*_data*/, bytes calldata /*_reason*/)
         internal
         override
         returns (bool)
