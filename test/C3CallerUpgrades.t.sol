@@ -64,6 +64,7 @@ contract C3CallerUpgradeableV3 is C3CallerUpgradeableV2 {
 }
 
 contract C3CallerUpgradesTest is Helpers {
+    C3UUIDKeeper c3UUIDKeeper;
     C3CallerUpgradeable public c3callerV1;
     C3CallerUpgradeableV2 public c3callerV2;
     C3CallerUpgradeableV3 public c3callerV3;

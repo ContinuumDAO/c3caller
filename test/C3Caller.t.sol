@@ -14,6 +14,8 @@ import {Helpers} from "./helpers/Helpers.sol";
 import {MockC3CallerDapp} from "./helpers/MockC3CallerDapp.sol";
 
 contract C3CallerTest is Helpers {
+    C3UUIDKeeper c3UUIDKeeper;
+    C3Caller c3caller;
     MockC3CallerDapp public mockDapp;
     uint256 public testDappID = 123;
 

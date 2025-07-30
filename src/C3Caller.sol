@@ -49,19 +49,15 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         bytes calldata _data,
         bytes memory _extra
     ) internal {
-        // require(_dappID > 0, "C3Caller: empty dappID");
         if (_dappID == 0) {
             revert C3Caller_IsZero(C3ErrorParam.DAppID);
         }
-        // require(bytes(_to).length > 0, "C3Caller: empty _to");
         if (bytes(_to).length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.To);
         }
-        // require(bytes(_toChainID).length > 0, "C3Caller: empty toChainID");
         if (bytes(_toChainID).length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.ChainID);
         }
-        // require(_data.length > 0, "C3Caller: empty calldata");
         if (_data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
@@ -102,23 +98,18 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         string[] calldata _toChainIDs,
         bytes calldata _data
     ) internal {
-        // require(_dappID > 0, "C3Caller: empty dappID");
         if (_dappID == 0) {
             revert C3Caller_IsZero(C3ErrorParam.DAppID);
         }
-        // require(_to.length > 0, "C3Caller: empty _to");
         if (_to.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.To);
         }
-        // require(_toChainIDs.length > 0, "C3Caller: empty toChainID");
         if (_toChainIDs.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.ChainID);
         }
-        // require(_data.length > 0, "C3Caller: empty calldata");
         if (_data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        // require(_to.length == _toChainIDs.length, "C3Caller: calldata length dismatch");
         if (_to.length != _toChainIDs.length) {
             revert C3Caller_LengthMismatch(
                 C3ErrorParam.To,

@@ -17,7 +17,7 @@ abstract contract C3CallerDapp is IC3CallerDapp {
     }
 
     modifier onlyCaller() {
-        if (!IC3Caller(c3CallerProxy).isCaller(msg.sender)) {
+        if (!_isCaller(msg.sender)) {
             revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
         _;
@@ -34,7 +34,11 @@ abstract contract C3CallerDapp is IC3CallerDapp {
         if (_dappID != dappID) {
             revert C3CallerDApp_InvalidDAppID(dappID, _dappID);
         }
-        return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        if (_data.length < 4) {
+            return _c3Fallback(bytes4(0), _data, _reason);
+        } else {
+            return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        }
     }
 
     function isValidSender(address _txSender) external view virtual returns (bool);

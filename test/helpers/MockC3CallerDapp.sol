@@ -2,11 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import { IC3Caller } from "../../src/IC3Caller.sol";
-import { IC3CallerDapp } from "../../src/dapp/IC3CallerDapp.sol";
-import { C3ErrorParam } from "../../src/utils/C3CallerUtils.sol";
+import {C3CallerDapp} from "../../src/dapp/C3CallerDapp.sol";
 
-contract MockC3CallerDapp is IC3CallerDapp {
+contract MockC3CallerDapp is C3CallerDapp {
     uint256 public mockDappID;
     address public mockC3CallerProxy;
     bool public isValidSenderResult;
@@ -15,7 +13,7 @@ contract MockC3CallerDapp is IC3CallerDapp {
     bytes public lastFallbackReason;
     bytes4 public lastFallbackSelector;
 
-    constructor(address _c3CallerProxy, uint256 _dappID) {
+    constructor(address _c3CallerProxy, uint256 _dappID) C3CallerDapp(_c3CallerProxy, _dappID) {
         mockDappID = _dappID;
         mockC3CallerProxy = _c3CallerProxy;
         isValidSenderResult = true;
@@ -34,34 +32,13 @@ contract MockC3CallerDapp is IC3CallerDapp {
         return isValidSenderResult;
     }
 
-    function c3CallerProxy() public view override returns (address) {
-        return mockC3CallerProxy;
-    }
-
-    function dappID() public view override returns (uint256) {
-        return mockDappID;
-    }
-
-    function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason)
-        external
-        override
-        returns (bool)
-    {
-        if (_dappID != mockDappID) {
-            revert C3CallerDApp_InvalidDAppID(mockDappID, _dappID);
-        }
-
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool) {
         if (shouldRevert) {
             revert("MockC3CallerDapp: intentional revert");
         }
 
-        if (_data.length >= 4) {
-            lastFallbackSelector = bytes4(_data[0:4]);
-            lastFallbackData = _data[4:];
-        } else {
-            lastFallbackSelector = bytes4(0);
-            lastFallbackData = _data;
-        }
+        lastFallbackSelector = _selector;
+        lastFallbackData = _data;
         lastFallbackReason = _reason;
 
         // Return true to simulate successful fallback
@@ -89,5 +66,25 @@ contract MockC3CallerDapp is IC3CallerDapp {
     // Function to simulate a call that returns invalid data
     function invalidDataCall() external pure returns (bytes memory) {
         return "invalid";
+    }
+
+    function isCaller(address _sender) external returns (bool) {
+        return _isCaller(_sender);
+    }
+
+    function c3call(string memory _to, string memory _toChainID, bytes memory _data) external {
+        _c3call(_to, _toChainID, _data);
+    }
+
+    function c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra) external {
+        _c3call(_to, _toChainID, _data, _extra);
+    }
+
+    function c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) external {
+        _c3broadcast(_to, _toChainIDs, _data);
+    }
+
+    function context() external view returns (bytes32, string memory, string memory) {
+        return _context();
     }
 }
