@@ -12,13 +12,40 @@ import { C3CallerUtils } from "../../utils/C3CallerUtils.sol";
 
 import { C3GovernDappUpgradeable } from "./C3GovernDappUpgradeable.sol";
 
+/**
+ * @title C3GovernorUpgradeable
+ * @dev Upgradeable governance contract for cross-chain proposal management in the C3 protocol.
+ * This contract extends C3GovernDappUpgradeable to provide proposal-based governance
+ * functionality for cross-chain operations with upgradeable capabilities.
+ * 
+ * Key features:
+ * - Proposal creation and management
+ * - Cross-chain proposal execution
+ * - Proposal data storage and retrieval
+ * - Failed proposal handling and retry mechanisms
+ * - Upgradeable functionality via UUPS pattern
+ * 
+ * @notice This contract enables governance-driven cross-chain operations with upgradeability
+ * @author @potti ContinuumDAO
+ */
 contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using C3CallerUtils for string;
 
+    /// @notice Mapping of proposal nonce to proposal data
     mapping(bytes32 => Proposal) private _proposal;
+    
+    /// @notice Current proposal identifier
     bytes32 public proposalId;
 
+    /**
+     * @notice Initialize the upgradeable C3Governor contract
+     * @dev This function can only be called once during deployment
+     * @param _gov The governance address
+     * @param _c3CallerProxy The C3Caller proxy address
+     * @param _txSender The transaction sender address
+     * @param _dappID The dApp identifier
+     */
     function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
         external
         initializer
@@ -26,10 +53,21 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         __C3GovernDapp_init(_gov, _c3CallerProxy, _txSender, _dappID);
     }
 
+    /**
+     * @dev Get the current chain ID
+     * @return The current chain ID
+     */
     function chainID() internal view returns (uint256) {
         return block.chainid;
     }
 
+    /**
+     * @notice Send a single parameter for governance proposal
+     * @dev Only the governor can call this function
+     * @param _data The proposal data
+     * @param _nonce The proposal nonce
+     * @notice Reverts if the data is empty
+     */
     function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
@@ -43,6 +81,13 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         _c3gov(_nonce, 0);
     }
 
+    /**
+     * @notice Send multiple parameters for governance proposal
+     * @dev Only the governor can call this function
+     * @param _data Array of proposal data
+     * @param _nonce The proposal nonce
+     * @notice Reverts if the data array is empty or contains empty data
+     */
     function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external onlyGov {
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
@@ -63,6 +108,12 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         }
     }
 
+    /**
+     * @notice Execute a governance proposal that has failed
+     * @param _nonce The proposal nonce
+     * @param _offset The offset within the proposal data
+     * @notice Reverts if the offset is out of bounds or the proposal hasn't failed
+     */
     function doGov(bytes32 _nonce, uint256 _offset) external onlyGov {
         if (_offset >= _proposal[_nonce].data.length) {
             revert C3Governor_OutOfBounds();
@@ -73,10 +124,22 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         _c3gov(_nonce, _offset);
     }
 
+    /**
+     * @notice Get proposal data and failure status
+     * @param _nonce The proposal nonce
+     * @param _offset The offset within the proposal data
+     * @return The proposal data
+     * @return The failure status
+     */
     function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
         return (_proposal[_nonce].data[_offset], _proposal[_nonce].hasFailed[_offset]);
     }
 
+    /**
+     * @dev Internal function to execute governance proposals
+     * @param _nonce The proposal nonce
+     * @param _offset The offset within the proposal data
+     */
     function _c3gov(bytes32 _nonce, uint256 _offset) internal {
         uint256 _chainId;
         string memory _target;
@@ -97,10 +160,21 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         }
     }
 
+    /**
+     * @notice Get the contract version
+     * @return The version number
+     */
     function version() public pure returns (uint256) {
         return (1);
     }
 
+    /**
+     * @dev Internal function to handle fallback calls
+     * @param _selector The function selector
+     * @param _data The call data
+     * @param _reason The failure reason
+     * @return True if the fallback was handled successfully
+     */
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override
@@ -114,11 +188,19 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         return true;
     }
 
-    // The number of cross chain invocations in proposalId
+    /**
+     * @notice Get the number of cross-chain invocations in the current proposal
+     * @return The number of cross-chain invocations
+     */
     function proposalLength() public view returns (uint256) {
         uint256 _len = _proposal[proposalId].data.length;
         return (_len);
     }
 
+    /**
+     * @dev Internal function to authorize upgrades
+     * @param newImplementation The new implementation address
+     * @notice Only governance can authorize upgrades
+     */
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov { }
 }

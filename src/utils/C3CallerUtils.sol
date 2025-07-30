@@ -2,32 +2,55 @@
 
 pragma solidity 0.8.27;
 
+/**
+ * @title C3ErrorParam
+ * @dev Enumeration of error parameters used throughout the C3 protocol
+ * Provides standardized error parameter types for consistent error handling
+ */
 enum C3ErrorParam {
-    ChainID,
-    Calldata,
-    DAppID,
-    FeePerByte,
-    AppDomain,
-    Email,
-    Address,
-    PubKey,
-    Token,
-    Target,
-    Sender,
-    C3Caller,
-    To,
-    Valid,
-    Admin,
-    GovOrAdmin,
-    GovOrOperator,
-    GovOrC3Caller,
-    Operator,
-    Gov
+    ChainID,        /// Chain identifier parameter
+    Calldata,       /// Calldata parameter
+    DAppID,         /// dApp identifier parameter
+    FeePerByte,     /// Fee per byte parameter
+    AppDomain,      /// Application domain parameter
+    Email,          /// Email parameter
+    Address,        /// Address parameter
+    PubKey,         /// Public key parameter
+    Token,          /// Token parameter
+    Target,         /// Target parameter
+    Sender,         /// Sender parameter
+    C3Caller,       /// C3Caller parameter
+    To,             /// To parameter
+    Valid,          /// Valid parameter
+    Admin,          /// Admin parameter
+    GovOrAdmin,     /// Governance or admin parameter
+    GovOrOperator,  /// Governance or operator parameter
+    GovOrC3Caller,  /// Governance or C3Caller parameter
+    Operator,       /// Operator parameter
+    Gov             /// Governance parameter
 }
 
+/**
+ * @title C3CallerUtils
+ * @dev Utility library for C3Caller contract providing helper functions
+ * for address conversion, hex string parsing, and data type conversions.
+ * 
+ * This library contains utility functions that are commonly used across
+ * the C3 protocol for data manipulation and validation.
+ * 
+ * @notice Provides utility functions for cross-chain operations
+ * @author @potti ContinuumDAO
+ */
 library C3CallerUtils {
+    /// @notice Error thrown when accessing data out of bounds
     error C3CallerUtils_OutOfBounds();
 
+    /**
+     * @dev Convert a hex string to bytes
+     * @param _s The hex string to convert
+     * @return The converted bytes
+     * @notice The input string length must be even
+     */
     function hexStringToAddress(string memory _s) internal pure returns (bytes memory) {
         bytes memory _ss = bytes(_s);
         // require(ss.length % 2 == 0); // length must be even
@@ -39,6 +62,12 @@ library C3CallerUtils {
         return _r;
     }
 
+    /**
+     * @dev Convert a hex character to its decimal value
+     * @param _c The hex character to convert
+     * @return The decimal value of the hex character
+     * @notice Supports both uppercase and lowercase hex characters
+     */
     function fromHexChar(uint8 _c) internal pure returns (uint8) {
         if (bytes1(_c) >= bytes1("0") && bytes1(_c) <= bytes1("9")) {
             return _c - uint8(bytes1("0"));
@@ -52,6 +81,13 @@ library C3CallerUtils {
         return 0;
     }
 
+    /**
+     * @dev Convert a hex string to an address
+     * @param _s The hex string representing an address
+     * @return The converted address
+     * @notice The hex string must be at least 21 bytes (20 bytes for address + 1 byte prefix)
+     * @dev Reverts if the input is too short to represent a valid address
+     */
     function toAddress(string memory _s) internal pure returns (address) {
         bytes memory _bytes = hexStringToAddress(_s);
         // require(_bytes.length >= 1 + 20, "toAddress_outOfBounds");
@@ -66,6 +102,13 @@ library C3CallerUtils {
         return _tempAddress;
     }
 
+    /**
+     * @dev Convert bytes to uint256 with validation
+     * @param bs The bytes to convert
+     * @return ok True if conversion was successful
+     * @return value The converted uint256 value
+     * @notice Supports bytes lengths of 1, 2, 4, 8, 16, and 32
+     */
     function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
         if (bs.length == 0) {
             return (false, 0);

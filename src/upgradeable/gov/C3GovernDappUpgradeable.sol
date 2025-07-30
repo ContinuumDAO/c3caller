@@ -15,6 +15,9 @@ import { C3CallerDappUpgradeable } from "../dapp/C3CallerDappUpgradeable.sol";
 import { IC3GovernDapp } from "../../gov/IC3GovernDapp.sol";
 import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
 
+/**
+ * @author @potti ContinuumDAO
+ */
 abstract contract C3GovernDappUpgradeable is C3CallerDappUpgradeable, IC3GovernDapp {
     using Strings for *;
     using Address for address;
