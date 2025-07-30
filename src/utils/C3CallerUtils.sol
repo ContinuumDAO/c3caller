@@ -65,4 +65,29 @@ library C3CallerUtils {
         }
         return _tempAddress;
     }
+
+    function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
+        if (bs.length == 0) {
+            return (false, 0);
+        }
+        if (bs.length == 1) {
+            return (true, uint256(uint8(bs[0])));
+        }
+        if (bs.length == 2) {
+            return (true, uint256(uint16(bytes2(bs))));
+        }
+        if (bs.length == 4) {
+            return (true, uint256(uint32(bytes4(bs))));
+        }
+        if (bs.length == 8) {
+            return (true, uint256(uint64(bytes8(bs))));
+        }
+        if (bs.length == 16) {
+            return (true, uint256(uint128(bytes16(bs))));
+        }
+        if (bs.length == 32) {
+            return (true, uint256(bytes32(bs)));
+        }
+        return (false, 0);
+    }
 }

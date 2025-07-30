@@ -30,7 +30,7 @@ contract MockC3CallerDapp is IC3CallerDapp {
         shouldRevert = _shouldRevert;
     }
 
-    function isValidSender(address _txSender) external view override returns (bool) {
+    function isValidSender(address) external view override returns (bool) {
         return isValidSenderResult;
     }
 

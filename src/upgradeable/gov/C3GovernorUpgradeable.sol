@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.27;
 
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IC3Governor } from "../../gov/IC3Governor.sol";
@@ -11,7 +12,7 @@ import { C3CallerUtils } from "../../utils/C3CallerUtils.sol";
 
 import { C3GovernDappUpgradeable } from "./C3GovernDappUpgradeable.sol";
 
-contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable {
+contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using C3CallerUtils for string;
 
@@ -118,4 +119,6 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable {
         uint256 _len = _proposal[proposalId].data.length;
         return (_len);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 }

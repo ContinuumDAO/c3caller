@@ -16,8 +16,8 @@ contract Accounts is Utils {
     address treasury;
     address user1;
     address user2;
-    address operator1;
-    address operator2;
+    address mpc1;
+    address mpc2;
 
     uint256 constant _100_000 = 100_000;
 
@@ -30,8 +30,8 @@ contract Accounts is Utils {
         labels[2] = "Treasury";
         labels[3] = "User1";
         labels[4] = "User2";
-        labels[5] = "Operator1";
-        labels[6] = "Operator2";
+        labels[5] = "MPC1";
+        labels[6] = "MPC2";
 
         address[] memory accounts = new address[](7);
 
@@ -59,11 +59,11 @@ contract Accounts is Utils {
         deal(_token, treasury, amount, true);
         deal(_token, user1, amount, true);
         deal(_token, user2, amount, true);
-        deal(_token, operator1, amount, true);
-        deal(_token, operator2, amount, true);
+        deal(_token, mpc1, amount, true);
+        deal(_token, mpc2, amount, true);
     }
 
-    function _approveAllERC20(/*address _token, uint256 _amount, FeeContracts memory feeContracts*/) internal {
+    function _approveAllERC20( /*address _token, uint256 _amount, FeeContracts memory feeContracts*/ ) internal {
         // ITestERC20 token = ITestERC20(_token);
         // uint256 decimals = token.decimals();
         // uint256 amount = _amount * 10 ** decimals;
@@ -73,11 +73,11 @@ contract Accounts is Utils {
         // _approveERC20(treasury, token, amount, feeContracts);
         // _approveERC20(user1, token, amount, feeContracts);
         // _approveERC20(user2, token, amount, feeContracts);
-        // _approveERC20(operator1, token, amount, feeContracts);
-        // _approveERC20(operator2, token, amount, feeContracts);
+        // _approveERC20(mpc1, token, amount, feeContracts);
+        // _approveERC20(mpc2, token, amount, feeContracts);
     }
 
-    function _approveERC20(/*address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts*/)
+    function _approveERC20( /*address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts*/ )
         private
     {
         // vm.startPrank(account);

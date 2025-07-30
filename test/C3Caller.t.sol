@@ -21,6 +21,7 @@ contract C3CallerTest is Helpers {
         vm.startPrank(gov);
         c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
         c3caller.addOperator(gov); // Add gov as an operator to C3Caller
+        c3caller.addOperator(mpc1); // Add mpc1 as an operator to C3Caller
         vm.stopPrank();
 
         // Deploy mock dapp
@@ -141,7 +142,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
             testDappID,
@@ -173,7 +174,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
             testDappID,
@@ -246,7 +247,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
             testDappID,
@@ -287,7 +288,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
             testDappID,
@@ -325,7 +326,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
         c3caller.execute(testDappID, message);
     }
@@ -346,7 +347,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(
             abi.encodeWithSelector(IC3Caller.C3Caller_OnlyAuthorized.selector, C3ErrorParam.To, C3ErrorParam.Valid)
         );
@@ -366,7 +367,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidDAppID.selector, testDappID, 999));
         c3caller.execute(999, message); // Wrong dappID
     }
@@ -388,7 +389,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_UUIDAlreadyCompleted.selector, uuid));
         c3caller.execute(testDappID, message);
     }
@@ -430,7 +431,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecFallback(
             testDappID,
@@ -464,7 +465,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
         c3caller.c3Fallback(testDappID, message);
     }
@@ -485,7 +486,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(
             abi.encodeWithSelector(IC3Caller.C3Caller_OnlyAuthorized.selector, C3ErrorParam.To, C3ErrorParam.Valid)
         );
@@ -505,7 +506,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidDAppID.selector, testDappID, 999));
         c3caller.c3Fallback(999, message); // Wrong dappID
     }
@@ -527,7 +528,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_UUIDAlreadyCompleted.selector, uuid));
         c3caller.c3Fallback(testDappID, message);
     }
@@ -570,7 +571,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
+        vm.prank(mpc1);
         // The c3Fallback function will call the mock dapp's c3Fallback function directly
         // which will revert with our custom message
         vm.expectRevert("MockC3CallerDapp: intentional revert");
@@ -664,12 +665,12 @@ contract C3CallerTest is Helpers {
         // Calculate expected UUID
         bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, maxData);
 
-        vm.prank(operator1);
+        vm.prank(mpc1);
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogC3Call(
             dappID,
             uuid,
-            operator1,
+            mpc1,
             toChainID,
             to,
             maxData,
@@ -697,60 +698,10 @@ contract C3CallerTest is Helpers {
         // Calculate expected UUID
         bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, data);
 
-        vm.prank(operator2);
+        vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(dappID, uuid, operator2, toChainID, to, data, extraData);
+        emit IC3Caller.LogC3Call(dappID, uuid, user1, toChainID, to, data, extraData);
         c3caller.c3call(dappID, to, toChainID, data, extraData);
-    }
-
-    // ============ HELPER FUNCTIONS FOR STRESS TESTS ============
-
-    function _generateLargeStringArray(uint256 size) internal pure returns (string[] memory) {
-        string[] memory array = new string[](size);
-        for (uint256 i = 0; i < size; i++) {
-            array[i] = string(abi.encodePacked("string_", i, "_with_many_characters_to_test_string_handling"));
-        }
-        return array;
-    }
-
-    function _generateLargeAddressArray(uint256 size) internal pure returns (address[] memory) {
-        address[] memory array = new address[](size);
-        for (uint256 i = 0; i < size; i++) {
-            array[i] = address(uint160(i + 1));
-        }
-        return array;
-    }
-
-    function _generateLargeBoolArray(uint256 size) internal pure returns (bool[] memory) {
-        bool[] memory array = new bool[](size);
-        for (uint256 i = 0; i < size; i++) {
-            array[i] = i % 2 == 0;
-        }
-        return array;
-    }
-
-    function _generateLargeUintArray(uint256 size) internal pure returns (uint256[] memory) {
-        uint256[] memory array = new uint256[](size);
-        for (uint256 i = 0; i < size; i++) {
-            array[i] = i * 123_456_789;
-        }
-        return array;
-    }
-
-    function _generateLargeBytes(uint256 size) internal pure returns (bytes memory) {
-        bytes memory data = new bytes(size);
-        for (uint256 i = 0; i < size; i++) {
-            data[i] = bytes1(uint8(i % 256));
-        }
-        return data;
-    }
-
-    function _generateLargeBytesArray(uint256 size) internal pure returns (bytes[] memory) {
-        bytes[] memory array = new bytes[](size);
-        for (uint256 i = 0; i < size; i++) {
-            array[i] = _generateLargeBytes(100 + i);
-        }
-        return array;
     }
 
     // ============ EXISTING REVERT TESTS ============

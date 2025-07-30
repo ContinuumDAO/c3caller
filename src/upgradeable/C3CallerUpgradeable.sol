@@ -15,7 +15,7 @@ import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
 import { IC3UUIDKeeper } from "../uuid/IC3UUIDKeeper.sol";
 import { C3GovClientUpgradeable } from "./gov/C3GovClientUpgradeable.sol";
 
-import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
+import { C3CallerUtils, C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
 interface IC3CallerUpgradeable is IC3Caller {
     function initialize(address _swapIDKeeper) external;
@@ -30,6 +30,7 @@ contract C3CallerUpgradeable is
 {
     using Address for address;
     using Address for address payable;
+    using C3CallerUtils for bytes;
 
     C3Context public context;
     address public uuidKeeper;
@@ -41,8 +42,6 @@ contract C3CallerUpgradeable is
         __Pausable_init();
         uuidKeeper = _swapIDKeeper;
     }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyOperator { }
 
     function isExecutor(address _sender) external view returns (bool) {
         return isOperator(_sender);
@@ -164,7 +163,7 @@ contract C3CallerUpgradeable is
             _dappID, _message.to, _message.uuid, _message.fromChainID, _message.sourceTx, _message.data, success, result
         );
 
-        (bool ok, uint256 rs) = _toUint(result);
+        (bool ok, uint256 rs) = result._toUint();
         if (success && ok && rs == 1) {
             IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
@@ -219,28 +218,5 @@ contract C3CallerUpgradeable is
         _c3Fallback(_dappID, msg.sender, _message);
     }
 
-    function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
-        if (bs.length == 0) {
-            return (false, 0);
-        }
-        if (bs.length == 1) {
-            return (true, uint256(uint8(bs[0])));
-        }
-        if (bs.length == 2) {
-            return (true, uint256(uint16(bytes2(bs))));
-        }
-        if (bs.length == 4) {
-            return (true, uint256(uint32(bytes4(bs))));
-        }
-        if (bs.length == 8) {
-            return (true, uint256(uint64(bytes8(bs))));
-        }
-        if (bs.length == 16) {
-            return (true, uint256(uint128(bytes16(bs))));
-        }
-        if (bs.length == 32) {
-            return (true, uint256(bytes32(bs)));
-        }
-        return (false, 0);
-    }
+    function _authorizeUpgrade(address newImplementation) internal override onlyOperator { }
 }
