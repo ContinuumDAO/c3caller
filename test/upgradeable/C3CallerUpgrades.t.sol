@@ -2,21 +2,21 @@
 
 pragma solidity 0.8.27;
 
-import {Test} from "forge-std/Test.sol";
-
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import {C3Caller} from "../src/C3Caller.sol";
-import {IC3Caller} from "../src/IC3Caller.sol";
-import {C3CallerUpgradeable} from "../src/upgradeable/C3CallerUpgradeable.sol";
-import {IC3CallerProxy} from "../src/utils/IC3CallerProxy.sol";
+import {console} from "forge-std/console.sol";
 
-import {C3UUIDKeeperUpgradeable} from "../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
-import {C3UUIDKeeper} from "../src/uuid/C3UUIDKeeper.sol";
+import {C3Caller} from "../../src/C3Caller.sol";
+import {IC3Caller} from "../../src/IC3Caller.sol";
+import {C3CallerUpgradeable} from "../../src/upgradeable/C3CallerUpgradeable.sol";
+import {IC3CallerProxy} from "../../src/utils/IC3CallerProxy.sol";
 
-import {MockC3CallerDapp} from "./helpers/MockC3CallerDapp.sol";
+import {C3UUIDKeeperUpgradeable} from "../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
 
-import {Helpers} from "./helpers/Helpers.sol";
+import {MockC3CallerDapp} from "../helpers/MockC3CallerDapp.sol";
+
+import {Helpers} from "../helpers/Helpers.sol";
 
 contract C3CallerUpgradeableV2 is C3CallerUpgradeable {
     // New storage variable to test storage layout compatibility
