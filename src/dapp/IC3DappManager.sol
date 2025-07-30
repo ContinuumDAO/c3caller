@@ -43,6 +43,15 @@ interface IC3DAppManager {
     function unpause() external;
     function dappID() external view returns (uint256);
 
+    // Public variables
+    function c3DappAddr(string memory _addr) external view returns (uint256);
+    function appBlacklist(uint256 _dappID) external view returns (bool);
+    function feeCurrencies(address _token) external view returns (uint256);
+    function dappStakePool(uint256 _dappID, address _token) external view returns (uint256);
+    function speChainFees(string memory _chain, address _token) external view returns (uint256);
+    function mpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory);
+    function mpcAddrs(uint256 _dappID, uint256 _index) external view returns (string memory);
+
     // External functions
     function setBlacklists(uint256 _dappID, bool _flag) external;
     function setDAppConfig(

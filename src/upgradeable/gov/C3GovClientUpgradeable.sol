@@ -1,0 +1,130 @@
+// SPDX-License-Identifier: BSL-1.1
+
+pragma solidity 0.8.27;
+
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+import { IC3GovClient } from "../../gov/IC3GovClient.sol";
+import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
+
+contract C3GovClientUpgradeable is IC3GovClient, Initializable {
+    /// @custom:storage-location erc7201:c3caller.storage.C3GovClient
+    struct C3GovClientStorage {
+        address gov;
+        address pendingGov;
+        mapping(address => bool) isOperator;
+        address[] operators;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant C3GovClientStorageLocation =
+        0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+
+    function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
+        assembly {
+            $.slot := C3GovClientStorageLocation
+        }
+    }
+
+    modifier onlyGov() {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        // require(msg.sender == $.gov, "C3Gov: only Gov");
+        if (msg.sender != $.gov) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
+        }
+        _;
+    }
+
+    modifier onlyOperator() {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        // require(msg.sender == $.gov || $.isOperator[msg.sender], "C3Gov: only Operator");
+        if (msg.sender != $.gov && !$.isOperator[msg.sender]) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrOperator);
+        }
+        _;
+    }
+
+    function __C3GovClient_init(address _gov) internal onlyInitializing {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        $.gov = _gov;
+        emit ApplyGov(address(0), _gov, block.timestamp);
+    }
+
+    function changeGov(address _gov) external onlyGov {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        $.pendingGov = _gov;
+        emit ChangeGov($.gov, _gov, block.timestamp);
+    }
+
+    function applyGov() external {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        // require($.pendingGov != address(0), "C3Gov: empty pendingGov");
+        if ($.pendingGov == address(0)) {
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
+        }
+        emit ApplyGov($.gov, $.pendingGov, block.timestamp);
+        $.gov = $.pendingGov;
+        $.pendingGov = address(0);
+    }
+
+    function _addOperator(address _op) internal {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        // require(op != address(0), "C3Caller: Operator is address(0)");
+        if (_op == address(0)) {
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
+        }
+        // require(!$.isOperator[op], "C3Caller: Operator already exists");
+        if ($.isOperator[_op]) {
+            revert C3GovClient_AlreadyOperator(_op);
+        }
+        $.isOperator[_op] = true;
+        $.operators.push(_op);
+        emit AddOperator(_op);
+    }
+
+    function addOperator(address _op) external onlyGov {
+        _addOperator(_op);
+    }
+
+    function getAllOperators() external view returns (address[] memory) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.operators;
+    }
+
+    function gov() public view returns (address) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.gov;
+    }
+
+    function pendingGov() public view returns (address) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.pendingGov;
+    }
+
+    function isOperator(address _op) public view returns (bool) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.isOperator[_op];
+    }
+
+    function operators(uint256 _index) public view returns (address) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.operators[_index];
+    }
+
+    function revokeOperator(address _op) external onlyGov {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        // require($.isOperator[_op], "C3Caller: Operator not found");
+        if (!$.isOperator[_op]) {
+            revert C3GovClient_IsNotOperator(_op);
+        }
+        $.isOperator[_op] = false;
+        uint256 _length = $.operators.length;
+        for (uint256 _i = 0; _i < _length; _i++) {
+            if ($.operators[_i] == _op) {
+                $.operators[_i] = $.operators[_length - 1];
+                $.operators.pop();
+                return;
+            }
+        }
+    }
+}

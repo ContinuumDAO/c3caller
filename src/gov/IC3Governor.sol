@@ -33,4 +33,5 @@ interface IC3Governor {
     function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool);
     function version() external pure returns (uint256);
     function proposalLength() external view returns (uint256);
+    function proposalId() external view returns (bytes32);
 }

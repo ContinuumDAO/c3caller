@@ -62,7 +62,6 @@ interface IC3Caller is IC3GovClient {
         bytes data;
     }
 
-    function initialize(address _swapIDKeeper) external;
     function isExecutor(address _sender) external returns (bool);
     function isCaller(address _sender) external returns (bool);
     function c3caller() external view returns (address);

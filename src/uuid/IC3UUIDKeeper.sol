@@ -38,4 +38,12 @@ interface IC3UUIDKeeper {
         string calldata _toChainID,
         bytes calldata _data
     ) external view returns (bytes memory);
+
+    // Public variables
+    function completedSwapin(bytes32 _uuid) external view returns (bool);
+    function uuid2Nonce(bytes32 _uuid) external view returns (uint256);
+    function currentNonce() external view returns (uint256);
+
+    // Additional functions
+    function revokeSwapin(bytes32 _uuid) external;
 }

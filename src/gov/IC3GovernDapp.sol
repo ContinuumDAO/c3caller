@@ -27,8 +27,4 @@ interface IC3GovernDapp is IC3CallerDapp {
     function delay() external view returns (uint256);
     function txSenders(address _sender) external view returns (bool);
     function gov() external view returns (address);
-
-    // INFO: internals
-    // function __C3GovernDapp_init(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID) internal
-    // onlyInitializing;
 }

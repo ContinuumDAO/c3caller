@@ -4,20 +4,26 @@ pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3CallerUtils, C3ErrorParam } from "../utils/C3CallerUtils.sol";
-import { C3GovernDapp } from "./C3GovernDapp.sol";
-import { IC3Governor } from "./IC3Governor.sol";
+import { IC3Governor } from "../../gov/IC3Governor.sol";
 
-contract C3Governor is IC3Governor, C3GovernDapp {
+import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
+import { C3CallerUtils } from "../../utils/C3CallerUtils.sol";
+
+import { C3GovernDappUpgradeable } from "./C3GovernDappUpgradeable.sol";
+
+contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable {
     using Strings for *;
     using C3CallerUtils for string;
 
     mapping(bytes32 => Proposal) private _proposal;
     bytes32 public proposalId;
 
-    constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
-        C3GovernDapp(_gov, _c3CallerProxy, _txSender, _dappID)
-    { }
+    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
+        external
+        initializer
+    {
+        __C3GovernDapp_init(_gov, _c3CallerProxy, _txSender, _dappID);
+    }
 
     function chainID() internal view returns (uint256) {
         return block.chainid;
@@ -56,7 +62,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         }
     }
 
-    function doGov(bytes32 _nonce, uint256 _offset) external {
+    function doGov(bytes32 _nonce, uint256 _offset) external onlyGov {
         if (_offset >= _proposal[_nonce].data.length) {
             revert C3Governor_OutOfBounds();
         }
@@ -76,7 +82,6 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         bytes memory _remoteData;
 
         bytes memory _rawData = _proposal[_nonce].data[_offset];
-        // TODO add flag which config using gov to send or operator
         (_chainId, _target, _remoteData) = abi.decode(_rawData, (uint256, string, bytes));
 
         if (_chainId == chainID()) {

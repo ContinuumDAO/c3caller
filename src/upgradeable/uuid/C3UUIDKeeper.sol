@@ -2,10 +2,12 @@
 
 pragma solidity 0.8.27;
 
-import { C3GovClient } from "../gov/C3GovClient.sol";
-import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
+import { IC3UUIDKeeper } from "../../uuid/IC3UUIDKeeper.sol";
+import { C3GovClientUpgradeable } from "../gov/C3GovClientUpgradeable.sol";
+
+contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClientUpgradeable, UUPSUpgradeable {
     mapping(bytes32 => bool) public completedSwapin;
     mapping(bytes32 => uint256) public uuid2Nonce;
 
@@ -23,7 +25,9 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
         _;
     }
 
-    constructor(address _gov) C3GovClient(_gov) { }
+    function initialize(address _gov) public initializer {
+        __C3GovClient_init(_gov);
+    }
 
     function isUUIDExist(bytes32 _uuid) public view returns (bool) {
         return uuid2Nonce[_uuid] != 0;
@@ -89,4 +93,6 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
         uint256 _nonce = currentNonce + 1;
         return abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 }
