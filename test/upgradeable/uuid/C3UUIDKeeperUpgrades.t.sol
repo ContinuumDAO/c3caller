@@ -6,11 +6,11 @@ import {Test} from "forge-std/Test.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
-import {IC3UUIDKeeper} from "../../src/uuid/IC3UUIDKeeper.sol";
-import {C3UUIDKeeperUpgradeable} from "../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3UUIDKeeper} from "../../../src/uuid/C3UUIDKeeper.sol";
+import {IC3UUIDKeeper} from "../../../src/uuid/IC3UUIDKeeper.sol";
+import {C3UUIDKeeperUpgradeable} from "../../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
 
-import {Helpers} from "../helpers/Helpers.sol";
+import {Helpers} from "../../helpers/Helpers.sol";
 
 contract C3UUIDKeeperUpgradeableV2 is C3UUIDKeeperUpgradeable {
     // New storage variable to test storage layout compatibility

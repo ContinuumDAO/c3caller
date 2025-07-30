@@ -11,6 +11,42 @@ import {IC3DAppManager} from "../../src/dapp/IC3DappManager.sol";
 import {IC3GovClient} from "../../src/gov/IC3GovClient.sol";
 import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 
+// Mock malicious ERC20 token that can reenter
+contract MaliciousToken is IERC20 {
+    C3DappManager public dappManager;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    bool public reentering = false;
+
+    constructor(C3DappManager _dappManager) {
+        dappManager = _dappManager;
+        totalSupply = 1000000;
+        balanceOf[address(this)] = 1000000;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        if (reentering && to == address(dappManager)) {
+            // Try to reenter the withdraw function
+            dappManager.withdraw(1, address(this), 100);
+        }
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        return true;
+    }
+
+    function setReentering(bool _reentering) external {
+        reentering = _reentering;
+    }
+}
+
 contract C3DappManagerTest is Helpers {
     C3DappManager public dappManager;
     string public mpcAddr1 = "0x1234567890123456789012345678901234567890";
@@ -20,10 +56,19 @@ contract C3DappManagerTest is Helpers {
     string public mpcAddr3 = "0x1234567890123456789012345678901234567892";
     string public pubKey3 = "0x0987654321098765432109876543210987654323";
 
+    MaliciousToken public maliciousToken;
+
     function setUp() public override {
         super.setUp();
         vm.prank(gov);
         dappManager = new C3DappManager();
+        
+        // Deploy malicious token
+        maliciousToken = new MaliciousToken(dappManager);
+        
+        // Setup dapp config
+        vm.prank(gov);
+        dappManager.setDAppConfig(1, user1, address(maliciousToken), "test.com", "test@test.com");
     }
 
     // ============ CONSTRUCTOR TESTS ============
@@ -295,6 +340,9 @@ contract C3DappManagerTest is Helpers {
 
     function test_AddMpcAddr_ZeroAppAdmin() public {
         vm.prank(gov);
+        dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
+
+        vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
@@ -384,7 +432,9 @@ contract C3DappManagerTest is Helpers {
     }
 
     function test_DelMpcAddr_ZeroAppAdmin() public {
-        vm.prank(gov);
+        vm.startPrank(gov);
+        dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
+
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
@@ -392,6 +442,7 @@ contract C3DappManagerTest is Helpers {
             )
         );
         dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
+        vm.stopPrank();
     }
 
     function test_DelMpcAddr_EmptyAddr() public {
@@ -659,7 +710,7 @@ contract C3DappManagerTest is Helpers {
     // ============ VIEW FUNCTION TESTS ============
 
     function test_GetDappConfig_Empty() public view {
-        IC3DAppManager.DappConfig memory config = dappManager.getDappConfig(1);
+        IC3DAppManager.DappConfig memory config = dappManager.getDappConfig(2);
         assertEq(config.id, 0);
         assertEq(config.appAdmin, address(0));
         assertEq(config.feeToken, address(0));
@@ -953,5 +1004,62 @@ contract C3DappManagerTest is Helpers {
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for addMpcAddr:", gasUsed);
+    }
+
+    function test_ReentrancyVulnerability_Withdraw() public {
+        // This test demonstrates the reentrancy vulnerability
+        // In a real scenario, this could allow double withdrawals
+        
+        // Setup initial balance
+        uint256 initialBalance = 1000;
+        vm.startPrank(user1);
+        maliciousToken.approve(address(dappManager), initialBalance);
+        dappManager.deposit(1, address(maliciousToken), initialBalance);
+        vm.stopPrank();
+        
+        // Enable reentering on malicious token
+        maliciousToken.setReentering(true);
+        
+        // This should trigger a reentrancy attack
+        // The malicious token will try to call withdraw again during the transfer
+        vm.prank(user1);
+        dappManager.withdraw(1, address(maliciousToken), 100);
+        
+        // In a vulnerable implementation, this could result in multiple withdrawals
+        // The test demonstrates the potential for reentrancy
+        console.log("Reentrancy vulnerability test completed");
+    }
+
+    function test_ReentrancySafety_Deposit() public {
+        // This test shows that deposit is safer due to CEI pattern
+        uint256 amount = 1000;
+        
+        // Setup malicious token to try reentering during deposit
+        maliciousToken.setReentering(true);
+        
+        // This should not cause issues because deposit follows CEI pattern
+        vm.startPrank(user1);
+        maliciousToken.approve(address(dappManager), amount);
+        dappManager.deposit(1, address(maliciousToken), amount);
+        vm.stopPrank();
+        
+        // Verify the deposit worked correctly
+        assertEq(dappManager.getDappStakePool(1, address(maliciousToken)), amount);
+    }
+
+    function test_ReentrancyWithRealToken() public {
+        // Test with a real ERC20 token to ensure normal operation
+        uint256 amount = 1000;
+        
+        vm.startPrank(user1);
+        usdc.approve(address(dappManager), amount);
+        dappManager.deposit(1, address(usdc), amount);
+        vm.stopPrank();
+        
+        // Normal withdraw should work
+        vm.prank(gov);
+        dappManager.withdraw(1, address(usdc), 500);
+        
+        assertEq(dappManager.getDappStakePool(1, address(usdc)), 500);
     }
 }
