@@ -23,7 +23,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
         _;
     }
 
-    constructor(address _gov) C3GovClient(_gov) { }
+    constructor() C3GovClient(msg.sender) { }
 
     function isUUIDExist(bytes32 _uuid) public view returns (bool) {
         return uuid2Nonce[_uuid] != 0;

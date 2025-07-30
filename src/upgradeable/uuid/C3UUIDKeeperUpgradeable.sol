@@ -25,8 +25,8 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClientUpgradeable, UUPSU
         _;
     }
 
-    function initialize(address _gov) public initializer {
-        __C3GovClient_init(_gov);
+    function initialize() public initializer {
+        __C3GovClient_init(msg.sender);
     }
 
     function isUUIDExist(bytes32 _uuid) public view returns (bool) {

@@ -18,7 +18,7 @@ import {C3GovClientUpgradeable} from "./gov/C3GovClientUpgradeable.sol";
 import {C3CallerUtils, C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3CallerUpgradeable is IC3Caller {
-    function initialize(address _swapIDKeeper) external;
+    function initialize(address _uuidKeeper) external;
 }
 
 contract C3CallerUpgradeable is
@@ -35,12 +35,12 @@ contract C3CallerUpgradeable is
     C3Context public context;
     address public uuidKeeper;
 
-    function initialize(address _swapIDKeeper) public initializer {
+    function initialize(address _uuidKeeper) public initializer {
         __UUPSUpgradeable_init();
         __C3GovClient_init(msg.sender);
         __Ownable_init(msg.sender);
         __Pausable_init();
-        uuidKeeper = _swapIDKeeper;
+        uuidKeeper = _uuidKeeper;
     }
 
     function isExecutor(address _sender) external view returns (bool) {

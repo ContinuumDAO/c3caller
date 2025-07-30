@@ -85,12 +85,14 @@ contract C3CallerUpgradesTest is Helpers {
         implementationV3 = address(new C3CallerUpgradeableV3());
 
         // Deploy C3Caller proxy with V1 implementation
+
+        vm.startPrank(gov);
+        address c3UUIDKeeperImpl = address(new C3UUIDKeeperUpgradeable());
+        c3UUIDKeeper = C3UUIDKeeper(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
         bytes memory initData = abi.encodeCall(
             C3CallerUpgradeable.initialize,
             (address(c3UUIDKeeper))
         );
-
-        vm.startPrank(gov);
         proxy = _deployProxy(implementationV1, initData);
         c3callerV1 = C3CallerUpgradeable(proxy);
 
