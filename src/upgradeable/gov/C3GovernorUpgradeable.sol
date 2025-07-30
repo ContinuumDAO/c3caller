@@ -120,5 +120,5 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
         return (_len);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov { }
 }

@@ -94,5 +94,5 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClientUpgradeable, UUPSU
         return abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov { }
 }

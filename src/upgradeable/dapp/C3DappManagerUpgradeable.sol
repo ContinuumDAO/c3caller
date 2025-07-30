@@ -236,5 +236,5 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
         dappConfig[_dappID].discount = _discount;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov { }
 }
