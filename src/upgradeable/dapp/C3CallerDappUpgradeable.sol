@@ -69,7 +69,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
      */
     modifier onlyCaller() {
         C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        if (IC3Caller($.c3CallerProxy).isCaller(msg.sender)) {
+        if (!IC3Caller($.c3CallerProxy).isCaller(msg.sender)) {
             revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
         _;

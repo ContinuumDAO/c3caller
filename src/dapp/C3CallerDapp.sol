@@ -26,7 +26,7 @@ import { IC3CallerDapp } from "./IC3CallerDapp.sol";
 abstract contract C3CallerDapp is IC3CallerDapp {
     /// @notice The C3Caller proxy address
     address public c3CallerProxy;
-    
+
     /// @notice The dApp identifier
     uint256 public dappID;
 
