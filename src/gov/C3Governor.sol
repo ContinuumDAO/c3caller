@@ -21,7 +21,7 @@ import { IC3Governor } from "./IC3Governor.sol";
  * - Failed proposal handling and retry mechanisms
  * 
  * @notice This contract enables governance-driven cross-chain operations
- * @author @selqui ContinuumDAO
+ * @author @potti and @selqui ContinuumDAO
  */
 contract C3Governor is IC3Governor, C3GovernDapp {
     using Strings for *;
@@ -67,6 +67,9 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
 
+        // Set the current proposal ID for fallback handling
+        proposalId = _nonce;
+
         emit NewProposal(_nonce);
 
         _c3gov(_nonce, 0);
@@ -91,6 +94,9 @@ contract C3Governor is IC3Governor, C3GovernDapp {
             _proposal[_nonce].data.push(_data[i]);
             _proposal[_nonce].hasFailed.push(false);
         }
+
+        // Set the current proposal ID for fallback handling
+        proposalId = _nonce;
 
         emit NewProposal(_nonce);
 
@@ -143,7 +149,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
         if (_chainId == chainID()) {
             address _to = _target.toAddress();
             (bool _success,) = _to.call(_remoteData);
-            if (_success) {
+            if (!_success) {
                 _proposal[_nonce].hasFailed[_offset] = true;
             }
         } else {
@@ -182,7 +188,7 @@ contract C3Governor is IC3Governor, C3GovernDapp {
 
     /**
      * @notice Get the number of cross-chain invocations in the current proposal
-     * @return The number of cross-chain invocations
+     * @return length The number of cross-chain invocations
      */
     function proposalLength() public view returns (uint256) {
         uint256 _len = _proposal[proposalId].data.length;
