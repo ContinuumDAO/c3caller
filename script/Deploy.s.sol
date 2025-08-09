@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+pragma solidity 0.8.27;
+
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
+
+import {C3UUIDKeeperUpgradeable} from "../flattened/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3CallerUpgradeable} from "../flattened/upgradeable/C3CallerUpgradeable.sol";
+import {C3CallerProxy} from "../flattened/utils/C3CallerProxy.sol";
+
+contract Deploy is Script {
+    function run() public {
+        vm.startBroadcast();
+
+        C3UUIDKeeperUpgradeable c3UUIDKeeperImpl = new C3UUIDKeeperUpgradeable();
+        bytes memory c3UUIDKeeperInitData = abi.encodeWithSignature("initialize()");
+        address c3UUIDKeeper = address(new C3CallerProxy(address(c3UUIDKeeperImpl), c3UUIDKeeperInitData));
+        console.log("C3UUIDKeeper", c3UUIDKeeper);
+
+        C3CallerUpgradeable c3CallerImpl = new C3CallerUpgradeable();
+        bytes memory c3CallerInitData = abi.encodeWithSignature("initialize(address)", c3UUIDKeeper);
+        address c3Caller = address(new C3CallerProxy(address(c3CallerImpl), c3CallerInitData));
+        console.log("C3Caller", c3Caller);
+
+        vm.stopBroadcast();
+    }
+}

@@ -1,5 +1,5 @@
 [profile.default]
-src = "src"
+src = "flattened"
 out = "out"
 libs = ["lib"]
 solc_version = "0.8.27"
@@ -17,5 +17,58 @@ remappings = [
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/"
 ]
+
+[rpc_endpoints]
+ localhost = "http://127.0.0.1:8545"
+ arbSepolia = "${ARB_SEPOLIA_RPC_URL}"
+ sepolia = "${SEPOLIA_RPC_URL}"
+ baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
+ optSepolia = "${OPT_SEPOLIA_RPC_URL}"
+ bscTestnet = "${BSC_TESTNET_RPC_URL}"
+ opBNBTestnet = "${OPBNB_TESTNET_RPC_URL}"
+ seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
+ bitlayerTestnet = "${BITLAYER_TESTNET_RPC_URL}"
+ avaxFuji = "${AVAX_FUJI_RPC_URL}"
+ polygonAmoy = "${POLYGON_AMOY_RPC_URL}"
+ confluxEspace = "${CONFLUX_ESPACE_RPC_URL}"
+ lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
+ coreTestnet = "${CORE_TESTNET_RPC_URL}"
+ holeskyTestnet = "${HOLESKY_TESTNET_RPC_URL}"
+ morphHolesky = "${MORPH_HOLESKY_RPC_URL}"
+ scrollSepolia = "${SCROLL_SEPOLIA_RPC_URL}"
+ soneiumMinato = "${SONEIUM_MINATO_RPC_URL}"
+ luksoTestnet = "${LUKSO_TESTNET_RPC_URL}"
+ cronosTestnet = "${CRONOS_TESTNET_RPC_URL}"
+ lumiaTestnet = "${LUMIA_TESTNET_RPC_URL}"
+ blastSepolia = "${BLAST_SEPOLIA_RPC_URL}"
+ mantleSepolia = "${MANTLE_SEPOLIA_RPC_URL}"
+ beraBartio = "${BERA_BARTIO_RPC_URL}"
+ lumeTestnet = "${PLUME_TESTNET_RPC_URL}"
+ vanguard = "${VANGUARD_RPC_URL}"
+ fireThunder = "${FIRE_THUNDER_RPC_URL}"
+ areonTestnet = "${AREON_TESTNET_RPC_URL}"
+ rariTestnet = "${RARI_TESTNET_RPC_URL}"
+ u2uTestnet = "${U2U_NEBULAS_TESTNET_RPC_URL}"
+ sonicTestnet = "${SONIC_TESTNET_RPC_URL}"
+ humanodeTestnet = "${HUMANODE_TESTNET_RPC_URL}"
+ redbellyTestnet = "${REDBELLY_TESTNET_RPC_URL}"
+ mantaPacific = "${MANTA_PACIFIC_RPC_URL}"
+
+[etherscan]
+ etherscanAPIKey = { key = "${ETHERSCAN_API_KEY}"}
+#  arbSepoliaKey = { url = "https://api-sepolia.arbiscan.io/api", chain = 421614, key = "${ARBISCAN_API_KEY}" }
+#  sepoliaKey = { url = "https://api-sepolia.etherscan.io/api", chain = 11155111, key = "${ETHERSCAN_API_KEY}" }
+#  baseSepoliaKey = { url = "https://api-sepolia.basescan.org/api", chain = 84532, key = "${BASE_API_KEY}" }
+#  optSepoliaKey = { url = "https://api-sepolia-optimistic.etherscan.io/api", chain = 11155420, key = "${OPT_API_KEY}" }
+#  bscTestnetKey = { url = "https://api-testnet.bscscan.com/api", chain = 97, key = "${BSC_API_KEY}" }
+#  opBNBTestnetKey = { url = "https://api-opbnb-testnet.bscscan.com/api", chain = 5611, key = "${OPBNB_API_KEY}" }
+#  seiAtlanticKey = { url = "https://seitrace.com/atlantic-2/api", chain = 1328, key = "${SEI_API_KEY}" }
+#  bitlayerTestnetKey = { url = "https://api-testnet.btrscan.com/api", chain = 200810, key = "${BITLAYER_API_KEY}" }
+#  avaxFujiKey = { url = "https://api-testnet.snowtrace.io/api", chain = 43113, key = "${AVAX_API_KEY}" }
+#  polygonAmoyKey = { url = "https://api-amoy.polygonscan.com/api", chain = 80002, key = "${POLYGON_API_KEY}" }
+#  sonicTestnetKey = { url = "https://api.sonic-testnet.explorers.guru/api", chain = 64165, key = "${SONIC_API_KEY}" }
+#  confluxEspaceKey = { url = "https://evmapi-testnet.confluxscan.io/api", chain = 71, key = "${CONFLUX_API_KEY}" }
+#  lineaSepoliaKey = { url = "https://api-sepolia.lineascan.build/api/v2", chain = 59141, key = "${LINEA_API_KEY}" }
+#  soneiumMinatoKey = { url = "https://explorer.minato.soneium.org/api", chain = 1946, key = "${SONEIUM_API_KEY}" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
