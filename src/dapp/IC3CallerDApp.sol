@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
-interface IC3CallerDapp {
+interface IC3CallerDApp {
     error C3CallerDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3CallerDApp_InvalidDAppID(uint256, uint256);
 

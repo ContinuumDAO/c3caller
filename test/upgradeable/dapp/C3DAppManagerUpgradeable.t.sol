@@ -6,20 +6,20 @@ import {console} from "forge-std/console.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Helpers} from "../../helpers/Helpers.sol";
-import {C3DappManagerUpgradeable} from "../../../src/upgradeable/dapp/C3DappManagerUpgradeable.sol";
-import {IC3DAppManager} from "../../../src/dapp/IC3DappManager.sol";
+import {C3DAppManagerUpgradeable} from "../../../src/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
+import {IC3DAppManager} from "../../../src/dapp/IC3DAppManager.sol";
 import {IC3GovClient} from "../../../src/gov/IC3GovClient.sol";
 import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
 
 // Mock malicious ERC20 token that can reenter
 contract MaliciousTokenUpgradeable is IERC20 {
-    C3DappManagerUpgradeable public dappManager;
+    C3DAppManagerUpgradeable public dappManager;
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
     bool public reentering = false;
 
-    constructor(C3DappManagerUpgradeable _dappManager) {
+    constructor(C3DAppManagerUpgradeable _dappManager) {
         dappManager = _dappManager;
         totalSupply = 1000000;
         balanceOf[address(this)] = 1000000;
@@ -47,8 +47,8 @@ contract MaliciousTokenUpgradeable is IERC20 {
     }
 }
 
-contract C3DappManagerUpgradeableTest is Helpers {
-    C3DappManagerUpgradeable public dappManager;
+contract C3DAppManagerUpgradeableTest is Helpers {
+    C3DAppManagerUpgradeable public dappManager;
     string public mpcAddr1 = "0x1234567890123456789012345678901234567890";
     string public pubKey1 = "0x0987654321098765432109876543210987654321";
 
@@ -57,7 +57,7 @@ contract C3DappManagerUpgradeableTest is Helpers {
     function setUp() public override {
         super.setUp();
         vm.prank(gov);
-        dappManager = new C3DappManagerUpgradeable();
+        dappManager = new C3DAppManagerUpgradeable();
         dappManager.initialize(gov);
         
         // Deploy malicious token
@@ -115,7 +115,7 @@ contract C3DappManagerUpgradeableTest is Helpers {
         vm.stopPrank();
         
         // Verify the deposit worked correctly
-        assertEq(dappManager.getDappStakePool(1, address(maliciousToken)), amount);
+        assertEq(dappManager.getDAppStakePool(1, address(maliciousToken)), amount);
     }
 
     function test_ReentrancyWithRealToken() public {
@@ -131,7 +131,7 @@ contract C3DappManagerUpgradeableTest is Helpers {
         vm.prank(gov);
         dappManager.withdraw(1, address(usdc), 500);
         
-        assertEq(dappManager.getDappStakePool(1, address(usdc)), 500);
+        assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
     }
 
     // ============ BASIC FUNCTIONALITY TESTS ============
@@ -144,7 +144,7 @@ contract C3DappManagerUpgradeableTest is Helpers {
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
         
-        assertEq(dappManager.getDappStakePool(1, address(usdc)), amount);
+        assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
     }
 
     function test_Withdraw_Success() public {
@@ -159,14 +159,14 @@ contract C3DappManagerUpgradeableTest is Helpers {
         vm.prank(gov);
         dappManager.withdraw(1, address(usdc), withdrawAmount);
         
-        assertEq(dappManager.getDappStakePool(1, address(usdc)), depositAmount - withdrawAmount);
+        assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - withdrawAmount);
     }
 
     function test_SetDAppConfig_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
         
-        IC3DAppManager.DappConfig memory config = dappManager.getDappConfig(1);
+        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
         assertEq(config.id, 1);
         assertEq(config.appAdmin, user1);
         assertEq(config.feeToken, address(usdc));

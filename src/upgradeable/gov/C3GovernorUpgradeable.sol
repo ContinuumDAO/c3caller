@@ -10,12 +10,12 @@ import { IC3Governor } from "../../gov/IC3Governor.sol";
 import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
 import { C3CallerUtils } from "../../utils/C3CallerUtils.sol";
 
-import { C3GovernDappUpgradeable } from "./C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "./C3GovernDAppUpgradeable.sol";
 
 /**
  * @title C3GovernorUpgradeable
  * @dev Upgradeable governance contract for cross-chain proposal management in the C3 protocol.
- * This contract extends C3GovernDappUpgradeable to provide proposal-based governance
+ * This contract extends C3GovernDAppUpgradeable to provide proposal-based governance
  * functionality for cross-chain operations with upgradeable capabilities.
  * 
  * Key features:
@@ -28,7 +28,7 @@ import { C3GovernDappUpgradeable } from "./C3GovernDappUpgradeable.sol";
  * @notice This contract enables governance-driven cross-chain operations with upgradeability
  * @author @potti ContinuumDAO
  */
-contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using C3CallerUtils for string;
 
@@ -44,13 +44,13 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDappUpgradeable, UUPSUpgr
      * @param _gov The governance address
      * @param _c3CallerProxy The C3Caller proxy address
      * @param _txSender The transaction sender address
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      */
     function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
         external
         initializer
     {
-        __C3GovernDapp_init(_gov, _c3CallerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3CallerProxy, _txSender, _dappID);
     }
 
     /**

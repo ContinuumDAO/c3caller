@@ -5,18 +5,18 @@ pragma solidity 0.8.27;
 import {console} from "forge-std/console.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
-import {MockC3GovernDapp} from "../helpers/mocks/MockC3GovernDapp.sol";
-import {IC3GovernDapp} from "../../src/gov/IC3GovernDapp.sol";
+import {MockC3GovernDApp} from "../helpers/mocks/MockC3GovernDApp.sol";
+import {IC3GovernDApp} from "../../src/gov/IC3GovernDApp.sol";
 import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 import {C3Caller} from "../../src/C3Caller.sol";
 import {IC3Caller} from "../../src/IC3Caller.sol";
 import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
 
-contract C3GovernDappTest is Helpers {
+contract C3GovernDAppTest is Helpers {
     C3UUIDKeeper c3UUIDKeeper;
     C3Caller c3caller;
-    MockC3GovernDapp public governDapp;
-    uint256 public testDappID = 123;
+    MockC3GovernDApp public governDApp;
+    uint256 public testDAppID = 123;
 
     function setUp() public override {
         super.setUp();
@@ -31,28 +31,28 @@ contract C3GovernDappTest is Helpers {
         c3caller.addOperator(mpc1);
 
         // Deploy govern dapp with initial txSender
-        governDapp = new MockC3GovernDapp(gov, address(c3caller), user1, testDappID);
+        governDApp = new MockC3GovernDApp(gov, address(c3caller), user1, testDAppID);
         vm.stopPrank();
     }
 
     // ============ CONSTRUCTOR TESTS ============
 
     function test_Constructor() public {
-        assertEq(governDapp.gov(), gov);
-        assertEq(governDapp.delay(), 2 days);
-        assertTrue(governDapp.txSenders(user1));
-        assertFalse(governDapp.txSenders(user2));
-        assertEq(governDapp.dappID(), testDappID);
-        assertEq(governDapp.c3CallerProxy(), address(c3caller));
+        assertEq(governDApp.gov(), gov);
+        assertEq(governDApp.delay(), 2 days);
+        assertTrue(governDApp.txSenders(user1));
+        assertFalse(governDApp.txSenders(user2));
+        assertEq(governDApp.dappID(), testDAppID);
+        assertEq(governDApp.c3CallerProxy(), address(c3caller));
     }
 
     function test_Constructor_ZeroAddress() public {
         // This should work since constructor doesn't validate addresses
-        MockC3GovernDapp dapp = new MockC3GovernDapp(
+        MockC3GovernDApp dapp = new MockC3GovernDApp(
             address(0),
             address(c3caller),
             address(0),
-            testDappID
+            testDAppID
         );
         assertEq(dapp.gov(), address(0));
         assertTrue(dapp.txSenders(address(0)));
@@ -62,232 +62,232 @@ contract C3GovernDappTest is Helpers {
 
     function test_ChangeGov_Success() public {
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         // Should still return old gov until delay passes
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
         
         // Fast forward past delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
     }
 
     function test_ChangeGov_OnlyGov() public {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.changeGov(user2);
+        governDApp.changeGov(user2);
     }
 
     function test_ChangeGov_C3Caller() public {
         // C3Caller should be able to change gov
         vm.prank(address(c3caller));
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         // Should still return old gov until delay passes
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
         
         // Fast forward past delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
     }
 
     function test_ChangeGov_ZeroAddress() public {
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_IsZeroAddress.selector,
+                IC3GovernDApp.C3GovernDApp_IsZeroAddress.selector,
                 C3ErrorParam.Gov
             )
         );
-        governDapp.changeGov(address(0));
+        governDApp.changeGov(address(0));
     }
 
     function test_ChangeGov_EffectiveTime() public {
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         uint256 effectiveTime = block.timestamp + 2 days;
         
         // Before effective time
         vm.warp(effectiveTime - 1);
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
         
         // At effective time
         vm.warp(effectiveTime);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
         
         // After effective time
         vm.warp(effectiveTime + 1);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
     }
 
     function test_ChangeGov_MultipleChanges() public {
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         // Fast forward past first delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
         
         // Now user1 can change gov
         vm.prank(user1);
-        governDapp.changeGov(user2);
+        governDApp.changeGov(user2);
         
         // Should still return user1 until second delay passes
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
         
         // Fast forward past second delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), user2);
+        assertEq(governDApp.gov(), user2);
     }
 
     // ============ DELAY TESTS ============
 
     function test_SetDelay_Success() public {
         vm.prank(gov);
-        governDapp.setDelay(1 days);
+        governDApp.setDelay(1 days);
         
-        assertEq(governDapp.delay(), 1 days);
+        assertEq(governDApp.delay(), 1 days);
     }
 
     function test_SetDelay_OnlyGov() public {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.setDelay(1 days);
+        governDApp.setDelay(1 days);
     }
 
     function test_SetDelay_C3Caller() public {
         vm.prank(address(c3caller));
-        governDapp.setDelay(1 days);
+        governDApp.setDelay(1 days);
         
-        assertEq(governDapp.delay(), 1 days);
+        assertEq(governDApp.delay(), 1 days);
     }
 
     function test_SetDelay_ZeroDelay() public {
         vm.prank(gov);
-        governDapp.setDelay(0);
+        governDApp.setDelay(0);
         
-        assertEq(governDapp.delay(), 0);
+        assertEq(governDApp.delay(), 0);
     }
 
     function test_SetDelay_LargeDelay() public {
         vm.prank(gov);
-        governDapp.setDelay(365 days);
+        governDApp.setDelay(365 days);
         
-        assertEq(governDapp.delay(), 365 days);
+        assertEq(governDApp.delay(), 365 days);
     }
 
     function test_ChangeGov_WithCustomDelay() public {
         vm.prank(gov);
-        governDapp.setDelay(1 days);
+        governDApp.setDelay(1 days);
         
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         // Should still return old gov until custom delay passes
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
         
         // Fast forward past custom delay
         vm.warp(block.timestamp + 1 days + 1);
-        assertEq(governDapp.gov(), user1);
+        assertEq(governDApp.gov(), user1);
     }
 
     // ============ TX SENDER TESTS ============
 
     function test_AddTxSender_Success() public {
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         
-        assertTrue(governDapp.txSenders(user2));
+        assertTrue(governDApp.txSenders(user2));
     }
 
     function test_AddTxSender_OnlyGov() public {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
     }
 
     function test_AddTxSender_C3Caller() public {
         vm.prank(address(c3caller));
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         
-        assertTrue(governDapp.txSenders(user2));
+        assertTrue(governDApp.txSenders(user2));
     }
 
     function test_AddTxSender_AlreadyAdded() public {
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         
-        assertTrue(governDapp.txSenders(user2));
+        assertTrue(governDApp.txSenders(user2));
     }
 
     function test_DisableTxSender_Success() public {
         vm.prank(gov);
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         
-        assertFalse(governDapp.txSenders(user1));
+        assertFalse(governDApp.txSenders(user1));
     }
 
     function test_DisableTxSender_OnlyGov() public {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
     }
 
     function test_DisableTxSender_C3Caller() public {
         vm.prank(address(c3caller));
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         
-        assertFalse(governDapp.txSenders(user1));
+        assertFalse(governDApp.txSenders(user1));
     }
 
     function test_DisableTxSender_AlreadyDisabled() public {
         vm.prank(gov);
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         
         vm.prank(gov);
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         
-        assertFalse(governDapp.txSenders(user1));
+        assertFalse(governDApp.txSenders(user1));
     }
 
     function test_TxSenders_Multiple() public {
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         vm.prank(gov);
-        governDapp.addTxSender(mpc1);
+        governDApp.addTxSender(mpc1);
         
-        assertTrue(governDapp.txSenders(user1));
-        assertTrue(governDapp.txSenders(user2));
-        assertTrue(governDapp.txSenders(mpc1));
-        assertFalse(governDapp.txSenders(mpc2));
+        assertTrue(governDApp.txSenders(user1));
+        assertTrue(governDApp.txSenders(user2));
+        assertTrue(governDApp.txSenders(mpc1));
+        assertFalse(governDApp.txSenders(mpc2));
     }
 
     // ============ DOGOV TESTS ============
@@ -298,7 +298,7 @@ contract C3GovernDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         
         vm.prank(gov);
-        governDapp.doGov(to, toChainID, data);
+        governDApp.doGov(to, toChainID, data);
         
         // Should not revert
     }
@@ -311,12 +311,12 @@ contract C3GovernDappTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.doGov(to, toChainID, data);
+        governDApp.doGov(to, toChainID, data);
     }
 
     function test_DoGov_C3Caller() public {
@@ -325,7 +325,7 @@ contract C3GovernDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         
         vm.prank(address(c3caller));
-        governDapp.doGov(to, toChainID, data);
+        governDApp.doGov(to, toChainID, data);
         
         // Should not revert
     }
@@ -344,7 +344,7 @@ contract C3GovernDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         
         vm.prank(gov);
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
         
         // Should not revert
     }
@@ -361,12 +361,12 @@ contract C3GovernDappTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector,
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.GovOrC3Caller
             )
         );
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
     }
 
     function test_DoGovBroadcast_C3Caller() public {
@@ -379,7 +379,7 @@ contract C3GovernDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         
         vm.prank(address(c3caller));
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
         
         // Should not revert
     }
@@ -397,12 +397,12 @@ contract C3GovernDappTest is Helpers {
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_LengthMismatch.selector,
+                IC3GovernDApp.C3GovernDApp_LengthMismatch.selector,
                 C3ErrorParam.Target,
                 C3ErrorParam.ChainID
             )
         );
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
     }
 
     function test_DoGovBroadcast_EmptyArrays() public {
@@ -412,67 +412,67 @@ contract C3GovernDappTest is Helpers {
         
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.To));
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
     }
 
     // ============ ISVALID SENDER TESTS ============
 
     function test_IsValidSender_InitialTxSender() public {
-        assertTrue(governDapp.isValidSender(user1));
+        assertTrue(governDApp.isValidSender(user1));
     }
 
     function test_IsValidSender_AddedTxSender() public {
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         
-        assertTrue(governDapp.isValidSender(user2));
+        assertTrue(governDApp.isValidSender(user2));
     }
 
     function test_IsValidSender_DisabledTxSender() public {
         vm.prank(gov);
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         
-        assertFalse(governDapp.isValidSender(user1));
+        assertFalse(governDApp.isValidSender(user1));
     }
 
     function test_IsValidSender_NonTxSender() public {
-        assertFalse(governDapp.isValidSender(user2));
-        assertFalse(governDapp.isValidSender(address(0)));
+        assertFalse(governDApp.isValidSender(user2));
+        assertFalse(governDApp.isValidSender(address(0)));
     }
 
     // ============ EDGE CASES ============
 
     function test_ChangeGov_SameAddress() public {
         vm.prank(gov);
-        governDapp.changeGov(gov);
+        governDApp.changeGov(gov);
         
         // Should still return old gov until delay passes
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
         
         // Fast forward past delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), gov);
+        assertEq(governDApp.gov(), gov);
     }
 
     function test_Gov_AfterGovernanceChange() public {
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         
         // Change gov again before first change takes effect
         vm.prank(gov);
-        governDapp.changeGov(user2);
+        governDApp.changeGov(user2);
         
         // Fast forward past delay
         vm.warp(block.timestamp + 2 days + 1);
         // The second change should take effect because it has a later effective time
-        assertEq(governDapp.gov(), user2);
+        assertEq(governDApp.gov(), user2);
     }
 
     function test_TxSender_ZeroAddress() public {
         vm.prank(gov);
-        governDapp.addTxSender(address(0));
+        governDApp.addTxSender(address(0));
         
-        assertTrue(governDapp.txSenders(address(0)));
+        assertTrue(governDApp.txSenders(address(0)));
     }
 
     // ============ STRESS TESTS ============
@@ -486,23 +486,23 @@ contract C3GovernDappTest is Helpers {
         // Add all tx senders
         for (uint256 i = 0; i < 10; i++) {
             vm.prank(gov);
-            governDapp.addTxSender(testSenders[i]);
+            governDApp.addTxSender(testSenders[i]);
         }
         
         // Verify all are tx senders
         for (uint256 i = 0; i < 10; i++) {
-            assertTrue(governDapp.txSenders(testSenders[i]));
+            assertTrue(governDApp.txSenders(testSenders[i]));
         }
         
         // Disable all tx senders
         for (uint256 i = 0; i < 10; i++) {
             vm.prank(gov);
-            governDapp.disableTxSender(testSenders[i]);
+            governDApp.disableTxSender(testSenders[i]);
         }
         
         // Verify none are tx senders
         for (uint256 i = 0; i < 10; i++) {
-            assertFalse(governDapp.txSenders(testSenders[i]));
+            assertFalse(governDApp.txSenders(testSenders[i]));
         }
     }
 
@@ -516,39 +516,39 @@ contract C3GovernDappTest is Helpers {
         
         // Make multiple governance changes with proper timing
         vm.prank(gov);
-        governDapp.changeGov(newGovs[0]);
+        governDApp.changeGov(newGovs[0]);
         
         // Fast forward past first delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), newGovs[0]);
+        assertEq(governDApp.gov(), newGovs[0]);
         
         vm.prank(newGovs[0]);
-        governDapp.changeGov(newGovs[1]);
+        governDApp.changeGov(newGovs[1]);
         
         // Fast forward past second delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), newGovs[1]);
+        assertEq(governDApp.gov(), newGovs[1]);
         
         vm.prank(newGovs[1]);
-        governDapp.changeGov(newGovs[2]);
+        governDApp.changeGov(newGovs[2]);
         
         // Fast forward past third delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), newGovs[2]);
+        assertEq(governDApp.gov(), newGovs[2]);
         
         vm.prank(newGovs[2]);
-        governDapp.changeGov(newGovs[3]);
+        governDApp.changeGov(newGovs[3]);
         
         // Fast forward past fourth delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), newGovs[3]);
+        assertEq(governDApp.gov(), newGovs[3]);
         
         vm.prank(newGovs[3]);
-        governDapp.changeGov(newGovs[4]);
+        governDApp.changeGov(newGovs[4]);
         
         // Fast forward past fifth delay
         vm.warp(block.timestamp + 2 days + 1);
-        assertEq(governDapp.gov(), newGovs[4]);
+        assertEq(governDApp.gov(), newGovs[4]);
     }
 
     function test_DoGovBroadcast_LargeArrays() public {
@@ -563,7 +563,7 @@ contract C3GovernDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         
         vm.prank(gov);
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
         
         // Should not revert
     }
@@ -573,7 +573,7 @@ contract C3GovernDappTest is Helpers {
     function test_Gas_ChangeGov() public {
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.changeGov(user1);
+        governDApp.changeGov(user1);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for changeGov:", gasUsed);
@@ -582,7 +582,7 @@ contract C3GovernDappTest is Helpers {
     function test_Gas_SetDelay() public {
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.setDelay(1 days);
+        governDApp.setDelay(1 days);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for setDelay:", gasUsed);
@@ -591,7 +591,7 @@ contract C3GovernDappTest is Helpers {
     function test_Gas_AddTxSender() public {
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.addTxSender(user2);
+        governDApp.addTxSender(user2);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for addTxSender:", gasUsed);
@@ -600,7 +600,7 @@ contract C3GovernDappTest is Helpers {
     function test_Gas_DisableTxSender() public {
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.disableTxSender(user1);
+        governDApp.disableTxSender(user1);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for disableTxSender:", gasUsed);
@@ -613,7 +613,7 @@ contract C3GovernDappTest is Helpers {
         
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.doGov(to, toChainID, data);
+        governDApp.doGov(to, toChainID, data);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for doGov:", gasUsed);
@@ -632,7 +632,7 @@ contract C3GovernDappTest is Helpers {
         
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        governDapp.doGovBroadcast(targets, toChainIDs, data);
+        governDApp.doGovBroadcast(targets, toChainIDs, data);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for doGovBroadcast:", gasUsed);
@@ -640,7 +640,7 @@ contract C3GovernDappTest is Helpers {
 
     function test_Gas_Gov() public {
         uint256 gasBefore = gasleft();
-        governDapp.gov();
+        governDApp.gov();
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for gov:", gasUsed);
@@ -648,7 +648,7 @@ contract C3GovernDappTest is Helpers {
 
     function test_Gas_TxSenders() public {
         uint256 gasBefore = gasleft();
-        governDapp.txSenders(user1);
+        governDApp.txSenders(user1);
         uint256 gasUsed = gasBefore - gasleft();
         
         console.log("Gas used for txSenders:", gasUsed);

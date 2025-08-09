@@ -14,7 +14,7 @@ import {IC3CallerProxy} from "../../src/utils/IC3CallerProxy.sol";
 import {C3UUIDKeeperUpgradeable} from "../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
 import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
 
-import {MockC3CallerDapp} from "../helpers/mocks/MockC3CallerDapp.sol";
+import {MockC3CallerDApp} from "../helpers/mocks/MockC3CallerDApp.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
 
@@ -68,14 +68,14 @@ contract C3CallerUpgradesTest is Helpers {
     C3CallerUpgradeable public c3callerV1;
     C3CallerUpgradeableV2 public c3callerV2;
     C3CallerUpgradeableV3 public c3callerV3;
-    MockC3CallerDapp public mockDapp;
+    MockC3CallerDApp public mockDApp;
 
     address public implementationV1;
     address public implementationV2;
     address public implementationV3;
     address public proxy;
 
-    uint256 public testDappID = 123;
+    uint256 public testDAppID = 123;
 
     function setUp() public virtual override {
         super.setUp();
@@ -104,7 +104,7 @@ contract C3CallerUpgradesTest is Helpers {
         vm.stopPrank();
 
         // Deploy mock dapp
-        mockDapp = new MockC3CallerDapp(address(c3callerV1), testDappID);
+        mockDApp = new MockC3CallerDApp(address(c3callerV1), testDAppID);
     }
 
     // ============ DEPLOYMENT TESTS ============

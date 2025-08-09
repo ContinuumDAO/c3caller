@@ -5,16 +5,16 @@ pragma solidity 0.8.27;
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3CallerDapp } from "../dapp/C3CallerDapp.sol";
-import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
+import { C3CallerDApp } from "../dapp/C3CallerDApp.sol";
+import { IC3CallerDApp } from "../dapp/IC3CallerDApp.sol";
 
 import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
-import { IC3GovernDapp } from "./IC3GovernDapp.sol";
+import { IC3GovernDApp } from "./IC3GovernDApp.sol";
 
 /**
- * @title C3GovernDapp
- * @dev Abstract contract for governance dApp functionality in the C3 protocol.
- * This contract extends C3CallerDapp to provide governance-specific features
+ * @title C3GovernDApp
+ * @dev Abstract contract for governance DApp functionality in the C3 protocol.
+ * This contract extends C3CallerDApp to provide governance-specific features
  * including delayed governance changes and transaction sender management.
  * 
  * Key features:
@@ -23,10 +23,10 @@ import { IC3GovernDapp } from "./IC3GovernDapp.sol";
  * - Governance-driven cross-chain operations
  * - Fallback mechanism for failed operations
  * 
- * @notice This contract provides governance functionality for dApps
+ * @notice This contract provides governance functionality for DApps
  * @author @potti ContinuumDAO
  */
-abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
+abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
     using Strings for *;
     using Address for address;
 
@@ -46,14 +46,14 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     mapping(address => bool) internal _txSenders;
 
     /**
-     * @dev Constructor for C3GovernDapp
+     * @dev Constructor for C3GovernDApp
      * @param _gov The initial governance address
      * @param _c3callerProxy The C3Caller proxy address
      * @param _txSender The initial transaction sender address
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      */
     constructor(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
-        C3CallerDapp(_c3callerProxy, _dappID)
+        C3CallerDApp(_c3callerProxy, _dappID)
     {
         delay = 2 days;
         _oldGov = _gov;
@@ -168,11 +168,11 @@ abstract contract C3GovernDapp is C3CallerDapp, IC3GovernDapp {
     }
 
     /**
-     * @notice Check if an address is a valid sender for this dApp
+     * @notice Check if an address is a valid sender for this DApp
      * @param _txSender The address to check
      * @return True if the address is a valid sender
      */
-    function isValidSender(address _txSender) external view override(IC3CallerDapp, C3CallerDapp) returns (bool) {
+    function isValidSender(address _txSender) external view override(IC3CallerDApp, C3CallerDApp) returns (bool) {
         return _txSenders[_txSender];
     }
 }

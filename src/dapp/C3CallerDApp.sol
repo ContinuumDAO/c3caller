@@ -2,65 +2,42 @@
 
 pragma solidity 0.8.27;
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { IC3Caller } from "../IC3Caller.sol";
 
-import { IC3Caller } from "../../IC3Caller.sol";
-
-import { IC3CallerDapp } from "../../dapp/IC3CallerDapp.sol";
-import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
+import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
+import { IC3CallerDApp } from "./IC3CallerDApp.sol";
 
 /**
- * @title C3CallerDappUpgradeable
- * @dev Abstract base contract for upgradeable dApps in the C3 protocol.
- * This contract provides the foundation for dApps to interact with the C3Caller
- * system and handle cross-chain operations in an upgradeable context.
- *
+ * @title C3CallerDApp
+ * @dev Abstract base contract for DApps in the C3 protocol.
+ * This contract provides the foundation for DApps to interact with the C3Caller
+ * system and handle cross-chain operations.
+ * 
  * Key features:
- * - Upgradeable storage using ERC-7201 pattern
  * - C3Caller proxy integration
- * - dApp identifier management
+ * - DApp identifier management
  * - Cross-chain call initiation
  * - Fallback mechanism for failed operations
  * - Context retrieval for cross-chain operations
- *
- * @notice This contract serves as the base for all upgradeable C3 dApps
+ * 
+ * @notice This contract serves as the base for all C3 DApps
  * @author @potti ContinuumDAO
  */
-abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
-    /**
-     * @dev Storage struct for C3CallerDapp using ERC-7201 storage pattern
-     * @custom:storage-location erc7201:c3caller.storage.C3CallerDapp
-     */
-    struct C3CallerDappStorage {
-        /// @notice The C3Caller proxy address
-        address c3CallerProxy;
-        /// @notice The dApp identifier
-        uint256 dappID;
-    }
+abstract contract C3CallerDApp is IC3CallerDApp {
+    /// @notice The C3Caller proxy address
+    address public c3CallerProxy;
 
-    // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3CallerDapp")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant C3CallerDappStorageLocation =
-        0xa39433114fd213b64ea52624936c26398cba31e0774cfae377a12cb547f1bb00;
+    /// @notice The DApp identifier
+    uint256 public dappID;
 
     /**
-     * @dev Get the storage struct for C3CallerDapp
-     * @return $ The storage struct
-     */
-    function _getC3CallerDappStorage() private pure returns (C3CallerDappStorage storage $) {
-        assembly {
-            $.slot := C3CallerDappStorageLocation
-        }
-    }
-
-    /**
-     * @dev Internal initializer for upgradeable dApps
+     * @dev Constructor for C3CallerDApp
      * @param _c3CallerProxy The C3Caller proxy address
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      */
-    function __C3CallerDapp_init(address _c3CallerProxy, uint256 _dappID) internal onlyInitializing {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        $.c3CallerProxy = _c3CallerProxy;
-        $.dappID = _dappID;
+    constructor(address _c3CallerProxy, uint256 _dappID) {
+        c3CallerProxy = _c3CallerProxy;
+        dappID = _dappID;
     }
 
     /**
@@ -68,8 +45,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
      * @notice Reverts if the caller is not the C3Caller
      */
     modifier onlyCaller() {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        if (!IC3Caller($.c3CallerProxy).isCaller(msg.sender)) {
+        if (!_isCaller(msg.sender)) {
             revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
         _;
@@ -78,7 +54,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
     /**
      * @notice Handle fallback calls from C3Caller
      * @dev Only C3Caller can call this function
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _data The call data
      * @param _reason The failure reason
      * @return True if the fallback was handled successfully
@@ -90,15 +66,18 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
         onlyCaller
         returns (bool)
     {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        if (_dappID != $.dappID) {
-            revert C3CallerDApp_InvalidDAppID($.dappID, _dappID);
+        if (_dappID != dappID) {
+            revert C3CallerDApp_InvalidDAppID(dappID, _dappID);
         }
-        return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        if (_data.length < 4) {
+            return _c3Fallback(bytes4(0), _data, _reason);
+        } else {
+            return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        }
     }
 
     /**
-     * @notice Check if an address is a valid sender for this dApp
+     * @notice Check if an address is a valid sender for this DApp
      * @param _txSender The address to check
      * @return True if the address is a valid sender
      * @dev This function must be implemented by derived contracts
@@ -106,31 +85,12 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
     function isValidSender(address _txSender) external view virtual returns (bool);
 
     /**
-     * @notice Get the C3Caller proxy address
-     * @return The C3Caller proxy address
-     */
-    function c3CallerProxy() public view virtual returns (address) {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        return $.c3CallerProxy;
-    }
-
-    /**
-     * @notice Get the dApp identifier
-     * @return The dApp identifier
-     */
-    function dappID() public view virtual returns (uint256) {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        return $.dappID;
-    }
-
-    /**
      * @dev Internal function to check if an address is the C3Caller
      * @param _addr The address to check
      * @return True if the address is the C3Caller
      */
     function _isCaller(address _addr) internal virtual returns (bool) {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        return IC3Caller($.c3CallerProxy).isCaller(_addr);
+        return IC3Caller(c3CallerProxy).isCaller(_addr);
     }
 
     /**
@@ -153,8 +113,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
      * @param _data The calldata to execute
      */
     function _c3call(string memory _to, string memory _toChainID, bytes memory _data) internal virtual {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, "");
+        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, "");
     }
 
     /**
@@ -168,8 +127,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
         internal
         virtual
     {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        IC3Caller($.c3CallerProxy).c3call($.dappID, _to, _toChainID, _data, _extra);
+        IC3Caller(c3CallerProxy).c3call(dappID, _to, _toChainID, _data, _extra);
     }
 
     /**
@@ -179,8 +137,7 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
      * @param _data The calldata to execute on destination chains
      */
     function _c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal virtual {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        IC3Caller($.c3CallerProxy).c3broadcast($.dappID, _to, _toChainIDs, _data);
+        IC3Caller(c3CallerProxy).c3broadcast(dappID, _to, _toChainIDs, _data);
     }
 
     /**
@@ -195,7 +152,6 @@ abstract contract C3CallerDappUpgradeable is IC3CallerDapp, Initializable {
         virtual
         returns (bytes32 uuid, string memory fromChainID, string memory sourceTx)
     {
-        C3CallerDappStorage storage $ = _getC3CallerDappStorage();
-        return IC3Caller($.c3CallerProxy).context();
+        return IC3Caller(c3CallerProxy).context();
     }
 }

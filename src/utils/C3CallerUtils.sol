@@ -10,7 +10,7 @@ pragma solidity 0.8.27;
 enum C3ErrorParam {
     ChainID,        /// Chain identifier parameter
     Calldata,       /// Calldata parameter
-    DAppID,         /// dApp identifier parameter
+    DAppID,         /// DApp identifier parameter
     FeePerByte,     /// Fee per byte parameter
     AppDomain,      /// Application domain parameter
     Email,          /// Email parameter
@@ -53,7 +53,6 @@ library C3CallerUtils {
      */
     function hexStringToAddress(string memory _s) internal pure returns (bytes memory) {
         bytes memory _ss = bytes(_s);
-        // require(ss.length % 2 == 0); // length must be even
         bytes memory _r = new bytes(_ss.length / 2);
         for (uint256 _i = 0; _i < _ss.length / 2; ++_i) {
             _r[_i] = bytes1(fromHexChar(uint8(_ss[2 * _i])) * 16 + fromHexChar(uint8(_ss[2 * _i + 1])));
@@ -90,7 +89,6 @@ library C3CallerUtils {
      */
     function toAddress(string memory _s) internal pure returns (address) {
         bytes memory _bytes = hexStringToAddress(_s);
-        // require(_bytes.length >= 1 + 20, "toAddress_outOfBounds");
         if (_bytes.length < 21) {
             revert C3CallerUtils_OutOfBounds();
         }

@@ -5,13 +5,13 @@ pragma solidity 0.8.27;
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { C3CallerUtils, C3ErrorParam } from "../utils/C3CallerUtils.sol";
-import { C3GovernDapp } from "./C3GovernDapp.sol";
+import { C3GovernDApp } from "./C3GovernDApp.sol";
 import { IC3Governor } from "./IC3Governor.sol";
 
 /**
  * @title C3Governor
  * @dev Governance contract for cross-chain proposal management in the C3 protocol.
- * This contract extends C3GovernDapp to provide proposal-based governance
+ * This contract extends C3GovernDApp to provide proposal-based governance
  * functionality for cross-chain operations.
  * 
  * Key features:
@@ -23,7 +23,7 @@ import { IC3Governor } from "./IC3Governor.sol";
  * @notice This contract enables governance-driven cross-chain operations
  * @author @potti and @selqui ContinuumDAO
  */
-contract C3Governor is IC3Governor, C3GovernDapp {
+contract C3Governor is IC3Governor, C3GovernDApp {
     using Strings for *;
     using C3CallerUtils for string;
 
@@ -38,10 +38,10 @@ contract C3Governor is IC3Governor, C3GovernDapp {
      * @param _gov The governance address
      * @param _c3CallerProxy The C3Caller proxy address
      * @param _txSender The transaction sender address
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      */
     constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
-        C3GovernDapp(_gov, _c3CallerProxy, _txSender, _dappID)
+        C3GovernDApp(_gov, _c3CallerProxy, _txSender, _dappID)
     { }
 
     /**

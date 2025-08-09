@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 import {IC3Caller} from "./IC3Caller.sol";
-import {IC3CallerDapp} from "./dapp/IC3CallerDapp.sol";
+import {IC3CallerDApp} from "./dapp/IC3CallerDApp.sol";
 
 import {C3GovClient} from "./gov/C3GovClient.sol";
 import {IC3UUIDKeeper} from "./uuid/IC3UUIDKeeper.sol";
@@ -19,7 +19,7 @@ import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
  * @title C3Caller
  * @dev Main contract for handling cross-chain calls in the C3 protocol.
  * This contract serves as the central hub for initiating and executing cross-chain transactions.
- * It integrates with governance, UUID management, and dApp functionality.
+ * It integrates with governance, UUID management, and DApp functionality.
  * 
  * Key features:
  * - Cross-chain call initiation (c3call)
@@ -81,7 +81,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to initiate a cross-chain call
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _caller The address initiating the call
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
@@ -119,8 +119,8 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @notice Initiate a cross-chain call with extra data
-     * @dev Called by dApps to initiate cross-chain transactions
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to initiate cross-chain transactions
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata to execute on the destination chain
@@ -138,8 +138,8 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @notice Initiate a cross-chain call without extra data
-     * @dev Called by dApps to initiate cross-chain transactions
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to initiate cross-chain transactions
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata to execute on the destination chain
@@ -155,7 +155,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to initiate cross-chain broadcasts
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _caller The address initiating the broadcast
      * @param _to Array of target addresses on destination chains
      * @param _toChainIDs Array of destination chain identifiers
@@ -208,8 +208,8 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @notice Initiate cross-chain broadcasts to multiple destinations
-     * @dev Called by dApps to broadcast transactions to multiple chains
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to broadcast transactions to multiple chains
+     * @param _dappID The DApp identifier
      * @param _to Array of target addresses on destination chains
      * @param _toChainIDs Array of destination chain identifiers
      * @param _data The calldata to execute on destination chains
@@ -225,7 +225,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to execute cross-chain messages
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _txSender The transaction sender address
      * @param _message The cross-chain message to execute
      */
@@ -234,22 +234,18 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         address _txSender,
         C3EvmMessage calldata _message
     ) internal {
-        // require(_message.data.length > 0, "C3Caller: empty calldata");
         if (_message.data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+        if (!IC3CallerDApp(_message.to).isValidSender(_txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
         // check dappID
-        // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
-        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();
         if (expectedDAppID != _dappID) {
             revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
         }
 
-        //  require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
         if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
             revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
         }
@@ -284,7 +280,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
                 _message.uuid,
                 _message.fallbackTo,
                 abi.encodeWithSelector(
-                    IC3CallerDapp.c3Fallback.selector,
+                    IC3CallerDApp.c3Fallback.selector,
                     _dappID,
                     _message.data,
                     result
@@ -297,7 +293,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     /**
      * @notice Execute a cross-chain message
      * @dev Called by MPC network to execute cross-chain messages
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _message The cross-chain message to execute
      */
     function execute(
@@ -309,7 +305,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to handle fallback calls
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _txSender The transaction sender address
      * @param _message The cross-chain message for fallback
      */
@@ -318,21 +314,17 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         address _txSender,
         C3EvmMessage calldata _message
     ) internal {
-        // require(_message.data.length > 0, "C3Caller: empty calldata");
         if (_message.data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        // require(!IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid), "C3Caller: already completed");
         if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
             revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
         }
-        // require(IC3CallerDapp(_message.to).isValidSender(_txSender), "C3Caller: txSender invalid");
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+        if (!IC3CallerDApp(_message.to).isValidSender(_txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
 
-        // require(IC3CallerDapp(_message.to).dappID() == _dappID, "C3Caller: dappID dismatch");
-        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();
         if (expectedDAppID != _dappID) {
             revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
         }
@@ -365,7 +357,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     /**
      * @notice Execute a fallback call for failed cross-chain operations
      * @dev Called by MPC network to handle failed cross-chain calls
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _message The cross-chain message for fallback
      */
     function c3Fallback(

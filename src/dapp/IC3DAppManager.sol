@@ -5,8 +5,8 @@ pragma solidity 0.8.27;
 import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
 interface IC3DAppManager {
-    // Dapp config
-    struct DappConfig {
+    // DApp config
+    struct DAppConfig {
         uint256 id;
         address appAdmin; // account who admin the application's config
         address feeToken; // token address for fee token
@@ -44,7 +44,7 @@ interface IC3DAppManager {
     function dappID() external view returns (uint256);
 
     // Public variables
-    function c3DappAddr(string memory _addr) external view returns (uint256);
+    function c3DAppAddr(string memory _addr) external view returns (uint256);
     function appBlacklist(uint256 _dappID) external view returns (bool);
     function feeCurrencies(address _token) external view returns (uint256);
     function dappStakePool(uint256 _dappID, address _token) external view returns (uint256);
@@ -68,14 +68,14 @@ interface IC3DAppManager {
     function deposit(uint256 _dappID, address _token, uint256 _amount) external;
     function withdraw(uint256 _dappID, address _token, uint256 _amount) external;
     function charging(uint256 _dappID, address _token, uint256 _bill) external;
-    function getDappConfig(uint256 _dappID) external view returns (DappConfig memory);
+    function getDAppConfig(uint256 _dappID) external view returns (DAppConfig memory);
     function getMpcAddrs(uint256 _dappID) external view returns (string[] memory);
     function getMpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory);
     function getFeeCurrency(address _token) external view returns (uint256);
     function getSpeChainFee(string memory _chain, address _token) external view returns (uint256);
-    function getDappStakePool(uint256 _dappID, address _token) external view returns (uint256);
+    function getDAppStakePool(uint256 _dappID, address _token) external view returns (uint256);
     function getFee(address _token) external view returns (uint256);
     function setFee(address _token, uint256 _fee) external;
-    function setDappID(uint256 _dappID) external;
-    function setDappConfigDiscount(uint256 _dappID, uint256 _discount) external;
+    function setDAppID(uint256 _dappID) external;
+    function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external;
 }

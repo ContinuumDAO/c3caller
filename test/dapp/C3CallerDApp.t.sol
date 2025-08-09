@@ -5,20 +5,20 @@ pragma solidity 0.8.27;
 import {console} from "forge-std/console.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
-import {MockC3CallerDapp} from "../helpers/mocks/MockC3CallerDapp.sol";
+import {MockC3CallerDApp} from "../helpers/mocks/MockC3CallerDApp.sol";
 
 import {IC3Caller} from "../../src/IC3Caller.sol";
 import {C3Caller} from "../../src/C3Caller.sol";
 import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
-import {C3CallerDapp} from "../../src/dapp/C3CallerDapp.sol";
-import {IC3CallerDapp} from "../../src/dapp/IC3CallerDapp.sol";
+import {C3CallerDApp} from "../../src/dapp/C3CallerDApp.sol";
+import {IC3CallerDApp} from "../../src/dapp/IC3CallerDApp.sol";
 import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 
-contract C3CallerDappTest is Helpers {
+contract C3CallerDAppTest is Helpers {
     C3UUIDKeeper c3UUIDKeeper;
     C3Caller c3caller;
-    MockC3CallerDapp public c3CallerDapp;
-    uint256 public testDappID = 123;
+    MockC3CallerDApp public c3CallerDApp;
+    uint256 public testDAppID = 123;
 
     function setUp() public override {
         super.setUp();
@@ -33,22 +33,22 @@ contract C3CallerDappTest is Helpers {
         c3caller.addOperator(mpc1);
 
         // Deploy mock dapp
-        c3CallerDapp = new MockC3CallerDapp(address(c3caller), testDappID);
+        c3CallerDApp = new MockC3CallerDApp(address(c3caller), testDAppID);
         vm.stopPrank();
     }
 
     // ============ CONSTRUCTOR TESTS ============
 
     function test_Constructor() public {
-        assertEq(c3CallerDapp.c3CallerProxy(), address(c3caller));
-        assertEq(c3CallerDapp.dappID(), testDappID);
+        assertEq(c3CallerDApp.c3CallerProxy(), address(c3caller));
+        assertEq(c3CallerDApp.dappID(), testDAppID);
     }
 
     function test_Constructor_ZeroAddressProxy() public {
-        // This should work since MockC3CallerDapp doesn't validate the proxy address
-        MockC3CallerDapp dapp = new MockC3CallerDapp(address(0), testDappID);
+        // This should work since MockC3CallerDApp doesn't validate the proxy address
+        MockC3CallerDApp dapp = new MockC3CallerDApp(address(0), testDAppID);
         assertEq(dapp.c3CallerProxy(), address(0));
-        assertEq(dapp.dappID(), testDappID);
+        assertEq(dapp.dappID(), testDAppID);
     }
 
     // ============ MODIFIER TESTS ============
@@ -59,7 +59,7 @@ contract C3CallerDappTest is Helpers {
 
         // Call from C3Caller should succeed
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, reason);
         assertTrue(result);
     }
 
@@ -71,12 +71,12 @@ contract C3CallerDappTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3CallerDapp.C3CallerDApp_OnlyAuthorized.selector,
+                IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
                 C3ErrorParam.C3Caller
             )
         );
-        c3CallerDapp.c3Fallback(testDappID, data, reason);
+        c3CallerDApp.c3Fallback(testDAppID, data, reason);
     }
 
     // ============ C3FALLBACK TESTS ============
@@ -86,12 +86,12 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, reason);
 
         assertTrue(result);
-        assertEq(c3CallerDapp.lastFallbackSelector(), bytes4(keccak256("test()")));
-        assertEq(c3CallerDapp.lastFallbackData(), "");
-        assertEq(c3CallerDapp.lastFallbackReason(), reason);
+        assertEq(c3CallerDApp.lastFallbackSelector(), bytes4(keccak256("test()")));
+        assertEq(c3CallerDApp.lastFallbackData(), "");
+        assertEq(c3CallerDApp.lastFallbackReason(), reason);
     }
 
     function test_C3Fallback_WithData() public {
@@ -99,27 +99,27 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, reason);
 
         assertTrue(result);
-        assertEq(c3CallerDapp.lastFallbackSelector(), bytes4(keccak256("test(uint256)")));
-        assertEq(c3CallerDapp.lastFallbackData(), abi.encode(123));
-        assertEq(c3CallerDapp.lastFallbackReason(), reason);
+        assertEq(c3CallerDApp.lastFallbackSelector(), bytes4(keccak256("test(uint256)")));
+        assertEq(c3CallerDApp.lastFallbackData(), abi.encode(123));
+        assertEq(c3CallerDApp.lastFallbackReason(), reason);
     }
 
-    function test_C3Fallback_InvalidDappID() public {
+    function test_C3Fallback_InvalidDAppID() public {
         bytes memory data = abi.encodeWithSignature("test()");
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3CallerDapp.C3CallerDApp_InvalidDAppID.selector,
-                testDappID,
+                IC3CallerDApp.C3CallerDApp_InvalidDAppID.selector,
+                testDAppID,
                 999
             )
         );
-        c3CallerDapp.c3Fallback(999, data, reason);
+        c3CallerDApp.c3Fallback(999, data, reason);
     }
 
     function test_C3Fallback_EmptyData() public {
@@ -127,12 +127,12 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, reason);
 
         assertTrue(result);
-        assertEq(c3CallerDapp.lastFallbackSelector(), bytes4(0));
-        assertEq(c3CallerDapp.lastFallbackData(), "");
-        assertEq(c3CallerDapp.lastFallbackReason(), reason);
+        assertEq(c3CallerDApp.lastFallbackSelector(), bytes4(0));
+        assertEq(c3CallerDApp.lastFallbackData(), "");
+        assertEq(c3CallerDApp.lastFallbackReason(), reason);
     }
 
     function test_C3Fallback_ShortData() public {
@@ -140,12 +140,12 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, reason);
 
         assertTrue(result);
-        assertEq(c3CallerDapp.lastFallbackSelector(), bytes4(0));
-        assertEq(c3CallerDapp.lastFallbackData(), data);
-        assertEq(c3CallerDapp.lastFallbackReason(), reason);
+        assertEq(c3CallerDApp.lastFallbackSelector(), bytes4(0));
+        assertEq(c3CallerDApp.lastFallbackData(), data);
+        assertEq(c3CallerDApp.lastFallbackReason(), reason);
     }
 
     function test_C3Fallback_MockReverts() public {
@@ -153,39 +153,39 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         // Set mock to revert
-        c3CallerDapp.setShouldRevert(true);
+        c3CallerDApp.setShouldRevert(true);
 
         vm.prank(address(c3caller));
-        vm.expectRevert("MockC3CallerDapp: intentional revert");
-        c3CallerDapp.c3Fallback(testDappID, data, reason);
+        vm.expectRevert("MockC3CallerDApp: intentional revert");
+        c3CallerDApp.c3Fallback(testDAppID, data, reason);
     }
 
     // ============ ISVALID SENDER TESTS ============
 
     function test_IsValidSender_Default() public {
-        assertTrue(c3CallerDapp.isValidSender(user1));
-        assertTrue(c3CallerDapp.isValidSender(user2));
-        assertTrue(c3CallerDapp.isValidSender(address(0)));
+        assertTrue(c3CallerDApp.isValidSender(user1));
+        assertTrue(c3CallerDApp.isValidSender(user2));
+        assertTrue(c3CallerDApp.isValidSender(address(0)));
     }
 
     function test_IsValidSender_CustomResult() public {
-        c3CallerDapp.setValidSenderResult(false);
+        c3CallerDApp.setValidSenderResult(false);
 
-        assertFalse(c3CallerDapp.isValidSender(user1));
-        assertFalse(c3CallerDapp.isValidSender(user2));
-        assertFalse(c3CallerDapp.isValidSender(address(0)));
+        assertFalse(c3CallerDApp.isValidSender(user1));
+        assertFalse(c3CallerDApp.isValidSender(user2));
+        assertFalse(c3CallerDApp.isValidSender(address(0)));
     }
 
     // ============ INTERNAL FUNCTION TESTS ============
 
     function test_IsCaller_True() public {
         // Since C3Caller.isCaller returns true for itself
-        assertTrue(c3CallerDapp.isCaller(address(c3caller)));
+        assertTrue(c3CallerDApp.isCaller(address(c3caller)));
     }
 
     function test_IsCaller_False() public {
-        assertFalse(c3CallerDapp.isCaller(user1));
-        assertFalse(c3CallerDapp.isCaller(address(0)));
+        assertFalse(c3CallerDApp.isCaller(user1));
+        assertFalse(c3CallerDApp.isCaller(address(0)));
     }
 
     // ============ C3CALL TESTS ============
@@ -196,7 +196,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
 
         vm.prank(address(c3caller));
-        c3CallerDapp.c3call(to, toChainID, data);
+        c3CallerDApp.c3call(to, toChainID, data);
 
         // Verify the call was made to C3Caller
         // Note: We can't easily verify the internal call, but we can test that it doesn't revert
@@ -209,7 +209,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory extra = abi.encodeWithSignature("extra()");
 
         vm.prank(address(c3caller));
-        c3CallerDapp.c3call(to, toChainID, data, extra);
+        c3CallerDApp.c3call(to, toChainID, data, extra);
 
         // Verify the call was made to C3Caller
         // Note: We can't easily verify the internal call, but we can test that it doesn't revert
@@ -229,7 +229,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
 
         vm.prank(address(c3caller));
-        c3CallerDapp.c3broadcast(to, toChainIDs, data);
+        c3CallerDApp.c3broadcast(to, toChainIDs, data);
 
         // Verify the call was made to C3Caller
         // Note: We can't easily verify the internal call, but we can test that it doesn't revert
@@ -239,7 +239,7 @@ contract C3CallerDappTest is Helpers {
 
     function test_Context() public {
         vm.prank(address(c3caller));
-        (bytes32 uuid, string memory fromChainID, string memory sourceTx) = c3CallerDapp.context();
+        (bytes32 uuid, string memory fromChainID, string memory sourceTx) = c3CallerDApp.context();
 
         // Since context is not set, these should be empty/default values
         assertEq(uuid, bytes32(0));
@@ -255,13 +255,13 @@ contract C3CallerDappTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, largeCallData, reason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, largeCallData, reason);
 
         assertTrue(result);
         // The data passed to _c3Fallback is the ABI-encoded data without the selector
         // which includes offset (32 bytes) + length (32 bytes) + actual data
         bytes memory expectedData = abi.encode(largeData);
-        assertEq(c3CallerDapp.lastFallbackData(), expectedData);
+        assertEq(c3CallerDApp.lastFallbackData(), expectedData);
     }
 
     function test_C3Fallback_LargeReason() public {
@@ -269,10 +269,10 @@ contract C3CallerDappTest is Helpers {
         bytes memory largeReason = _generateLargeBytes(1000);
 
         vm.prank(address(c3caller));
-        bool result = c3CallerDapp.c3Fallback(testDappID, data, largeReason);
+        bool result = c3CallerDApp.c3Fallback(testDAppID, data, largeReason);
 
         assertTrue(result);
-        assertEq(c3CallerDapp.lastFallbackReason(), largeReason);
+        assertEq(c3CallerDApp.lastFallbackReason(), largeReason);
     }
 
     function test_C3Call_LargeData() public {
@@ -281,7 +281,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory largeData = _generateLargeBytes(1000);
 
         vm.prank(address(c3caller));
-        c3CallerDapp.c3call(to, toChainID, largeData);
+        c3CallerDApp.c3call(to, toChainID, largeData);
 
         // Should not revert
     }
@@ -292,15 +292,15 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
 
         vm.prank(address(c3caller));
-        c3CallerDapp.c3broadcast(to, toChainIDs, data);
+        c3CallerDApp.c3broadcast(to, toChainIDs, data);
 
         // Should not revert
     }
 
     // ============ EDGE CASES ============
 
-    function test_C3Fallback_ZeroDappID() public {
-        MockC3CallerDapp dapp = new MockC3CallerDapp(address(c3caller), 0);
+    function test_C3Fallback_ZeroDAppID() public {
+        MockC3CallerDApp dapp = new MockC3CallerDApp(address(c3caller), 0);
         bytes memory data = abi.encodeWithSignature("test()");
         bytes memory reason = abi.encodeWithSignature("reason()");
 
@@ -310,14 +310,14 @@ contract C3CallerDappTest is Helpers {
         assertTrue(result);
     }
 
-    function test_C3Fallback_MaxDappID() public {
-        uint256 maxDappID = type(uint256).max;
-        MockC3CallerDapp dapp = new MockC3CallerDapp(address(c3caller), maxDappID);
+    function test_C3Fallback_MaxDAppID() public {
+        uint256 maxDAppID = type(uint256).max;
+        MockC3CallerDApp dapp = new MockC3CallerDApp(address(c3caller), maxDAppID);
         bytes memory data = abi.encodeWithSignature("test()");
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        bool result = dapp.c3Fallback(maxDappID, data, reason);
+        bool result = dapp.c3Fallback(maxDAppID, data, reason);
 
         assertTrue(result);
     }
@@ -328,7 +328,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.To));
-        c3CallerDapp.c3call(to, toChainID, data);
+        c3CallerDApp.c3call(to, toChainID, data);
     }
 
     function test_C3Call_EmptyToChainID() public {
@@ -337,7 +337,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.ChainID));
-        c3CallerDapp.c3call(to, toChainID, data);
+        c3CallerDApp.c3call(to, toChainID, data);
     }
 
     function test_C3Call_EmptyData() public {
@@ -346,7 +346,7 @@ contract C3CallerDappTest is Helpers {
         bytes memory data = "";
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
-        c3CallerDapp.c3call(to, toChainID, data);
+        c3CallerDApp.c3call(to, toChainID, data);
     }
 
     function test_C3Broadcast_EmptyTo() public {
@@ -357,7 +357,7 @@ contract C3CallerDappTest is Helpers {
 
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.To));
-        c3CallerDapp.c3broadcast(to, toChainIDs, data);
+        c3CallerDApp.c3broadcast(to, toChainIDs, data);
     }
 
     function test_C3Broadcast_EmptyToChainID() public {
@@ -368,7 +368,7 @@ contract C3CallerDappTest is Helpers {
 
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.ChainID));
-        c3CallerDapp.c3broadcast(to, toChainIDs, data);
+        c3CallerDApp.c3broadcast(to, toChainIDs, data);
     }
 
     function test_C3Broadcast_LengthMismatch() public {
@@ -381,7 +381,7 @@ contract C3CallerDappTest is Helpers {
 
         vm.prank(address(c3caller));
         vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.ChainID));
-        c3CallerDapp.c3broadcast(to, toChainIDs, data);
+        c3CallerDApp.c3broadcast(to, toChainIDs, data);
     }
 
     // ============ GAS OPTIMIZATION TESTS ============
@@ -392,7 +392,7 @@ contract C3CallerDappTest is Helpers {
 
         uint256 gasBefore = gasleft();
         vm.prank(address(c3caller));
-        c3CallerDapp.c3Fallback(testDappID, data, reason);
+        c3CallerDApp.c3Fallback(testDAppID, data, reason);
         uint256 gasUsed = gasBefore - gasleft();
 
         // Log gas usage for optimization analysis
@@ -401,7 +401,7 @@ contract C3CallerDappTest is Helpers {
 
     function test_Gas_IsValidSender() public {
         uint256 gasBefore = gasleft();
-        c3CallerDapp.isValidSender(user1);
+        c3CallerDApp.isValidSender(user1);
         uint256 gasUsed = gasBefore - gasleft();
 
         console.log("Gas used for isValidSender:", gasUsed);

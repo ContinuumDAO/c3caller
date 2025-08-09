@@ -7,17 +7,17 @@ import {IC3Caller} from "../src/IC3Caller.sol";
 
 import {C3UUIDKeeper} from "../src/uuid/C3UUIDKeeper.sol";
 
-import {IC3CallerDapp} from "../src/dapp/IC3CallerDapp.sol";
+import {IC3CallerDApp} from "../src/dapp/IC3CallerDApp.sol";
 import {IC3GovClient} from "../src/gov/IC3GovClient.sol";
 import {C3ErrorParam} from "../src/utils/C3CallerUtils.sol";
 import {Helpers} from "./helpers/Helpers.sol";
-import {MockC3CallerDapp} from "./helpers/mocks/MockC3CallerDapp.sol";
+import {MockC3CallerDApp} from "./helpers/mocks/MockC3CallerDApp.sol";
 
 contract C3CallerTest is Helpers {
     C3UUIDKeeper c3UUIDKeeper;
     C3Caller c3caller;
-    MockC3CallerDapp public mockDapp;
-    uint256 public testDappID = 123;
+    MockC3CallerDApp public mockDApp;
+    uint256 public testDAppID = 123;
 
     function setUp() public virtual override {
         super.setUp();
@@ -35,7 +35,7 @@ contract C3CallerTest is Helpers {
         vm.stopPrank();
 
         // Deploy mock dapp
-        mockDapp = new MockC3CallerDapp(address(c3caller), testDappID);
+        mockDApp = new MockC3CallerDApp(address(c3caller), testDAppID);
     }
 
     function test_Constructor() public {
@@ -171,7 +171,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -181,8 +181,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -191,7 +191,7 @@ contract C3CallerTest is Helpers {
             abi.encode(uint256(1)) // result
         );
 
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
 
         // Verify UUID was registered
         assertTrue(c3UUIDKeeper.isCompleted(uuid));
@@ -203,7 +203,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -213,8 +213,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -225,19 +225,19 @@ contract C3CallerTest is Helpers {
 
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogFallbackCall(
-            testDappID,
+            testDAppID,
             uuid,
             "", // fallbackTo is empty
             abi.encodeWithSelector(
-                IC3CallerDapp.c3Fallback.selector,
-                testDappID,
+                IC3CallerDApp.c3Fallback.selector,
+                testDAppID,
                 data,
                 abi.encode(uint256(0))
             ),
             abi.encode(uint256(0))
         );
 
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
 
         // Verify UUID was NOT registered (because call failed)
         assertFalse(c3UUIDKeeper.isCompleted(uuid));
@@ -249,7 +249,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -259,8 +259,8 @@ contract C3CallerTest is Helpers {
         vm.prank(gov);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -268,11 +268,11 @@ contract C3CallerTest is Helpers {
             false, // success
             abi.encodeWithSignature(
                 "Error(string)",
-                "MockC3CallerDapp: call reverted"
+                "MockC3CallerDApp: call reverted"
             ) // ABI-encoded error
         );
 
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
 
         // Verify UUID was NOT registered (because call reverted)
         assertFalse(c3UUIDKeeper.isCompleted(uuid));
@@ -284,7 +284,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -294,8 +294,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -306,19 +306,19 @@ contract C3CallerTest is Helpers {
 
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogFallbackCall(
-            testDappID,
+            testDAppID,
             uuid,
             "", // fallbackTo is empty
             abi.encodeWithSelector(
-                IC3CallerDapp.c3Fallback.selector,
-                testDappID,
+                IC3CallerDApp.c3Fallback.selector,
+                testDAppID,
                 data,
                 abi.encode("invalid")
             ),
             abi.encode("invalid")
         );
 
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
 
         // Verify UUID was NOT registered (because data is invalid)
         assertFalse(c3UUIDKeeper.isCompleted(uuid));
@@ -330,7 +330,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "0xfallbackaddress",
@@ -340,8 +340,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -352,19 +352,19 @@ contract C3CallerTest is Helpers {
 
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogFallbackCall(
-            testDappID,
+            testDAppID,
             uuid,
             "0xfallbackaddress", // fallbackTo
             abi.encodeWithSelector(
-                IC3CallerDapp.c3Fallback.selector,
-                testDappID,
+                IC3CallerDApp.c3Fallback.selector,
+                testDAppID,
                 data,
                 abi.encode(uint256(0))
             ),
             abi.encode(uint256(0))
         );
 
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
     }
 
     function test_Execute_EmptyData() public {
@@ -373,7 +373,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -387,7 +387,7 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.Calldata
             )
         );
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
     }
 
     function test_Execute_InvalidSender() public {
@@ -395,11 +395,11 @@ contract C3CallerTest is Helpers {
         bytes memory data = abi.encodeWithSignature("successfulCall()");
 
         // Set mock dapp to reject sender
-        mockDapp.setValidSenderResult(false);
+        mockDApp.setValidSenderResult(false);
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -414,16 +414,16 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.Valid
             )
         );
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
     }
 
-    function test_Execute_DappIDMismatch() public {
+    function test_Execute_DAppIDMismatch() public {
         bytes32 uuid = keccak256("test-uuid");
         bytes memory data = abi.encodeWithSignature("successfulCall()");
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -434,7 +434,7 @@ contract C3CallerTest is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3Caller.C3Caller_InvalidDAppID.selector,
-                testDappID,
+                testDAppID,
                 999
             )
         );
@@ -451,7 +451,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -465,7 +465,7 @@ contract C3CallerTest is Helpers {
                 uuid
             )
         );
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
     }
 
     function test_Execute_NonOperator() public {
@@ -474,7 +474,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -489,7 +489,7 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.GovOrOperator
             )
         );
-        c3caller.execute(testDappID, message);
+        c3caller.execute(testDAppID, message);
     }
 
     // ============ C3FALLBACK TESTS ============
@@ -500,7 +500,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -510,8 +510,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecFallback(
-            testDappID,
-            address(mockDapp),
+            testDAppID,
+            address(mockDApp),
             uuid,
             "ethereum",
             "0x1234567890abcdef",
@@ -519,7 +519,7 @@ contract C3CallerTest is Helpers {
             abi.encode(uint256(1)) // result
         );
 
-        c3caller.c3Fallback(testDappID, message);
+        c3caller.c3Fallback(testDAppID, message);
 
         // Verify UUID was registered
         assertTrue(c3UUIDKeeper.isCompleted(uuid));
@@ -534,7 +534,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -548,7 +548,7 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.Calldata
             )
         );
-        c3caller.c3Fallback(testDappID, message);
+        c3caller.c3Fallback(testDAppID, message);
     }
 
     function test_C3Fallback_InvalidSender() public {
@@ -556,11 +556,11 @@ contract C3CallerTest is Helpers {
         bytes memory data = abi.encodeWithSignature("successfulCall()");
 
         // Set mock dapp to reject sender
-        mockDapp.setValidSenderResult(false);
+        mockDApp.setValidSenderResult(false);
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -575,16 +575,16 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.Valid
             )
         );
-        c3caller.c3Fallback(testDappID, message);
+        c3caller.c3Fallback(testDAppID, message);
     }
 
-    function test_C3Fallback_DappIDMismatch() public {
+    function test_C3Fallback_DAppIDMismatch() public {
         bytes32 uuid = keccak256("test-uuid");
         bytes memory data = abi.encodeWithSignature("successfulCall()");
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -595,7 +595,7 @@ contract C3CallerTest is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3Caller.C3Caller_InvalidDAppID.selector,
-                testDappID,
+                testDAppID,
                 999
             )
         );
@@ -612,7 +612,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -626,7 +626,7 @@ contract C3CallerTest is Helpers {
                 uuid
             )
         );
-        c3caller.c3Fallback(testDappID, message);
+        c3caller.c3Fallback(testDAppID, message);
     }
 
     function test_C3Fallback_NonOperator() public {
@@ -635,7 +635,7 @@ contract C3CallerTest is Helpers {
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -650,19 +650,19 @@ contract C3CallerTest is Helpers {
                 C3ErrorParam.GovOrOperator
             )
         );
-        c3caller.c3Fallback(testDappID, message);
+        c3caller.c3Fallback(testDAppID, message);
     }
 
-    function test_C3Fallback_MockDappReverts() public {
+    function test_C3Fallback_MockDAppReverts() public {
         bytes32 uuid = keccak256("test-uuid");
         bytes memory data = abi.encodeWithSignature("successfulCall()");
 
         // Set mock dapp to revert in fallback
-        mockDapp.setShouldRevert(true);
+        mockDApp.setShouldRevert(true);
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
-            to: address(mockDapp),
+            to: address(mockDApp),
             fromChainID: "ethereum",
             sourceTx: "0x1234567890abcdef",
             fallbackTo: "",
@@ -672,8 +672,8 @@ contract C3CallerTest is Helpers {
         vm.prank(mpc1);
         // The c3Fallback function will call the mock dapp's c3Fallback function directly
         // which will revert with our custom message
-        vm.expectRevert("MockC3CallerDapp: intentional revert");
-        c3caller.c3Fallback(testDappID, message);
+        vm.expectRevert("MockC3CallerDApp: intentional revert");
+        c3caller.c3Fallback(testDAppID, message);
     }
 
     // ============ STRESS TESTS ============
@@ -836,7 +836,7 @@ contract C3CallerTest is Helpers {
 
     // ============ EXISTING REVERT TESTS ============
 
-    function test_RevertWhen_DappIDIsZero() public {
+    function test_RevertWhen_DAppIDIsZero() public {
         bytes memory data = abi.encodeWithSignature("test()");
         string memory to = "0x1234567890123456789012345678901234567890";
         string memory toChainID = "_toChainID";

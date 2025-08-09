@@ -7,7 +7,6 @@ import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 interface IC3Governor {
     event NewProposal(bytes32 indexed uuid);
 
-    // TODO: add isGov bool
     event C3GovernorLog(bytes32 indexed _nonce, uint256 indexed _toChainID, string _to, bytes _toData);
 
     event LogChangeMPC(

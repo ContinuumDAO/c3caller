@@ -1,3 +1,54 @@
+# C3Caller (Continuum Cross-Chain Caller)
+
+:satellite: A smart contract suite for arbitrary execution of data across
+cross-chain DApps using the ContinuumDAO MPC network.
+
+# Table of Contents
+
+[Project Structure](#projectstructure)
+[Usage](#usage)
+[Integration](#integration)
+[C3Caller](#c3caller)
+[C3CallerDApp](#c3callerdapp)
+[C3GovernDApp](#c3governdapp)
+
+# Project Structure
+
+src/
+├── C3Caller.sol
+├── dapp
+│   ├── C3CallerDapp.sol
+│   └── C3DappManager.sol
+├── gov
+│   ├── C3GovClient.sol
+│   ├── C3GovernDapp.sol
+│   └── C3Governor.sol
+├── upgradeable
+│   ├── C3CallerUpgradeable.sol
+│   ├── dapp
+│   │   ├── C3CallerDappUpgradeable.sol
+│   │   └── C3DappManagerUpgradeable.sol
+│   ├── gov
+│   │   ├── C3GovClientUpgradeable.sol
+│   │   ├── C3GovernDappUpgradeable.sol
+│   │   └── C3GovernorUpgradeable.sol
+│   └── uuid
+│       └── C3UUIDKeeperUpgradeable.sol
+├── utils
+│   ├── C3CallerProxy.sol
+│   └── C3CallerUtils.sol
+└── uuid
+    └── C3UUIDKeeper.sol
+
+# Usage
+
+
+
+
+
+
+
+# OLD
 Inheritance order:
 contract MyToken is IMyToken, ERC20Upgradeable, OwnableUpgradeable, Initializable, UUPSUpgradeable
 

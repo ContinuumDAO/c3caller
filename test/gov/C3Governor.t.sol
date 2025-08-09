@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import {C3Governor} from "../../src/gov/C3Governor.sol";
 import {IC3Governor} from "../../src/gov/IC3Governor.sol";
 import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
-import {MockC3GovernDapp} from "../helpers/mocks/MockC3GovernDapp.sol";
+import {MockC3GovernDApp} from "../helpers/mocks/MockC3GovernDApp.sol";
 import {Helpers} from "../helpers/Helpers.sol";
 import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
 import {C3Caller} from "../../src/C3Caller.sol";
@@ -19,9 +19,9 @@ contract C3GovernorTest is Helpers {
     TestGovernor public testGovernor;
     C3UUIDKeeper public c3UUIDKeeper;
     C3Caller public c3Caller;
-    MockC3GovernDapp public mockC3GovernDapp;
+    MockC3GovernDApp public mockC3GovernDApp;
     
-    uint256 public testDappID = 123;
+    uint256 public testDAppID = 123;
     bytes32 public testProposalId = keccak256("test-proposal");
     
     // Test data for cross-chain calls
@@ -78,16 +78,16 @@ contract C3GovernorTest is Helpers {
         c3Governor = new C3Governor(
             gov, // Use gov as the governance contract
             address(c3Caller),
-            user1, // Use user1 as txSender like in C3GovernDapp test
-            testDappID
+            user1, // Use user1 as txSender like in C3GovernDApp test
+            testDAppID
         );
 
-        // Deploy mock C3GovernDapp for comparison
-        mockC3GovernDapp = new MockC3GovernDapp(
+        // Deploy mock C3GovernDApp for comparison
+        mockC3GovernDApp = new MockC3GovernDApp(
             gov, // Use gov as the governance contract
             address(c3Caller),
             user1, // Use user1 as txSender
-            testDappID
+            testDAppID
         );
     }
 
@@ -137,8 +137,8 @@ contract C3GovernorTest is Helpers {
         }
     }
 
-    // Test that mockC3GovernDapp can use C3Governor to call sendParams
-    function test_mockC3GovernDapp_uses_C3Governor_sendParams() public {
+    // Test that mockC3GovernDApp can use C3Governor to call sendParams
+    function test_mockC3GovernDApp_uses_C3Governor_sendParams() public {
         bytes32 nonce = keccak256("mock-dapp-send-params");
         bytes memory testData = abi.encode(
             getTestChainId(1), // chainId
@@ -150,7 +150,7 @@ contract C3GovernorTest is Helpers {
         vm.startPrank(gov);
         
         // First, add the mock dapp as a valid transaction sender
-        mockC3GovernDapp.addTxSender(address(mockC3GovernDapp));
+        mockC3GovernDApp.addTxSender(address(mockC3GovernDApp));
         
         // Call sendParams directly
         c3Governor.sendParams(testData, nonce);
@@ -162,8 +162,8 @@ contract C3GovernorTest is Helpers {
         assertEq(hasFailed, true, "Cross-chain proposal should be marked as failed after execution");
     }
 
-    // Test that mockC3GovernDapp can use C3Governor to call sendMultiParams
-    function test_mockC3GovernDapp_uses_C3Governor_sendMultiParams() public {
+    // Test that mockC3GovernDApp can use C3Governor to call sendMultiParams
+    function test_mockC3GovernDApp_uses_C3Governor_sendMultiParams() public {
         bytes32 nonce = keccak256("mock-dapp-send-multi-params");
         bytes[] memory testDataArray = new bytes[](2);
         
@@ -179,7 +179,7 @@ contract C3GovernorTest is Helpers {
         vm.startPrank(gov);
         
         // First, add the mock dapp as a valid transaction sender
-        mockC3GovernDapp.addTxSender(address(mockC3GovernDapp));
+        mockC3GovernDApp.addTxSender(address(mockC3GovernDApp));
         
         // Call sendMultiParams directly
         c3Governor.sendMultiParams(testDataArray, nonce);
@@ -264,29 +264,29 @@ contract C3GovernorTest is Helpers {
         
         // Call the fallback function as C3Caller
         vm.prank(address(c3Caller));
-        bool result = c3Governor.c3Fallback(testDappID, fallbackData, reason);
+        bool result = c3Governor.c3Fallback(testDAppID, fallbackData, reason);
         assertTrue(result, "Fallback should return true");
     }
 
-    // Test that mockC3GovernDapp can handle fallbacks correctly
-    function test_mockC3GovernDapp_fallback_handling() public {
+    // Test that mockC3GovernDApp can handle fallbacks correctly
+    function test_mockC3GovernDApp_fallback_handling() public {
         // Set up the mock dapp to revert
-        mockC3GovernDapp.setShouldRevert(true);
+        mockC3GovernDApp.setShouldRevert(true);
         
         bytes memory fallbackData = abi.encode("mock dapp test data");
         bytes memory reason = abi.encode("Mock dapp intentional revert");
         
         // Expect the mock dapp to revert
-        vm.expectRevert("MockC3GovernDapp: intentional revert");
+        vm.expectRevert("MockC3GovernDApp: intentional revert");
         vm.prank(address(c3Caller));
-        mockC3GovernDapp.c3Fallback(testDappID, fallbackData, reason);
+        mockC3GovernDApp.c3Fallback(testDAppID, fallbackData, reason);
         
         // Set the mock dapp to not revert
-        mockC3GovernDapp.setShouldRevert(false);
+        mockC3GovernDApp.setShouldRevert(false);
         
         // Now the fallback should succeed
         vm.prank(address(c3Caller));
-        bool result = mockC3GovernDapp.c3Fallback(testDappID, fallbackData, reason);
+        bool result = mockC3GovernDApp.c3Fallback(testDAppID, fallbackData, reason);
         assertTrue(result, "Mock dapp fallback should return true when not reverting");
     }
 

@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { IC3CallerDapp } from "../dapp/IC3CallerDapp.sol";
+import { IC3CallerDApp } from "../dapp/IC3CallerDApp.sol";
 import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
 
-interface IC3GovernDapp is IC3CallerDapp {
+interface IC3GovernDApp is IC3CallerDApp {
     event LogChangeGov(
         address indexed _oldGov, address indexed _newGov, uint256 indexed _effectiveTime, uint256 _chainID
     );

@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import {C3CallerDapp} from "../../../src/dapp/C3CallerDapp.sol";
+import {C3CallerDApp} from "../../../src/dapp/C3CallerDApp.sol";
 
-contract MockC3CallerDapp is C3CallerDapp {
-    uint256 public mockDappID;
+contract MockC3CallerDApp is C3CallerDApp {
+    uint256 public mockDAppID;
     address public mockC3CallerProxy;
     bool public isValidSenderResult;
     bool public shouldRevert;
@@ -13,8 +13,8 @@ contract MockC3CallerDapp is C3CallerDapp {
     bytes public lastFallbackReason;
     bytes4 public lastFallbackSelector;
 
-    constructor(address _c3CallerProxy, uint256 _dappID) C3CallerDapp(_c3CallerProxy, _dappID) {
-        mockDappID = _dappID;
+    constructor(address _c3CallerProxy, uint256 _dappID) C3CallerDApp(_c3CallerProxy, _dappID) {
+        mockDAppID = _dappID;
         mockC3CallerProxy = _c3CallerProxy;
         isValidSenderResult = true;
         shouldRevert = false;
@@ -34,7 +34,7 @@ contract MockC3CallerDapp is C3CallerDapp {
 
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool) {
         if (shouldRevert) {
-            revert("MockC3CallerDapp: intentional revert");
+            revert("MockC3CallerDApp: intentional revert");
         }
 
         lastFallbackSelector = _selector;
@@ -48,7 +48,7 @@ contract MockC3CallerDapp is C3CallerDapp {
     // Function to simulate a successful call that returns 1
     function successfulCall() external view returns (uint256) {
         if (shouldRevert) {
-            revert("MockC3CallerDapp: intentional revert");
+            revert("MockC3CallerDApp: intentional revert");
         }
         return 1;
     }
@@ -60,7 +60,7 @@ contract MockC3CallerDapp is C3CallerDapp {
 
     // Function to simulate a call that reverts
     function revertingCall() external pure {
-        revert("MockC3CallerDapp: call reverted");
+        revert("MockC3CallerDApp: call reverted");
     }
 
     // Function to simulate a call that returns invalid data

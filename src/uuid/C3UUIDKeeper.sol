@@ -96,7 +96,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     /**
      * @notice Generate a new UUID for cross-chain operations
      * @dev Only operators can call this function
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata for the cross-chain operation
@@ -121,7 +121,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     /**
      * @notice Calculate a UUID for a caller without generating it
      * @param _from The address of the caller
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata for the cross-chain operation
@@ -141,7 +141,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     /**
      * @notice Calculate a UUID with a specific nonce
      * @param _from The address of the caller
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata for the cross-chain operation
@@ -162,7 +162,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     /**
      * @notice Calculate the encoded data for a UUID without generating it
      * @param _from The address of the caller
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata for the cross-chain operation

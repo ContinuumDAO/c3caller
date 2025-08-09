@@ -8,54 +8,54 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { IC3DAppManager } from "../../dapp/IC3DappManager.sol";
+import { IC3DAppManager } from "../../dapp/IC3DAppManager.sol";
 import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
 import { C3GovClientUpgradeable } from "../gov/C3GovClientUpgradeable.sol";
 
 /**
- * @title C3DappManagerUpgradeable
- * @dev Upgradeable contract for managing dApp configurations, fees, and MPC addresses in the C3 protocol.
- * This contract provides comprehensive management functionality for dApps including
+ * @title C3DAppManagerUpgradeable
+ * @dev Upgradeable contract for managing DApp configurations, fees, and MPC addresses in the C3 protocol.
+ * This contract provides comprehensive management functionality for DApps including
  * configuration, fee management, staking pools, and MPC address management, with upgradeable capabilities.
  *
  * Key features:
- * - dApp configuration management
+ * - DApp configuration management
  * - Fee configuration and management
  * - Staking pool management
  * - MPC address and public key management
  * - Blacklist functionality
  * - Pausable and upgradeable functionality
  *
- * @notice This contract is the central management hub for upgradeable C3 dApps
+ * @notice This contract is the central management hub for upgradeable C3 DApps
  * @author @potti ContinuumDAO
  */
-contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
 
-    /// @notice The dApp identifier for this manager
+    /// @notice The DApp identifier for this manager
     uint256 public dappID;
-    /// @notice Mapping of dApp ID to dApp configuration
-    mapping(uint256 => DappConfig) public dappConfig;
-    /// @notice Mapping of dApp address string to dApp ID
-    mapping(string => uint256) public c3DappAddr;
-    /// @notice Mapping of dApp ID to blacklist status
+    /// @notice Mapping of DApp ID to DApp configuration
+    mapping(uint256 => DAppConfig) public dappConfig;
+    /// @notice Mapping of DApp address string to DApp ID
+    mapping(string => uint256) public c3DAppAddr;
+    /// @notice Mapping of DApp ID to blacklist status
     mapping(uint256 => bool) public appBlacklist;
     /// @notice Mapping of asset address to fee per byte
     mapping(address => uint256) public feeCurrencies;
-    /// @notice Mapping of dApp ID and token address to staking pool balance
+    /// @notice Mapping of DApp ID and token address to staking pool balance
     mapping(uint256 => mapping(address => uint256)) public dappStakePool;
     /// @notice Mapping of chain and token address to specific chain fees
     mapping(string => mapping(address => uint256)) public speChainFees;
     /// @notice Mapping of token address to accumulated fees
     mapping(address => uint256) public fees;
-    /// @notice Mapping of dApp ID and MPC address to public key
+    /// @notice Mapping of DApp ID and MPC address to public key
     mapping(uint256 => mapping(string => string)) public mpcPubkey;
-    /// @notice Mapping of dApp ID to array of MPC addresses
+    /// @notice Mapping of DApp ID to array of MPC addresses
     mapping(uint256 => string[]) public mpcAddrs;
 
     /**
-     * @notice Initialize the upgradeable C3DappManager contract
+     * @notice Initialize the upgradeable C3DAppManager contract
      * @dev This function can only be called once during deployment
      * @param _gov The governance address
      */
@@ -66,9 +66,9 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @dev Modifier to restrict access to governance or dApp admin
-     * @param _dappID The dApp identifier
-     * @notice Reverts if the caller is neither governor nor dApp admin
+     * @dev Modifier to restrict access to governance or DApp admin
+     * @param _dappID The DApp identifier
+     * @notice Reverts if the caller is neither governor nor DApp admin
      */
     modifier onlyGovOrAdmin(uint256 _dappID) {
         if (msg.sender != gov() && msg.sender != dappConfig[_dappID].appAdmin) {
@@ -94,9 +94,9 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Set blacklist status for a dApp (governance only)
+     * @notice Set blacklist status for a DApp (governance only)
      * @dev Only the governor can call this function
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _flag The blacklist flag
      */
     function setBlacklists(uint256 _dappID, bool _flag) external onlyGov {
@@ -105,13 +105,13 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Set dApp configuration (governance only)
+     * @notice Set DApp configuration (governance only)
      * @dev Only the governor can call this function
-     * @param _dappID The dApp identifier
-     * @param _appAdmin The dApp admin address
+     * @param _dappID The DApp identifier
+     * @param _appAdmin The DApp admin address
      * @param _feeToken The fee token address
-     * @param _appDomain The dApp domain
-     * @param _email The dApp email
+     * @param _appDomain The DApp domain
+     * @param _email The DApp email
      * @notice Reverts if fee token is zero or domain/email is empty
      */
     function setDAppConfig(
@@ -131,31 +131,31 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
             revert C3DAppManager_IsZero(C3ErrorParam.Email);
         }
 
-        dappConfig[_dappID] = DappConfig({ id: _dappID, appAdmin: _appAdmin, feeToken: _feeToken, discount: 0 });
+        dappConfig[_dappID] = DAppConfig({ id: _dappID, appAdmin: _appAdmin, feeToken: _feeToken, discount: 0 });
 
         emit SetDAppConfig(_dappID, _appAdmin, _feeToken, _appDomain, _email);
     }
 
     /**
-     * @notice Set dApp addresses (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
-     * @param _addresses Array of dApp addresses
+     * @notice Set DApp addresses (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
+     * @param _addresses Array of DApp addresses
      */
     function setDAppAddr(uint256 _dappID, string[] memory _addresses) external onlyGovOrAdmin(_dappID) {
         for (uint256 i = 0; i < _addresses.length; i++) {
-            c3DappAddr[_addresses[i]] = _dappID;
+            c3DAppAddr[_addresses[i]] = _dappID;
         }
         emit SetDAppAddr(_dappID, _addresses);
     }
 
     /**
-     * @notice Add MPC address and public key (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
+     * @notice Add MPC address and public key (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
      * @param _addr The MPC address
      * @param _pubkey The MPC public key
-     * @notice Reverts if dApp admin is zero, addresses are empty, or lengths don't match
+     * @notice Reverts if DApp admin is zero, addresses are empty, or lengths don't match
      */
     function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
@@ -187,12 +187,12 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Delete MPC address and public key (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
+     * @notice Delete MPC address and public key (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
      * @param _addr The MPC address to delete
      * @param _pubkey The MPC public key to delete
-     * @notice Reverts if dApp admin is zero or addresses are empty
+     * @notice Reverts if DApp admin is zero or addresses are empty
      */
     function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
@@ -239,8 +239,8 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Deposit tokens to a dApp's staking pool
-     * @param _dappID The dApp identifier
+     * @notice Deposit tokens to a DApp's staking pool
+     * @param _dappID The DApp identifier
      * @param _token The token address
      * @param _amount The amount to deposit
      * @notice Reverts if the amount is zero
@@ -258,9 +258,9 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Withdraw tokens from a dApp's staking pool (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
+     * @notice Withdraw tokens from a DApp's staking pool (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
      * @param _token The token address
      * @param _amount The amount to withdraw
      * @notice Reverts if the amount is zero or insufficient balance
@@ -282,9 +282,9 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Charge fees from a dApp's staking pool (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
+     * @notice Charge fees from a DApp's staking pool (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
      * @param _token The token address
      * @param _bill The amount to charge
      * @notice Reverts if the bill is zero or insufficient balance
@@ -304,17 +304,17 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Get dApp configuration
-     * @param _dappID The dApp identifier
-     * @return The dApp configuration
+     * @notice Get DApp configuration
+     * @param _dappID The DApp identifier
+     * @return The DApp configuration
      */
-    function getDappConfig(uint256 _dappID) external view returns (DappConfig memory) {
+    function getDAppConfig(uint256 _dappID) external view returns (DAppConfig memory) {
         return dappConfig[_dappID];
     }
 
     /**
-     * @notice Get MPC addresses for a dApp
-     * @param _dappID The dApp identifier
+     * @notice Get MPC addresses for a DApp
+     * @param _dappID The DApp identifier
      * @return Array of MPC addresses
      */
     function getMpcAddrs(uint256 _dappID) external view returns (string[] memory) {
@@ -322,8 +322,8 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Get MPC public key for a dApp and address
-     * @param _dappID The dApp identifier
+     * @notice Get MPC public key for a DApp and address
+     * @param _dappID The DApp identifier
      * @param _addr The MPC address
      * @return The MPC public key
      */
@@ -351,12 +351,12 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Get dApp staking pool balance
-     * @param _dappID The dApp identifier
+     * @notice Get DApp staking pool balance
+     * @param _dappID The DApp identifier
      * @param _token The token address
      * @return The staking pool balance
      */
-    function getDappStakePool(uint256 _dappID, address _token) external view returns (uint256) {
+    function getDAppStakePool(uint256 _dappID, address _token) external view returns (uint256) {
         return dappStakePool[_dappID][_token];
     }
 
@@ -380,22 +380,22 @@ contract C3DappManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
-     * @notice Set the dApp ID for this manager (governance only)
+     * @notice Set the DApp ID for this manager (governance only)
      * @dev Only the governor can call this function
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      */
-    function setDappID(uint256 _dappID) external onlyGov {
+    function setDAppID(uint256 _dappID) external onlyGov {
         dappID = _dappID;
     }
 
     /**
-     * @notice Set dApp configuration discount (governance or dApp admin only)
-     * @dev Only governance or dApp admin can call this function
-     * @param _dappID The dApp identifier
+     * @notice Set DApp configuration discount (governance or DApp admin only)
+     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp identifier
      * @param _discount The discount amount
-     * @notice Reverts if dApp ID is zero or discount is zero
+     * @notice Reverts if DApp ID is zero or discount is zero
      */
-    function setDappConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) {
+    function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) {
         if (_dappID == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.DAppID);
         }

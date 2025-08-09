@@ -91,7 +91,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     address public implementationV3;
     address public proxy;
 
-    uint256 public testDappID = 123;
+    uint256 public testDAppID = 123;
     string public testTo = "0x1234567890123456789012345678901234567890";
     string public testToChainID = "_toChainID";
     bytes public testData = "test data";
@@ -262,7 +262,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
         
         vm.prank(mpc1);
-        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         
         assertTrue(c3UUIDKeeperV2Instance.isUUIDExist(uuid));
         assertEq(c3UUIDKeeperV2Instance.uuid2Nonce(uuid), 1);
@@ -280,7 +280,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Generate a UUID first
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
         vm.prank(mpc1);
-        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         
         // Test registerUUID functionality after upgrade
         vm.prank(mpc1);
@@ -304,7 +304,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Calculate expected UUID using the current nonce + 1
         bytes32 expectedUUID = c3UUIDKeeperV2Instance.calcCallerUUID(
             mpc1, // Use mpc1 as the caller
-            testDappID,
+            testDAppID,
             testTo,
             testToChainID,
             testData
@@ -312,7 +312,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         
         // Generate UUID and verify it matches
         vm.prank(mpc1); // Use mpc1 which is an operator
-        bytes32 actualUUID = c3UUIDKeeperV2Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 actualUUID = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         
         assertEq(actualUUID, expectedUUID);
     }
@@ -329,7 +329,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         
         // Generate a UUID
         vm.prank(mpc1);
-        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         
         // Test new metadata functionality
         string memory metadata = "test metadata";
@@ -357,7 +357,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         
         // Generate a UUID
         vm.prank(mpc1);
-        bytes32 uuid = c3UUIDKeeperV3Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid = c3UUIDKeeperV3Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         
         // Test new usage tracking functionality
         vm.prank(mpc1);
@@ -377,7 +377,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
 
         // Generate some UUIDs in V1
         vm.prank(mpc1);
-        bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
         c3UUIDKeeperV1.registerUUID(uuid1);
 
@@ -422,9 +422,9 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
 
         // Generate multiple UUIDs
         vm.prank(mpc1);
-        bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
-        bytes32 uuid2 = c3UUIDKeeperV1.genUUID(testDappID, testTo, testToChainID, "different data");
+        bytes32 uuid2 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, "different data");
         
         vm.prank(mpc1);
         c3UUIDKeeperV1.registerUUID(uuid1);
@@ -536,7 +536,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         
         // Generate and register a UUID
         vm.prank(mpc1);
-        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDappID, testTo, testToChainID, testData);
+        bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
         c3UUIDKeeperV2Instance.registerUUID(uuid);
         
@@ -562,7 +562,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Test calcCallerUUIDWithNonce functionality after upgrade
         bytes32 expectedUUID = c3UUIDKeeperV2Instance.calcCallerUUIDWithNonce(
             user1,
-            testDappID,
+            testDAppID,
             testTo,
             testToChainID,
             testData,
@@ -574,7 +574,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
             address(c3UUIDKeeperV2Instance),
             user1,
             block.chainid,
-            testDappID,
+            testDAppID,
             testTo,
             testToChainID,
             5,
@@ -597,7 +597,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Test calcCallerEncode functionality after upgrade
         bytes memory encoded = c3UUIDKeeperV2Instance.calcCallerEncode(
             user1,
-            testDappID,
+            testDAppID,
             testTo,
             testToChainID,
             testData
@@ -608,7 +608,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
             address(c3UUIDKeeperV2Instance),
             user1,
             block.chainid,
-            testDappID,
+            testDAppID,
             testTo,
             testToChainID,
             1, // currentNonce + 1

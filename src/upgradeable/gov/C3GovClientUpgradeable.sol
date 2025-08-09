@@ -59,7 +59,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     modifier onlyGov() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        // require(msg.sender == $.gov, "C3Gov: only Gov");
         if (msg.sender != $.gov) {
             revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
         }
@@ -72,7 +71,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     modifier onlyOperator() {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        // require(msg.sender == $.gov || $.isOperator[msg.sender], "C3Gov: only Operator");
         if (msg.sender != $.gov && !$.isOperator[msg.sender]) {
             revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrOperator);
         }
@@ -107,7 +105,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     function applyGov() external {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        // require($.pendingGov != address(0), "C3Gov: empty pendingGov");
         if ($.pendingGov == address(0)) {
             revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
         }
@@ -123,11 +120,9 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     function _addOperator(address _op) internal {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        // require(op != address(0), "C3Caller: Operator is address(0)");
         if (_op == address(0)) {
             revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
         }
-        // require(!$.isOperator[op], "C3Caller: Operator already exists");
         if ($.isOperator[_op]) {
             revert C3GovClient_AlreadyOperator(_op);
         }
@@ -200,7 +195,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     function revokeOperator(address _op) external onlyGov {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        // require($.isOperator[_op], "C3Caller: Operator not found");
         if (!$.isOperator[_op]) {
             revert C3GovClient_IsNotOperator(_op);
         }

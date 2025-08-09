@@ -10,7 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {IC3Caller} from "../IC3Caller.sol";
-import {IC3CallerDapp} from "../dapp/IC3CallerDapp.sol";
+import {IC3CallerDApp} from "../dapp/IC3CallerDApp.sol";
 
 import {IC3UUIDKeeper} from "../uuid/IC3UUIDKeeper.sol";
 import {C3GovClientUpgradeable} from "./gov/C3GovClientUpgradeable.sol";
@@ -106,7 +106,7 @@ contract C3CallerUpgradeable is
 
     /**
      * @dev Internal function to initiate a cross-chain call
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _caller The address initiating the call
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
@@ -144,8 +144,8 @@ contract C3CallerUpgradeable is
 
     /**
      * @notice Initiate a cross-chain call with extra data
-     * @dev Called by dApps to initiate cross-chain transactions
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to initiate cross-chain transactions
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata to execute on the destination chain
@@ -163,8 +163,8 @@ contract C3CallerUpgradeable is
 
     /**
      * @notice Initiate a cross-chain call without extra data
-     * @dev Called by dApps to initiate cross-chain transactions
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to initiate cross-chain transactions
+     * @param _dappID The DApp identifier
      * @param _to The target address on the destination chain
      * @param _toChainID The destination chain identifier
      * @param _data The calldata to execute on the destination chain
@@ -180,7 +180,7 @@ contract C3CallerUpgradeable is
 
     /**
      * @dev Internal function to initiate cross-chain broadcasts
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _caller The address initiating the broadcast
      * @param _to Array of target addresses on destination chains
      * @param _toChainIDs Array of destination chain identifiers
@@ -233,8 +233,8 @@ contract C3CallerUpgradeable is
 
     /**
      * @notice Initiate cross-chain broadcasts to multiple destinations
-     * @dev Called by dApps to broadcast transactions to multiple chains
-     * @param _dappID The dApp identifier
+     * @dev Called by DApps to broadcast transactions to multiple chains
+     * @param _dappID The DApp identifier
      * @param _to Array of target addresses on destination chains
      * @param _toChainIDs Array of destination chain identifiers
      * @param _data The calldata to execute on destination chains
@@ -250,7 +250,7 @@ contract C3CallerUpgradeable is
 
     /**
      * @dev Internal function to execute cross-chain messages
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _txSender The transaction sender address
      * @param _message The cross-chain message to execute
      */
@@ -262,11 +262,11 @@ contract C3CallerUpgradeable is
         if (_message.data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+        if (!IC3CallerDApp(_message.to).isValidSender(_txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
         // check dappID
-        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();
         if (expectedDAppID != _dappID) {
             revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
         }
@@ -305,7 +305,7 @@ contract C3CallerUpgradeable is
                 _message.uuid,
                 _message.fallbackTo,
                 abi.encodeWithSelector(
-                    IC3CallerDapp.c3Fallback.selector,
+                    IC3CallerDApp.c3Fallback.selector,
                     _dappID,
                     _message.data,
                     result
@@ -318,7 +318,7 @@ contract C3CallerUpgradeable is
     /**
      * @notice Execute a cross-chain message
      * @dev Called by MPC network to execute cross-chain messages
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _message The cross-chain message to execute
      */
     function execute(
@@ -330,7 +330,7 @@ contract C3CallerUpgradeable is
 
     /**
      * @dev Internal function to handle fallback calls
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _txSender The transaction sender address
      * @param _message The cross-chain message for fallback
      */
@@ -345,11 +345,11 @@ contract C3CallerUpgradeable is
         if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
             revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
         }
-        if (!IC3CallerDapp(_message.to).isValidSender(_txSender)) {
+        if (!IC3CallerDApp(_message.to).isValidSender(_txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
 
-        uint256 expectedDAppID = IC3CallerDapp(_message.to).dappID();
+        uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();
         if (expectedDAppID != _dappID) {
             revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
         }
@@ -382,7 +382,7 @@ contract C3CallerUpgradeable is
     /**
      * @notice Execute a fallback call for failed cross-chain operations
      * @dev Called by MPC network to handle failed cross-chain calls
-     * @param _dappID The dApp identifier
+     * @param _dappID The DApp identifier
      * @param _message The cross-chain message for fallback
      */
     function c3Fallback(

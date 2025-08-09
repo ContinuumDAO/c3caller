@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import {C3GovernDapp} from "../../../src/gov/C3GovernDapp.sol";
+import {C3GovernDApp} from "../../../src/gov/C3GovernDApp.sol";
 
-contract MockC3GovernDapp is C3GovernDapp {
+contract MockC3GovernDApp is C3GovernDApp {
     bool public shouldRevert;
 
     constructor(
@@ -12,7 +12,7 @@ contract MockC3GovernDapp is C3GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDApp(_gov, _c3callerProxy, _txSender, _dappID) {
         shouldRevert = false;
     }
 
@@ -26,7 +26,7 @@ contract MockC3GovernDapp is C3GovernDapp {
         returns (bool)
     {
         if (shouldRevert) {
-            revert("MockC3GovernDapp: intentional revert");
+            revert("MockC3GovernDApp: intentional revert");
         }
         return true;
     }
