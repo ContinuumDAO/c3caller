@@ -18,44 +18,55 @@ remappings = [
     "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/"
 ]
 
-[rpc_endpoints]
- localhost = "http://127.0.0.1:8545"
- arbSepolia = "${ARB_SEPOLIA_RPC_URL}"
- sepolia = "${SEPOLIA_RPC_URL}"
- baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
- optSepolia = "${OPT_SEPOLIA_RPC_URL}"
- bscTestnet = "${BSC_TESTNET_RPC_URL}"
- opBNBTestnet = "${OPBNB_TESTNET_RPC_URL}"
- seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
- bitlayerTestnet = "${BITLAYER_TESTNET_RPC_URL}"
- avaxFuji = "${AVAX_FUJI_RPC_URL}"
- polygonAmoy = "${POLYGON_AMOY_RPC_URL}"
- confluxEspace = "${CONFLUX_ESPACE_RPC_URL}"
- lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
- coreTestnet = "${CORE_TESTNET_RPC_URL}"
- holeskyTestnet = "${HOLESKY_TESTNET_RPC_URL}"
- morphHolesky = "${MORPH_HOLESKY_RPC_URL}"
- scrollSepolia = "${SCROLL_SEPOLIA_RPC_URL}"
- soneiumMinato = "${SONEIUM_MINATO_RPC_URL}"
- luksoTestnet = "${LUKSO_TESTNET_RPC_URL}"
- cronosTestnet = "${CRONOS_TESTNET_RPC_URL}"
- lumiaTestnet = "${LUMIA_TESTNET_RPC_URL}"
- blastSepolia = "${BLAST_SEPOLIA_RPC_URL}"
- mantleSepolia = "${MANTLE_SEPOLIA_RPC_URL}"
- beraBartio = "${BERA_BARTIO_RPC_URL}"
- lumeTestnet = "${PLUME_TESTNET_RPC_URL}"
- vanguard = "${VANGUARD_RPC_URL}"
- fireThunder = "${FIRE_THUNDER_RPC_URL}"
- areonTestnet = "${AREON_TESTNET_RPC_URL}"
- rariTestnet = "${RARI_TESTNET_RPC_URL}"
- u2uTestnet = "${U2U_NEBULAS_TESTNET_RPC_URL}"
- sonicTestnet = "${SONIC_TESTNET_RPC_URL}"
- humanodeTestnet = "${HUMANODE_TESTNET_RPC_URL}"
- redbellyTestnet = "${REDBELLY_TESTNET_RPC_URL}"
- mantaPacific = "${MANTA_PACIFIC_RPC_URL}"
+[rpc_endpoints]                                                                                                                                                              
+ arbitrum-sepolia-rpc-url = "${ARBITRUM_SEPOLIA_RPC_URL}"                                                                                                                    
+ sepolia-rpc-url = "${SEPOLIA_RPC_URL}"                                                                                                                                      
+ base-sepolia-rpc-url = "${BASE_SEPOLIA_RPC_URL}"                                                                                                                            
+ bsc-testnet-rpc-url = "${BSC_TESTNET_RPC_URL}"                                                                                                                              
+ avalanche-fuji-rpc-url = "${AVALANCHE_FUJI_RPC_URL}"                                                                                                                        
+ holesky-rpc-url = "${HOLESKY_RPC_URL}"                                                                                                                                      
+ scroll-sepolia-rpc-url = "${SCROLL_SEPOLIA_RPC_URL}"                                                                                                                        
+ soneium-minato-testnet-rpc-url = "${SONEIUM_MINATO_TESTNET_RPC_URL}"                                                                                                        
+ opbnb-testnet-rpc-url = "${OPBNB_TESTNET_RPC_URL}"
 
 [etherscan]
- etherscanAPIKey = { key = "${ETHERSCAN_API_KEY}"}
+ arbitrum-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=421614", key = "${ETHERSCAN_API_KEY}" }
+ sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11155111", key = "${ETHERSCAN_API_KEY}" }
+ bsc-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=97", key = "${ETHERSCAN_API_KEY}" }
+ base-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=84532", key = "${ETHERSCAN_API_KEY}" }
+ scroll-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=534351", key = "${ETHERSCAN_API_KEY}" }
+ opbnb-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5611", key = "${ETHERSCAN_API_KEY}" }
+ holesky-key = { url = "https://api.etherscan.io/v2/api?chainid=17000", key = "${ETHERSCAN_API_KEY}" }
+ avalanche-fuji-key = { url = "https://api.etherscan.io/v2/api?chainid=43113", key = "${ETHERSCAN_API_KEY}" }
+
+
+#  localhost = "http://127.0.0.1:8545"
+#  optSepolia = "${OPT_SEPOLIA_RPC_URL}"
+#  seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
+#  bitlayerTestnet = "${BITLAYER_TESTNET_RPC_URL}"
+#  polygonAmoy = "${POLYGON_AMOY_RPC_URL}"
+#  confluxEspace = "${CONFLUX_ESPACE_RPC_URL}"
+#  lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
+#  coreTestnet = "${CORE_TESTNET_RPC_URL}"
+#  morphHolesky = "${MORPH_HOLESKY_RPC_URL}"
+#  soneiumMinato = "${SONEIUM_MINATO_RPC_URL}"
+#  luksoTestnet = "${LUKSO_TESTNET_RPC_URL}"
+#  cronosTestnet = "${CRONOS_TESTNET_RPC_URL}"
+#  lumiaTestnet = "${LUMIA_TESTNET_RPC_URL}"
+#  blastSepolia = "${BLAST_SEPOLIA_RPC_URL}"
+#  mantleSepolia = "${MANTLE_SEPOLIA_RPC_URL}"
+#  beraBartio = "${BERA_BARTIO_RPC_URL}"
+#  lumeTestnet = "${PLUME_TESTNET_RPC_URL}"
+#  vanguard = "${VANGUARD_RPC_URL}"
+#  fireThunder = "${FIRE_THUNDER_RPC_URL}"
+#  areonTestnet = "${AREON_TESTNET_RPC_URL}"
+#  rariTestnet = "${RARI_TESTNET_RPC_URL}"
+#  u2uTestnet = "${U2U_NEBULAS_TESTNET_RPC_URL}"
+#  sonicTestnet = "${SONIC_TESTNET_RPC_URL}"
+#  humanodeTestnet = "${HUMANODE_TESTNET_RPC_URL}"
+#  redbellyTestnet = "${REDBELLY_TESTNET_RPC_URL}"
+#  mantaPacific = "${MANTA_PACIFIC_RPC_URL}"
+ 
 #  arbSepoliaKey = { url = "https://api-sepolia.arbiscan.io/api", chain = 421614, key = "${ARBISCAN_API_KEY}" }
 #  sepoliaKey = { url = "https://api-sepolia.etherscan.io/api", chain = 11155111, key = "${ETHERSCAN_API_KEY}" }
 #  baseSepoliaKey = { url = "https://api-sepolia.basescan.org/api", chain = 84532, key = "${BASE_API_KEY}" }

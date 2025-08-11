@@ -57,10 +57,9 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     /**
      * @notice Initialize the upgradeable C3DAppManager contract
      * @dev This function can only be called once during deployment
-     * @param _gov The governance address
      */
-    function initialize(address _gov) public initializer {
-        __C3GovClient_init(_gov);
+    function initialize() public initializer {
+        __C3GovClient_init(msg.sender);
         __Pausable_init();
         dappID = 0;
     }

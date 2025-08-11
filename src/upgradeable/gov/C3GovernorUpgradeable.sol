@@ -34,23 +34,22 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
 
     /// @notice Mapping of proposal nonce to proposal data
     mapping(bytes32 => Proposal) private _proposal;
-    
+
     /// @notice Current proposal identifier
     bytes32 public proposalId;
 
     /**
      * @notice Initialize the upgradeable C3Governor contract
      * @dev This function can only be called once during deployment
-     * @param _gov The governance address
      * @param _c3CallerProxy The C3Caller proxy address
      * @param _txSender The transaction sender address
      * @param _dappID The DApp identifier
      */
-    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
+    function initialize(address _c3CallerProxy, address _txSender, uint256 _dappID)
         external
         initializer
     {
-        __C3GovernDApp_init(_gov, _c3CallerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(msg.sender, _c3CallerProxy, _txSender, _dappID);
     }
 
     /**

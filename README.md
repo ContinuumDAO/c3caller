@@ -5,10 +5,11 @@ cross-chain DApps using the ContinuumDAO MPC network.
 
 # Table of Contents
 
-[Project Structure](#projectstructure)\
-[Installation](#installation)\
-[Integration](#integration)\
-[API Reference](#apireference)
+- [Project Structure](#projectstructure)
+- [Installation](#installation)
+- [Integration](#integration)
+- [Deployment](docs/DEPLOYMENT.md)
+- [API Reference](#apireference)
 
 # Project Structure
 
@@ -37,6 +38,25 @@ src/\
 │   └── C3CallerUtils.sol\
 └── uuid\
     └── C3UUIDKeeper.sol
+
+# API Reference
+
+## Core Utility
+
+- [C3Caller](docs/C3Caller.md)
+- [C3UUIDKeeper](docs/uuid/C3UUIDKeeper.md)
+- [C3GovClient](docs/gov/C3GovClient.md)
+- [C3DAppManager](docs/dapp/C3DAppManager.md)
+
+## User Integrations
+
+- [C3CallerDApp](docs/dapp/C3CallerDApp.md)
+- [C3GovernDApp](docs/gov/C3GovernDApp.md)
+- [C3Governor](docs/gov/C3Governor.md)
+
+## Upgrades
+
+- [C3Upgrades](docs/upgradeable/C3Upgrades.md)
 
 # Installation
 
@@ -125,10 +145,6 @@ contract MyDApp is C3CallerDApp {
     }
 }
 ```
-
-# API Reference
-
-For further reading, see our [documentation](docs/TableOfContents.md);
 
 # C3Caller Deployed Contracts
 
