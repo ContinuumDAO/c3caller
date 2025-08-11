@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # remove old flattened files
 rm -r flattened/

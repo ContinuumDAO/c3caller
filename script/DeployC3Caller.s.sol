@@ -9,7 +9,7 @@ import {C3UUIDKeeperUpgradeable} from "../flattened/upgradeable/uuid/C3UUIDKeepe
 import {C3CallerUpgradeable} from "../flattened/upgradeable/C3CallerUpgradeable.sol";
 import {C3CallerProxy} from "../flattened/utils/C3CallerProxy.sol";
 
-contract Deploy is Script {
+contract DeployC3Caller is Script {
     function run() public {
         vm.startBroadcast();
 
