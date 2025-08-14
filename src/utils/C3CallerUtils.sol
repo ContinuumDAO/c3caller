@@ -107,7 +107,7 @@ library C3CallerUtils {
      * @return value The converted uint256 value
      * @notice Supports bytes lengths of 1, 2, 4, 8, 16, and 32
      */
-    function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
+    function toUint(bytes memory bs) internal pure returns (bool, uint256) {
         if (bs.length == 0) {
             return (false, 0);
         }

@@ -13,19 +13,22 @@ import {IC3CallerDApp} from "./dapp/IC3CallerDApp.sol";
 import {C3GovClient} from "./gov/C3GovClient.sol";
 import {IC3UUIDKeeper} from "./uuid/IC3UUIDKeeper.sol";
 
-import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
+import {C3CallerUtils, C3ErrorParam} from "./utils/C3CallerUtils.sol";
 
 /**
  * @title C3Caller
- * @dev Main contract for handling cross-chain calls in the C3 protocol.
+ * @dev Main contract for handling cross-chain calls in the Continuum Cross-Chain protocol.
  * This contract serves as the central hub for initiating and executing cross-chain transactions.
  * It integrates with governance, UUID management, and DApp functionality.
  * 
- * Key features:
+ * Key features
+ * Source Network:
  * - Cross-chain call initiation (c3call)
- * - Cross-chain broadcast functionality (c3broadcast)
- * - Cross-chain message execution (execute)
+ * - Cross-chain multiple calls functionality (c3broadcast)
  * - Fallback mechanism for failed calls (c3Fallback)
+ * Destination Network:
+ * - Cross-chain message execution (execute)
+ *
  * - Pausable functionality for emergency stops
  * - Governance integration for access control
  * 
@@ -35,8 +38,9 @@ import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
 contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     using Address for address;
     using Address for address payable;
+    using C3CallerUtils for bytes;
 
-    /// @notice Current execution context for cross-chain operations
+    /// @notice Current execution context for cross-chain operations, set/reset during each execution
     C3Context public context;
     
     /// @notice Address of the UUID keeper contract for managing unique identifiers
@@ -45,6 +49,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     /**
      * @dev Constructor for C3Caller contract
      * @param _uuidKeeper Address of the UUID keeper contract
+     * @notice Initializes the Owner of the contract to the msg.sender
      */
     constructor(
         address _uuidKeeper
@@ -53,7 +58,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Check if an address is an authorized executor
+     * @notice Check if an address is an authorized executor (aka operator)
      * @param _sender Address to check
      * @return True if the address is an operator, false otherwise
      */
@@ -62,7 +67,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Get the address of this C3Caller contract
+     * @notice Get the address of this C3Caller contract, for backwards compatibility
      * @return The address of this contract
      */
     function c3caller() public view returns (address) {
@@ -70,23 +75,22 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Check if an address is the C3Caller contract itself
+     * @notice Check if an address is the C3Caller contract itself, for backwards compatibility
      * @param _sender Address to check
      * @return True if the address is this contract, false otherwise
      */
     function isCaller(address _sender) external view returns (bool) {
-        // return sender == c3caller;
         return _sender == address(this);
     }
 
     /**
      * @dev Internal function to initiate a cross-chain call
-     * @param _dappID The DApp identifier
+     * @param _dappID The DApp identifier of the C3CallerDApp implementation
      * @param _caller The address initiating the call
-     * @param _to The target address on the destination chain
-     * @param _toChainID The destination chain identifier
-     * @param _data The calldata to execute on the destination chain
-     * @param _extra Additional data for the cross-chain call
+     * @param _to The target address on the destination chain (C3CallerDApp implementation)
+     * @param _toChainID The destination chain ID
+     * @param _data The calldata to execute on the destination chain (ABI encoded)
+     * @param _extra Additional custom data for the cross-chain call
      */
     function _c3call(
         uint256 _dappID,
@@ -110,21 +114,20 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         }
         bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(
             _dappID,
-            _to,
-            _toChainID,
+            _to, _toChainID,
             _data
         );
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
     }
 
     /**
-     * @notice Initiate a cross-chain call with extra data
-     * @dev Called by DApps to initiate cross-chain transactions
-     * @param _dappID The DApp identifier
-     * @param _to The target address on the destination chain
-     * @param _toChainID The destination chain identifier
-     * @param _data The calldata to execute on the destination chain
-     * @param _extra Additional data for the cross-chain call
+     * @notice Initiate a cross-chain call with extra custom data
+     * @param _dappID The DApp identifier of the C3CallerDApp implementation
+     * @param _to The target address on the destination chain (C3CallerDApp implementation)
+     * @param _toChainID The destination chain ID
+     * @param _data The calldata to execute on the destination chain (ABI encoded)
+     * @param _extra Additional custom data for the cross-chain call
+     * @dev Calls `_c3call` with msg.sender as the caller
      */
     function c3call(
         uint256 _dappID,
@@ -137,12 +140,13 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Initiate a cross-chain call without extra data
-     * @dev Called by DApps to initiate cross-chain transactions
-     * @param _dappID The DApp identifier
-     * @param _to The target address on the destination chain
-     * @param _toChainID The destination chain identifier
-     * @param _data The calldata to execute on the destination chain
+     * @notice Initiate a cross-chain call without extra custom data
+     * @dev Called within registered DApps to initiate cross-chain transactions
+     * @param _dappID The ID of the C3CallerDApp implementation
+     * @param _to The target address on the destination chain (C3CallerDApp implementation)
+     * @param _toChainID The destination chain ID
+     * @param _data The calldata to execute on the destination chain (ABI encoded)
+     * @dev Calls `_c3call` with msg.sender as the caller
      */
     function c3call(
         uint256 _dappID,
@@ -154,12 +158,12 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @dev Internal function to initiate cross-chain broadcasts
-     * @param _dappID The DApp identifier
+     * @dev Internal function to initiate multiple cross-chain calls
+     * @param _dappID The ID of the C3CallerDApp implementation
      * @param _caller The address initiating the broadcast
-     * @param _to Array of target addresses on destination chains
-     * @param _toChainIDs Array of destination chain identifiers
-     * @param _data The calldata to execute on destination chains
+     * @param _to Array of target addresses on destination chains (C3CallerDApp implementation)
+     * @param _toChainIDs Array of destination chain IDs
+     * @param _data The calldata to execute on each destination chain (ABI encoded)
      */
     function _c3broadcast(
         uint256 _dappID,
@@ -207,12 +211,13 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Initiate cross-chain broadcasts to multiple destinations
-     * @dev Called by DApps to broadcast transactions to multiple chains
-     * @param _dappID The DApp identifier
-     * @param _to Array of target addresses on destination chains
-     * @param _toChainIDs Array of destination chain identifiers
-     * @param _data The calldata to execute on destination chains
+     * @notice Initiate cross-chain broadcasts to multiple chains
+     * @dev Called within registered DApps to broadcast transactions to multiple other chains
+     * @param _dappID The ID of the C3CallerDApp implementation
+     * @param _to Array of target addresses on destination chains (C3CallerDApp implementation)
+     * @param _toChainIDs Array of destination chain IDs
+     * @param _data The calldata to execute on each destination chain (ABI encoded)
+     * @dev Calls `_c3broadcast` with msg.sender as the caller
      */
     function c3broadcast(
         uint256 _dappID,
@@ -225,9 +230,10 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to execute cross-chain messages
-     * @param _dappID The DApp identifier
-     * @param _txSender The transaction sender address
+     * @param _dappID The ID of the C3CallerDApp implementation
+     * @param _txSender The transaction sender address (should be the MPC network)
      * @param _message The cross-chain message to execute
+     * @dev Calls `_c3Fallback` if the call fails
      */
     function _execute(
         uint256 _dappID,
@@ -240,7 +246,6 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         if (!IC3CallerDApp(_message.to).isValidSender(_txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.To, C3ErrorParam.Valid);
         }
-        // check dappID
         uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();
         if (expectedDAppID != _dappID) {
             revert C3Caller_InvalidDAppID(expectedDAppID, _dappID);
@@ -271,7 +276,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
             result
         );
 
-        (bool ok, uint256 rs) = _toUint(result);
+        (bool ok, uint256 rs) = result.toUint();
         if (success && ok && rs == 1) {
             IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
@@ -291,9 +296,9 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Execute a cross-chain message
+     * @notice Execute a cross-chain message (this is called on the target chain)
      * @dev Called by MPC network to execute cross-chain messages
-     * @param _dappID The DApp identifier
+     * @param _dappID The ID of the C3CallerDApp implementation
      * @param _message The cross-chain message to execute
      */
     function execute(
@@ -305,9 +310,9 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /**
      * @dev Internal function to handle fallback calls
-     * @param _dappID The DApp identifier
+     * @param _dappID The ID of the C3CallerDApp implementation
      * @param _txSender The transaction sender address
-     * @param _message The cross-chain message for fallback
+     * @param _message The cross-chain calldata that failed to execute
      */
     function _c3Fallback(
         uint256 _dappID,
@@ -355,46 +360,15 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
     }
 
     /**
-     * @notice Execute a fallback call for failed cross-chain operations
+     * @notice Execute a fallback call for failed cross-chain operations (this is called on the origin chain)
      * @dev Called by MPC network to handle failed cross-chain calls
-     * @param _dappID The DApp identifier
-     * @param _message The cross-chain message for fallback
+     * @param _dappID The ID of the C3CallerDApp implementation
+     * @param _message The cross-chain calldata that failed to execute
      */
     function c3Fallback(
         uint256 _dappID,
         C3EvmMessage calldata _message
     ) external onlyOperator whenNotPaused {
         _c3Fallback(_dappID, msg.sender, _message);
-    }
-
-    /**
-     * @dev Convert bytes to uint256 with validation
-     * @param bs The bytes to convert
-     * @return ok True if conversion was successful
-     * @return value The converted uint256 value
-     */
-    function _toUint(bytes memory bs) internal pure returns (bool, uint256) {
-        if (bs.length == 0) {
-            return (false, 0);
-        }
-        if (bs.length == 1) {
-            return (true, uint256(uint8(bs[0])));
-        }
-        if (bs.length == 2) {
-            return (true, uint256(uint16(bytes2(bs))));
-        }
-        if (bs.length == 4) {
-            return (true, uint256(uint32(bytes4(bs))));
-        }
-        if (bs.length == 8) {
-            return (true, uint256(uint64(bytes8(bs))));
-        }
-        if (bs.length == 16) {
-            return (true, uint256(uint128(bytes16(bs))));
-        }
-        if (bs.length == 32) {
-            return (true, uint256(bytes32(bs)));
-        }
-        return (false, 0);
     }
 }

@@ -14,15 +14,15 @@ contract DeployC3Caller is Script {
     function run() public {
         vm.startBroadcast();
 
-        // C3UUIDKeeperUpgradeable c3UUIDKeeperImpl = new C3UUIDKeeperUpgradeable();
-        // bytes memory c3UUIDKeeperInitData = abi.encodeWithSignature("initialize()");
-        // address c3UUIDKeeper = address(new C3CallerProxy(address(c3UUIDKeeperImpl), c3UUIDKeeperInitData));
-        // console.log("C3UUIDKeeper", c3UUIDKeeper);
+        C3UUIDKeeperUpgradeable c3UUIDKeeperImpl = new C3UUIDKeeperUpgradeable();
+        bytes memory c3UUIDKeeperInitData = abi.encodeWithSignature("initialize()");
+        address c3UUIDKeeper = address(new C3CallerProxy(address(c3UUIDKeeperImpl), c3UUIDKeeperInitData));
+        console.log("C3UUIDKeeper", c3UUIDKeeper);
 
-        // C3CallerUpgradeable c3callerImpl = new C3CallerUpgradeable();
-        // bytes memory c3callerInitData = abi.encodeWithSignature("initialize(address)", c3UUIDKeeper);
-        // address c3caller = address(new C3CallerProxy(address(c3callerImpl), c3callerInitData));
-        // console.log("C3Caller", c3caller);
+        C3CallerUpgradeable c3callerImpl = new C3CallerUpgradeable();
+        bytes memory c3callerInitData = abi.encodeWithSignature("initialize(address)", c3UUIDKeeper);
+        address c3caller = address(new C3CallerProxy(address(c3callerImpl), c3callerInitData));
+        console.log("C3Caller", c3caller);
 
         C3DAppManagerUpgradeable c3DAppManagerImpl = new C3DAppManagerUpgradeable();
         bytes memory c3DAppManagerInitData = abi.encodeWithSignature("initialize()");

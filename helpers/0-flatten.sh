@@ -8,9 +8,9 @@ mkdir -p flattened/
 mkdir -p flattened/dapp/
 mkdir -p flattened/gov/
 mkdir -p flattened/upgradeable/
-mkdir -p flattened/upgradeable/dapp
-mkdir -p flattened/upgradeable/gov
-mkdir -p flattened/upgradeable/uuid
+mkdir -p flattened/upgradeable/dapp/
+mkdir -p flattened/upgradeable/gov/
+mkdir -p flattened/upgradeable/uuid/
 mkdir -p flattened/utils/
 mkdir -p flattened/uuid/
 
