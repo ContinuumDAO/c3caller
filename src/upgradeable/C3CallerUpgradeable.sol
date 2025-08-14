@@ -296,7 +296,7 @@ contract C3CallerUpgradeable is
             result
         );
 
-        (bool ok, uint256 rs) = result._toUint();
+        (bool ok, uint256 rs) = result.toUint();
         if (success && ok && rs == 1) {
             IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {

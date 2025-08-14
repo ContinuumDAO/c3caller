@@ -7,6 +7,7 @@ cross-chain DApps using the ContinuumDAO MPC network.
 
 - [Project Structure](#project-structure)
 - [API Reference](#api-reference)
+- [Upgrade Reference](docs/upgradeable/C3Upgrades.md)
 - [Installation](#installation)
 - [Integration](#integration-into-your-dapp)
 - [Deployment](docs/DEPLOYMENT.md)
