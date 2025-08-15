@@ -23,13 +23,13 @@ import { IC3GovClient } from "./IC3GovClient.sol";
 contract C3GovClient is IC3GovClient {
     /// @notice The current governance address
     address public gov;
-    
+
     /// @notice The pending governance address (for two-step governance changes)
     address public pendingGov;
-    
+
     /// @notice Mapping of addresses to operator status
     mapping(address => bool) public isOperator;
-    
+
     /// @notice Array of all operator addresses
     address[] public operators;
 

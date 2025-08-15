@@ -34,18 +34,36 @@ SONEIUM_MINATO_RPC_URL=https://rpc.minato.soneium.org/
 
 # Etherscan API Key V2
 ETHERSCAN_API_KEY=
+
+# C3UUIDKeeper
+C3_UUID_KEEPER=
+
+# C3Caller
+C3CALLER=
+
+# C3DAppManager
+C3_DAPP_MANAGER=
+
+# MPC Addresses
+MPC1=0xEef3d3678E1E739C6522EEC209Bede0197791339
+MPC2=0x0c6235c04eF4Fa5013A58afb22967a068810C929
 ```
+
+Once the deployment is complete, add the addresses for C3UUIDKeeper, C3Caller
+and C3DAppManager. Use the provided MPC addresses.
 
 ## Make Scripts Executable
 
 ```bash
 chmod +x helpers/[0-9]*
 chmod +x helpers/deploy/*
+chmod +x helpers/add-mpc/*
 ```
 
 ## Flatten the source directory
 
-This is required for single-file verification on chains that do not support Etherscan and to facilitate remedial manual verification.
+This is required for single-file verification on chains that do not support
+Etherscan and to facilitate remedial manual verification.
 
 ```bash
 ./helpers/0-flatten.sh
@@ -63,7 +81,9 @@ Use the compilation script to compile the flattened source code and scripts.
 
 ## Deploy Contracts
 
-Run each of the following scripts to deploy. This will first execute a simulation, then allow you elect to deploy all contracts to the given network (broadcast) and verify the contracts on Etherscan if possible.
+Run each of the following scripts to deploy. This will first execute a
+simulation, then allow you elect to deploy all contracts to the given network
+(broadcast) and verify the contracts on Etherscan if possible.
 
 ```bash
 ./helpers/deploy/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
@@ -77,7 +97,8 @@ Run each of the following scripts to deploy. This will first execute a simulatio
 ./helpers/deploy/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
 ```
 
-All contracts are now deployed and initialized; their addresses are accessible in `broadcast/<chain-id>/run-latest.json`.
+All contracts are now deployed and initialized; their addresses are accessible
+in `broadcast/<chain-id>/run-latest.json`.
 
 All contracts have an upgradeable version (ERC1967 Universal Upgradeable Proxy
 Standard). This is the version deployed by default.
@@ -93,6 +114,27 @@ JSON file containing latest deployed contract addresses.
 ```bash
 node js-helpers/0-save-contract-addresses.js
 ```
+
+## Add MPC Operators
+
+Run each of the following scripts to add the MPC operators. This will first
+execute a simulation, then allow you elect to execute the transactions on the
+given network (broadcast).
+
+```bash
+./helpers/add-mpc/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/avalanche-fuji.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/base-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/bsc-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/holesky.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/opbnb-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/scroll-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/add-mpc/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+```
+
+The C3UUIDKeeper, C3Caller and C3DAppManager contracts are now executable by the
+MPC network addresses.
 
 ## Complete
 

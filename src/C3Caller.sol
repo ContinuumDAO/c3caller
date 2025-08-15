@@ -42,7 +42,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
     /// @notice Current execution context for cross-chain operations, set/reset during each execution
     C3Context public context;
-    
+
     /// @notice Address of the UUID keeper contract for managing unique identifiers
     address public uuidKeeper;
 

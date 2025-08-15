@@ -23,7 +23,7 @@ import { IC3UUIDKeeper } from "./IC3UUIDKeeper.sol";
 contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     /// @notice Mapping of UUID to completion status
     mapping(bytes32 => bool) public completedSwapin;
-    
+
     /// @notice Mapping of UUID to its associated nonce
     mapping(bytes32 => uint256) public uuid2Nonce;
 

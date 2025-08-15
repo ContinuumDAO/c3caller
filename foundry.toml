@@ -18,15 +18,15 @@ remappings = [
     "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/"
 ]
 
-[rpc_endpoints]                                                                                                                                                              
- arbitrum-sepolia-rpc-url = "${ARBITRUM_SEPOLIA_RPC_URL}"                                                                                                                    
- sepolia-rpc-url = "${SEPOLIA_RPC_URL}"                                                                                                                                      
- base-sepolia-rpc-url = "${BASE_SEPOLIA_RPC_URL}"                                                                                                                            
- bsc-testnet-rpc-url = "${BSC_TESTNET_RPC_URL}"                                                                                                                              
- avalanche-fuji-rpc-url = "${AVALANCHE_FUJI_RPC_URL}"                                                                                                                        
- holesky-rpc-url = "${HOLESKY_RPC_URL}"                                                                                                                                      
- scroll-sepolia-rpc-url = "${SCROLL_SEPOLIA_RPC_URL}"                                                                                                                        
- soneium-minato-testnet-rpc-url = "${SONEIUM_MINATO_TESTNET_RPC_URL}"                                                                                                        
+[rpc_endpoints]
+ arbitrum-sepolia-rpc-url = "${ARBITRUM_SEPOLIA_RPC_URL}"
+ sepolia-rpc-url = "${SEPOLIA_RPC_URL}"
+ base-sepolia-rpc-url = "${BASE_SEPOLIA_RPC_URL}"
+ bsc-testnet-rpc-url = "${BSC_TESTNET_RPC_URL}"
+ avalanche-fuji-rpc-url = "${AVALANCHE_FUJI_RPC_URL}"
+ holesky-rpc-url = "${HOLESKY_RPC_URL}"
+ scroll-sepolia-rpc-url = "${SCROLL_SEPOLIA_RPC_URL}"
+ soneium-minato-testnet-rpc-url = "${SONEIUM_MINATO_TESTNET_RPC_URL}"
  opbnb-testnet-rpc-url = "${OPBNB_TESTNET_RPC_URL}"
 
 [etherscan]
