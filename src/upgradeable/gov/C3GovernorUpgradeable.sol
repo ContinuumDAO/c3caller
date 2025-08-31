@@ -100,6 +100,10 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
             _proposal[_nonce].hasFailed.push(false);
         }
 
+
+        // Set the current proposal ID for fallback handling
+        proposalId = _nonce; // FIX: Audit Bug #4 Fixed
+
         emit NewProposal(_nonce);
 
         for (uint256 i = 0; i < _data.length; i++) {
@@ -150,7 +154,7 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
         if (_chainId == chainID()) {
             address _to = _target.toAddress();
             (bool _success,) = _to.call(_remoteData);
-            if (_success) {
+            if (!_success) { // FIX: Audit Bug #3 Fixed
                 _proposal[_nonce].hasFailed[_offset] = true;
             }
         } else {
