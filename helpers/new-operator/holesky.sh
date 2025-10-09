@@ -12,8 +12,8 @@ fi
 forge script script/NewOperator.s.sol \
 --account $1 \
 --password-file $2 \
---rpc-url sepolia-rpc-url \
---chain sepolia
+--rpc-url holesky-rpc-url \
+--chain holesky
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -33,8 +33,8 @@ echo "Proceeding with add MPC operation..."
 forge script script/NewOperator.s.sol \
 --account $1 \
 --password-file $2 \
---rpc-url sepolia-rpc-url \
---chain sepolia \
+--rpc-url holesky-rpc-url \
+--chain holesky \
 --broadcast
 
 echo "Add MPC operation complete."

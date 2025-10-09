@@ -11,3 +11,9 @@ fi
 ./helpers/new-operator/arbitrum-sepolia.sh $1 $2
 ./helpers/new-operator/bsc-testnet.sh $1 $2
 ./helpers/new-operator/sepolia.sh $1 $2
+./helpers/new-operator/avalanche-fuji.sh $1 $2
+./helpers/new-operator/base-sepolia.sh $1 $2
+./helpers/new-operator/holesky.sh $1 $2
+./helpers/new-operator/opbnb-testnet.sh $1 $2
+./helpers/new-operator/scroll-sepolia.sh $1 $2
+./helpers/new-operator/soneium-minato-testnet.sh $1 $2

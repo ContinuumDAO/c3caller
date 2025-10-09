@@ -33,7 +33,6 @@ echo "Proceeding with add MPC operation..."
 forge script script/NewOperator.s.sol \
 --account $1 \
 --password-file $2 \
---slow \
 --rpc-url arbitrum-sepolia-rpc-url \
 --chain arbitrum-sepolia \
 --broadcast
