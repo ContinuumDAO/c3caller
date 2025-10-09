@@ -276,8 +276,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
             result
         );
 
-        (bool ok, uint256 rs) = result.toUint();
-        if (success && ok && rs == 1) {
+        if (success) {
             IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
             emit LogFallbackCall(
