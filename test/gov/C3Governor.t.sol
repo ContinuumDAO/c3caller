@@ -93,7 +93,7 @@ contract C3GovernorTest is Helpers {
 
     // Test for sendParams functionality
     function test_sendParams_EmitsCorrectEvents() public {
-        bytes32 nonce = keccak256("test-send-params");
+        uint256 nonce = uint256(keccak256("test-send-params"));
         bytes memory testData = abi.encode(
             getTestChainId(0), // chainId
             getTestTarget(0),   // target
@@ -113,7 +113,7 @@ contract C3GovernorTest is Helpers {
 
     // Test for sendMultiParams functionality
     function test_sendMultiParams_EmitsCorrectEvents() public {
-        bytes32 nonce = keccak256("test-send-multi-params");
+        uint256 nonce = uint256(keccak256("test-send-multi-params"));
         bytes[] memory testDataArray = new bytes[](3);
         
         for (uint256 i = 0; i < 3; i++) {
@@ -139,7 +139,7 @@ contract C3GovernorTest is Helpers {
 
     // Test that mockC3GovernDApp can use C3Governor to call sendParams
     function test_mockC3GovernDApp_uses_C3Governor_sendParams() public {
-        bytes32 nonce = keccak256("mock-dapp-send-params");
+        uint256 nonce = uint256(keccak256("mock-dapp-send-params"));
         bytes memory testData = abi.encode(
             getTestChainId(1), // chainId
             getTestTarget(1),   // target
@@ -164,7 +164,7 @@ contract C3GovernorTest is Helpers {
 
     // Test that mockC3GovernDApp can use C3Governor to call sendMultiParams
     function test_mockC3GovernDApp_uses_C3Governor_sendMultiParams() public {
-        bytes32 nonce = keccak256("mock-dapp-send-multi-params");
+        uint256 nonce = uint256(keccak256("mock-dapp-send-multi-params"));
         bytes[] memory testDataArray = new bytes[](2);
         
         for (uint256 i = 0; i < 2; i++) {
@@ -195,7 +195,7 @@ contract C3GovernorTest is Helpers {
 
     // Test cross-chain proposal execution and event emission
     function test_crossChainProposal_execution_and_events() public {
-        bytes32 nonce = keccak256("cross-chain-proposal");
+        uint256 nonce = uint256(keccak256("cross-chain-proposal"));
         
         // Create test data for a cross-chain call
         uint256 targetChainId = getTestChainId(0);
@@ -218,7 +218,7 @@ contract C3GovernorTest is Helpers {
 
     // Test multiple cross-chain proposals in a single call
     function test_multipleCrossChainProposals_execution_and_events() public {
-        bytes32 nonce = keccak256("multiple-cross-chain-proposals");
+        uint256 nonce = uint256(keccak256("multiple-cross-chain-proposals"));
         bytes[] memory testDataArray = new bytes[](3);
         
         for (uint256 i = 0; i < 3; i++) {
@@ -245,7 +245,7 @@ contract C3GovernorTest is Helpers {
 
     // Test fallback mechanism when cross-chain calls fail
     function test_fallback_mechanism_for_failed_calls() public {
-        bytes32 nonce = keccak256("fallback-test");
+        uint256 nonce = uint256(keccak256("fallback-test"));
         bytes memory testData = abi.encode(
             getTestChainId(0), // chainId
             getTestTarget(0),   // target
@@ -292,7 +292,7 @@ contract C3GovernorTest is Helpers {
 
     // Test proposal length tracking
     function test_proposalLength_tracking() public {
-        bytes32 nonce = keccak256("length-test");
+        uint256 nonce = uint256(keccak256("length-test"));
         bytes[] memory testDataArray = new bytes[](5);
         
         for (uint256 i = 0; i < 5; i++) {
@@ -318,7 +318,7 @@ contract C3GovernorTest is Helpers {
 
     // Test that shows the correct initial and final states
     function test_proposal_initial_and_final_states() public {
-        bytes32 nonce = keccak256("state-test");
+        uint256 nonce = uint256(keccak256("state-test"));
         
         // Create test data for same-chain call (using current chain ID)
         uint256 currentChainId = block.chainid;
@@ -338,26 +338,26 @@ contract C3GovernorTest is Helpers {
         vm.startPrank(gov);
         
         // Test same-chain proposal
-        c3Governor.sendParams(sameChainData, keccak256("same-chain"));
+        c3Governor.sendParams(sameChainData, uint256(keccak256("same-chain")));
         
         // Test cross-chain proposal
-        c3Governor.sendParams(crossChainData, keccak256("cross-chain"));
+        c3Governor.sendParams(crossChainData, uint256(keccak256("cross-chain")));
         vm.stopPrank();
 
         // Verify same-chain proposal (should remain false if call succeeds)
-        (bytes memory sameChainStoredData, bool sameChainHasFailed) = c3Governor.getProposalData(keccak256("same-chain"), 0);
+        (bytes memory sameChainStoredData, bool sameChainHasFailed) = c3Governor.getProposalData(uint256(keccak256("same-chain")), 0);
         assertEq(sameChainStoredData, sameChainData, "Same-chain data should match");
         assertEq(sameChainHasFailed, false, "Successful same-chain proposal should not be marked as failed");
         
         // Verify cross-chain proposal (should be true because it's cross-chain)
-        (bytes memory crossChainStoredData, bool crossChainHasFailed) = c3Governor.getProposalData(keccak256("cross-chain"), 0);
+        (bytes memory crossChainStoredData, bool crossChainHasFailed) = c3Governor.getProposalData(uint256(keccak256("cross-chain")), 0);
         assertEq(crossChainStoredData, crossChainData, "Cross-chain data should match");
         assertEq(crossChainHasFailed, true, "Cross-chain proposal should be marked as failed");
     }
 
     // Test doGov functionality - any user can re-execute failed proposals
     function test_doGov_any_user_can_re_execute_failed_proposal() public {
-        bytes32 nonce = keccak256("do-gov-test");
+        uint256 nonce = uint256(keccak256("do-gov-test"));
         bytes memory testData = abi.encode(
             getTestChainId(0), // chainId
             getTestTarget(0),   // target
@@ -386,7 +386,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov with multiple failed proposals
     function test_doGov_multiple_failed_proposals() public {
-        bytes32 nonce = keccak256("do-gov-multi-test");
+        uint256 nonce = uint256(keccak256("do-gov-multi-test"));
         bytes[] memory testDataArray = new bytes[](3);
         
         for (uint256 i = 0; i < 3; i++) {
@@ -421,7 +421,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov with successful same-chain proposal (should NOT be marked as failed)
     function test_doGov_successful_same_chain_proposal() public {
-        bytes32 nonce = keccak256("do-gov-successful-test");
+        uint256 nonce = uint256(keccak256("do-gov-successful-test"));
         
         // Create a same-chain proposal that will succeed (so it should NOT be marked as failed)
         uint256 currentChainId = block.chainid;
@@ -449,7 +449,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov with cross-chain proposal (should be marked as failed and can be re-executed)
     function test_doGov_cross_chain_proposal() public {
-        bytes32 nonce = keccak256("do-gov-cross-chain-test");
+        uint256 nonce = uint256(keccak256("do-gov-cross-chain-test"));
         
         // Create a cross-chain proposal (should be marked as failed)
         bytes memory crossChainData = abi.encode(
@@ -481,7 +481,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov with out of bounds offset should revert
     function test_doGov_out_of_bounds_reverts() public {
-        bytes32 nonce = keccak256("do-gov-bounds-test");
+        uint256 nonce = uint256(keccak256("do-gov-bounds-test"));
         bytes memory testData = abi.encode(
             getTestChainId(0), // chainId
             getTestTarget(0),   // target
@@ -502,7 +502,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov with non-existent proposal should revert
     function test_doGov_non_existent_proposal_reverts() public {
-        bytes32 nonce = keccak256("non-existent-proposal");
+        uint256 nonce = uint256(keccak256("non-existent-proposal"));
         
         // Try to re-execute a non-existent proposal - should revert
         vm.startPrank(user1);
@@ -513,7 +513,7 @@ contract C3GovernorTest is Helpers {
 
     // Test doGov events are emitted correctly
     function test_doGov_emits_correct_events() public {
-        bytes32 nonce = keccak256("do-gov-events-test");
+        uint256 nonce = uint256(keccak256("do-gov-events-test"));
         bytes memory testData = abi.encode(
             getTestChainId(0), // chainId
             getTestTarget(0),   // target
@@ -538,7 +538,7 @@ contract C3GovernorTest is Helpers {
 
     // Test error cases
     function test_sendParams_empty_data_reverts() public {
-        bytes32 nonce = keccak256("empty-data-test");
+        uint256 nonce = uint256(keccak256("empty-data-test"));
         bytes memory emptyData = "";
 
         vm.startPrank(gov);
@@ -550,7 +550,7 @@ contract C3GovernorTest is Helpers {
     }
 
     function test_sendMultiParams_empty_array_reverts() public {
-        bytes32 nonce = keccak256("empty-array-test");
+        uint256 nonce = uint256(keccak256("empty-array-test"));
         bytes[] memory emptyArray = new bytes[](0);
 
         vm.startPrank(gov);
@@ -562,7 +562,7 @@ contract C3GovernorTest is Helpers {
     }
 
     function test_sendMultiParams_empty_data_in_array_reverts() public {
-        bytes32 nonce = keccak256("empty-data-in-array-test");
+        uint256 nonce = uint256(keccak256("empty-data-in-array-test"));
         bytes[] memory testDataArray = new bytes[](2);
         testDataArray[0] = abi.encode(getTestChainId(0), getTestTarget(0), getTestCalldata(0));
         testDataArray[1] = ""; // Empty data

@@ -243,8 +243,10 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
      * @param _token The token address
      * @param _amount The amount to deposit
      * @notice Reverts if the amount is zero
+     * BUG: #16 Pausable Bypass in C3DAppManager
+     * PASSED: (also present in C3DAppManagerUpgradeable) added whenNotPaused modifier
      */
-    function deposit(uint256 _dappID, address _token, uint256 _amount) external {
+    function deposit(uint256 _dappID, address _token, uint256 _amount) external whenNotPaused {
         if (_amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
@@ -263,8 +265,10 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
      * @param _token The token address
      * @param _amount The amount to withdraw
      * @notice Reverts if the amount is zero or insufficient balance
+     * BUG: #16 Pausable Bypass in C3DAppManager
+     * PASSED: (also present in C3DAppManagerUpgradeable) added whenNotPaused modifier
      */
-    function withdraw(uint256 _dappID, address _token, uint256 _amount) external onlyGovOrAdmin(_dappID) {
+    function withdraw(uint256 _dappID, address _token, uint256 _amount) external onlyGovOrAdmin(_dappID) whenNotPaused {
         if (_amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
@@ -287,8 +291,10 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
      * @param _token The token address
      * @param _bill The amount to charge
      * @notice Reverts if the bill is zero or insufficient balance
+     * BUG: #16 Pausable Bypass in C3DAppManager
+     * PASSED: (also present in C3DAppManagerUpgradeable) added whenNotPaused modifier
      */
-    function charging(uint256 _dappID, address _token, uint256 _bill) external onlyGovOrAdmin(_dappID) {
+    function charging(uint256 _dappID, address _token, uint256 _bill) external onlyGovOrAdmin(_dappID) whenNotPaused {
         if (_bill == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }

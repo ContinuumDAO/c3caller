@@ -2,18 +2,18 @@
 
 pragma solidity 0.8.27;
 
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
-import {IC3Caller} from "./IC3Caller.sol";
-import {IC3CallerDApp} from "./dapp/IC3CallerDApp.sol";
+import { IC3Caller } from "./IC3Caller.sol";
+import { IC3CallerDApp } from "./dapp/IC3CallerDApp.sol";
 
-import {C3GovClient} from "./gov/C3GovClient.sol";
-import {IC3UUIDKeeper} from "./uuid/IC3UUIDKeeper.sol";
+import { C3GovClient } from "./gov/C3GovClient.sol";
+import { IC3UUIDKeeper } from "./uuid/IC3UUIDKeeper.sol";
 
-import {C3CallerUtils, C3ErrorParam} from "./utils/C3CallerUtils.sol";
+import { C3CallerUtils, C3ErrorParam } from "./utils/C3CallerUtils.sol";
 
 /**
  * @title C3Caller
@@ -53,7 +53,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
      */
     constructor(
         address _uuidKeeper
-    ) C3GovClient(msg.sender) Ownable(msg.sender) Pausable() {
+    ) C3GovClient(msg.sender) Ownable(msg.sender) {
         uuidKeeper = _uuidKeeper;
     }
 

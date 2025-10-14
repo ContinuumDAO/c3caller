@@ -25,7 +25,7 @@ contract MaliciousTokenUpgradeable is IERC20 {
         balanceOf[address(this)] = 1000000;
     }
 
-    function transfer(address to, uint256 amount) external returns (bool) {
+    function transfer(address to, uint256) external returns (bool) {
         if (reentering && to == address(dappManager)) {
             // Try to reenter the withdraw function
             dappManager.withdraw(1, address(this), 100);
@@ -33,7 +33,7 @@ contract MaliciousTokenUpgradeable is IERC20 {
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+    function transferFrom(address, address, uint256) external pure returns (bool) {
         return true;
     }
 
@@ -58,7 +58,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         super.setUp();
         vm.prank(gov);
         dappManager = new C3DAppManagerUpgradeable();
-        dappManager.initialize(gov);
+        dappManager.initialize();
         
         // Deploy malicious token
         maliciousToken = new MaliciousTokenUpgradeable(dappManager);

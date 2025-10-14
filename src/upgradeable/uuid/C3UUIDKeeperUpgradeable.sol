@@ -59,6 +59,9 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeper, C3GovClientUpgradeable, UUPSU
      * @dev This function can only be called once during deployment
      */
     function initialize() public initializer {
+        // BUG: #44 Missing __UUPSUpgradeable_init() in C3UUIDKeeperUpgradeable:initialize()
+        // PASSED:
+        __UUPSUpgradeable_init();
         __C3GovClient_init(msg.sender);
     }
 

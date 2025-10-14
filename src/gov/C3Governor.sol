@@ -3,6 +3,7 @@
 pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import { C3CallerUtils, C3ErrorParam } from "../utils/C3CallerUtils.sol";
 import { C3GovernDApp } from "./C3GovernDApp.sol";
@@ -23,15 +24,18 @@ import { IC3Governor } from "./IC3Governor.sol";
  * @notice This contract enables governance-driven cross-chain operations
  * @author @potti and @selqui ContinuumDAO
  */
-contract C3Governor is IC3Governor, C3GovernDApp {
+contract C3Governor is IC3Governor, C3GovernDApp, ReentrancyGuard {
     using Strings for *;
     using C3CallerUtils for string;
 
     /// @notice Mapping of proposal nonce to proposal data
-    mapping(bytes32 => Proposal) private _proposal;
-    
+    mapping(uint256 => Proposal) private _proposal;
+
+    /// @notice Mapping of proposal nonce to whether it has been used already
+    mapping(uint256 => bool) private _nonceSpent;
+
     /// @notice Current proposal identifier
-    bytes32 public proposalId;
+    uint256 public proposalId;
 
     /**
      * @dev Constructor for C3Governor
@@ -53,16 +57,25 @@ contract C3Governor is IC3Governor, C3GovernDApp {
     }
 
     /**
-     * @notice Send a single parameter for governance proposal
+     * @notice Send a single action (ie. targets/values/calldatas.length == 1)
      * @dev Only the governor can call this function
      * @param _data The proposal data
      * @param _nonce The proposal nonce
      * @notice Reverts if the data is empty
+     * FIX: changed nonce from bytes32 to uint256 to match Governor:getProposalId.
      */
-    function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
+    function sendParams(bytes memory _data, uint256 _nonce) external onlyGov {
+        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
+        // PASSED:
+        if (_nonceSpent[_nonce]) {
+            revert C3Governor_NonceSpent(_nonce);
+        }
+
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
         }
+
+        _nonceSpent[_nonce] = true;
 
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
@@ -76,16 +89,24 @@ contract C3Governor is IC3Governor, C3GovernDApp {
     }
 
     /**
-     * @notice Send multiple parameters for governance proposal
+     * @notice Send multiple actions (ie. targets/values/calldatas.length > 1)
      * @dev Only the governor can call this function
      * @param _data Array of proposal data
      * @param _nonce The proposal nonce
      * @notice Reverts if the data array is empty or contains empty data
      */
-    function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external onlyGov {
+    function sendMultiParams(bytes[] memory _data, uint256 _nonce) external onlyGov {
+        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
+        // PASSED:
+        if (_nonceSpent[_nonce]) {
+            revert C3Governor_NonceSpent(_nonce);
+        }
+
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
         }
+
+        _nonceSpent[_nonce] = true;
 
         for (uint256 i = 0; i < _data.length; i++) {
             if (_data[i].length == 0) {
@@ -111,7 +132,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @param _offset The offset within the proposal data
      * @notice Reverts if the offset is out of bounds or the proposal hasn't failed
      */
-    function doGov(bytes32 _nonce, uint256 _offset) external {
+    function doGov(uint256 _nonce, uint256 _offset) external {
         if (_offset >= _proposal[_nonce].data.length) {
             revert C3Governor_OutOfBounds();
         }
@@ -128,7 +149,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @return The proposal data
      * @return The failure status
      */
-    function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
+    function getProposalData(uint256 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
         return (_proposal[_nonce].data[_offset], _proposal[_nonce].hasFailed[_offset]);
     }
 
@@ -137,14 +158,18 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @param _nonce The proposal nonce
      * @param _offset The offset within the proposal data
      */
-    function _c3gov(bytes32 _nonce, uint256 _offset) internal {
+    function _c3gov(uint256 _nonce, uint256 _offset) internal nonReentrant {
         uint256 _chainId;
         string memory _target;
         bytes memory _remoteData;
 
         bytes memory _rawData = _proposal[_nonce].data[_offset];
-        // TODO add flag which config using gov to send or operator
+        // TODO: add flag which config using gov to send or operator
         (_chainId, _target, _remoteData) = abi.decode(_rawData, (uint256, string, bytes));
+
+        // BUG: #3 Missing onlyGov modifier allows attackers to call doGov
+        // TESTING: assume the call is successful before attempting
+        _proposal[_nonce].hasFailed[_offset] = false;
 
         if (_chainId == chainID()) {
             address _to = _target.toAddress();

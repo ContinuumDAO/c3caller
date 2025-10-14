@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import { IC3Governor } from "../../gov/IC3Governor.sol";
 
@@ -28,15 +29,18 @@ import { C3GovernDAppUpgradeable } from "./C3GovernDAppUpgradeable.sol";
  * @notice This contract enables governance-driven cross-chain operations with upgradeability
  * @author @potti ContinuumDAO
  */
-contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable {
+contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
     using Strings for *;
     using C3CallerUtils for string;
 
     /// @notice Mapping of proposal nonce to proposal data
-    mapping(bytes32 => Proposal) private _proposal;
+    mapping(uint256 => Proposal) private _proposal;
+
+    /// @notice Mapping of proposal nonce to whether it has been used already
+    mapping(uint256 => bool) private _nonceSpent;
 
     /// @notice Current proposal identifier
-    bytes32 public proposalId;
+    uint256 public proposalId;
 
     /**
      * @notice Initialize the upgradeable C3Governor contract
@@ -50,6 +54,7 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
         initializer
     {
         __C3GovernDApp_init(msg.sender, _c3CallerProxy, _txSender, _dappID);
+        __ReentrancyGuard_init();
     }
 
     /**
@@ -66,14 +71,26 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @param _data The proposal data
      * @param _nonce The proposal nonce
      * @notice Reverts if the data is empty
+     * FIX: changed nonce from bytes32 to uint256 to match Governor:getProposalId.
      */
-    function sendParams(bytes memory _data, bytes32 _nonce) external onlyGov {
+    function sendParams(bytes memory _data, uint256 _nonce) external onlyGov {
+        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
+        // PASSED:
+        if (_nonceSpent[_nonce]) {
+            revert C3Governor_NonceSpent(_nonce);
+        }
+
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
         }
 
+        _nonceSpent[_nonce] = true;
+
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
+
+        // Set the current proposal ID for fallback handling
+        proposalId = _nonce;
 
         emit NewProposal(_nonce);
 
@@ -87,10 +104,18 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @param _nonce The proposal nonce
      * @notice Reverts if the data array is empty or contains empty data
      */
-    function sendMultiParams(bytes[] memory _data, bytes32 _nonce) external onlyGov {
+    function sendMultiParams(bytes[] memory _data, uint256 _nonce) external onlyGov {
+        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
+        // PASSED:
+        if (_nonceSpent[_nonce]) {
+            revert C3Governor_NonceSpent(_nonce);
+        }
+
         if (_data.length == 0) {
             revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
         }
+
+        _nonceSpent[_nonce] = true;
 
         for (uint256 i = 0; i < _data.length; i++) {
             if (_data[i].length == 0) {
@@ -100,9 +125,10 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
             _proposal[_nonce].hasFailed.push(false);
         }
 
-
         // Set the current proposal ID for fallback handling
-        proposalId = _nonce; // FIX: Audit Bug #4 Fixed
+        // BUG: #8 missing proposalId Assignment in C3GovernorUpgradeaable
+        // PASSED:
+        proposalId = _nonce;
 
         emit NewProposal(_nonce);
 
@@ -117,7 +143,7 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @param _offset The offset within the proposal data
      * @notice Reverts if the offset is out of bounds or the proposal hasn't failed
      */
-    function doGov(bytes32 _nonce, uint256 _offset) external onlyGov {
+    function doGov(uint256 _nonce, uint256 _offset) external onlyGov {
         if (_offset >= _proposal[_nonce].data.length) {
             revert C3Governor_OutOfBounds();
         }
@@ -134,7 +160,7 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @return The proposal data
      * @return The failure status
      */
-    function getProposalData(bytes32 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
+    function getProposalData(uint256 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
         return (_proposal[_nonce].data[_offset], _proposal[_nonce].hasFailed[_offset]);
     }
 
@@ -143,18 +169,21 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @param _nonce The proposal nonce
      * @param _offset The offset within the proposal data
      */
-    function _c3gov(bytes32 _nonce, uint256 _offset) internal {
+    function _c3gov(uint256 _nonce, uint256 _offset) internal nonReentrant {
         uint256 _chainId;
         string memory _target;
         bytes memory _remoteData;
 
         bytes memory _rawData = _proposal[_nonce].data[_offset];
+        // TODO: add flag which config using gov to send or operator
         (_chainId, _target, _remoteData) = abi.decode(_rawData, (uint256, string, bytes));
 
         if (_chainId == chainID()) {
             address _to = _target.toAddress();
             (bool _success,) = _to.call(_remoteData);
-            if (!_success) { // FIX: Audit Bug #3 Fixed
+            // BUG: #2 _c3gov inverts proposal failure logic
+            // PASSED:
+            if (!_success) {
                 _proposal[_nonce].hasFailed[_offset] = true;
             }
         } else {

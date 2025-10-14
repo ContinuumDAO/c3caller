@@ -5,10 +5,10 @@ pragma solidity 0.8.27;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {C3UUIDKeeperUpgradeable} from "../flattened/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
-import {C3CallerUpgradeable} from "../flattened/upgradeable/C3CallerUpgradeable.sol";
-import {C3DAppManagerUpgradeable} from "../flattened/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
-import {C3CallerProxy} from "../flattened/utils/C3CallerProxy.sol";
+import {C3UUIDKeeperUpgradeable} from "../build/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3CallerUpgradeable} from "../build/upgradeable/C3CallerUpgradeable.sol";
+import {C3DAppManagerUpgradeable} from "../build/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
+import {C3CallerProxy} from "../build/utils/C3CallerProxy.sol";
 
 contract DeployC3Caller is Script {
     function run() public {

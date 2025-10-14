@@ -296,8 +296,9 @@ contract C3CallerUpgradeable is
             result
         );
 
-        (bool ok, uint256 rs) = result.toUint();
-        if (success && ok && rs == 1) {
+        // BUG: #9 _toUint Cannot Decode ABI-Encoded Dynamic Return Data
+        // PASSED:
+        if (success) {
             IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
         } else {
             emit LogFallbackCall(

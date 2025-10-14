@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { Script } from "forge-std/Script.sol";
-import { IC3GovClient } from "../flattened/gov/C3GovClient.sol";
+import { IC3GovClient } from "../build/gov/C3GovClient.sol";
 
 contract AddUUIDOperator is Script {
     address c3caller;

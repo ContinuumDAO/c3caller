@@ -99,36 +99,4 @@ library C3CallerUtils {
         }
         return _tempAddress;
     }
-
-    /**
-     * @dev Convert bytes to uint256 with validation
-     * @param bs The bytes to convert
-     * @return ok True if conversion was successful
-     * @return value The converted uint256 value
-     * @notice Supports bytes lengths of 1, 2, 4, 8, 16, and 32
-     */
-    function toUint(bytes memory bs) internal pure returns (bool, uint256) {
-        if (bs.length == 0) {
-            return (false, 0);
-        }
-        if (bs.length == 1) {
-            return (true, uint256(uint8(bs[0])));
-        }
-        if (bs.length == 2) {
-            return (true, uint256(uint16(bytes2(bs))));
-        }
-        if (bs.length == 4) {
-            return (true, uint256(uint32(bytes4(bs))));
-        }
-        if (bs.length == 8) {
-            return (true, uint256(uint64(bytes8(bs))));
-        }
-        if (bs.length == 16) {
-            return (true, uint256(uint128(bytes16(bs))));
-        }
-        if (bs.length == 32) {
-            return (true, uint256(bytes32(bs)));
-        }
-        return (false, 0);
-    }
 }
