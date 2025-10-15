@@ -41,6 +41,8 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     error C3DAppManager_DAppDeprecated(uint256 _dappID);
     error C3DAppManager_DAppSuspended(uint256 _dappID);
     error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
+    error C3DAppManager_MpcAddressExists(string _addr);
+    error C3DAppManager_MpcAddressNotFound(string _addr);
 
     /// @notice The DApp identifier for this manager
     uint256 public dappID;
@@ -74,6 +76,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     
     /// @notice Mapping of DApp ID to array of MPC addresses
     mapping(uint256 => string[]) public mpcAddrs;
+    
+    /// @notice Mapping of DApp ID and MPC address to membership status
+    mapping(uint256 => mapping(string => bool)) public mpcMembership;
 
     /**
      * @dev Constructor for C3DAppManager
@@ -247,7 +252,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp identifier
      * @param _addr The MPC address
      * @param _pubkey The MPC public key
-     * @notice Reverts if DApp admin is zero, addresses are empty, lengths don't match, or DApp is not active
+     * @notice Reverts if DApp admin is zero, addresses are empty, lengths don't match, DApp is not active, or address already exists
      */
     function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
@@ -259,21 +264,18 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         if (bytes(_pubkey).length == 0) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
-        if (dappConfig[_dappID].appAdmin == address(0)) {
-            revert C3DAppManager_NotZeroAddress(C3ErrorParam.Admin);
-        }
-        if (bytes(_addr).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
-        }
-        if (bytes(_pubkey).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
-        }
         if (bytes(_addr).length != bytes(_pubkey).length) {
             revert C3DAppManager_LengthMismatch(C3ErrorParam.Address, C3ErrorParam.PubKey);
         }
 
+        // Check if MPC address already exists
+        if (mpcMembership[_dappID][_addr]) {
+            revert C3DAppManager_MpcAddressExists(_addr);
+        }
+
         mpcPubkey[_dappID][_addr] = _pubkey;
         mpcAddrs[_dappID].push(_addr);
+        mpcMembership[_dappID][_addr] = true;
 
         emit AddMpcAddr(_dappID, _addr, _pubkey);
     }
@@ -284,7 +286,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp identifier
      * @param _addr The MPC address to delete
      * @param _pubkey The MPC public key to delete
-     * @notice Reverts if DApp admin is zero, addresses are empty, or DApp is not active
+     * @notice Reverts if DApp admin is zero, addresses are empty, DApp is not active, or address not found
      */
     function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
@@ -297,11 +299,19 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
 
-        delete mpcPubkey[_dappID][_addr];
+        // Check if MPC address exists
+        if (!mpcMembership[_dappID][_addr]) {
+            revert C3DAppManager_MpcAddressNotFound(_addr);
+        }
 
+        delete mpcPubkey[_dappID][_addr];
+        mpcMembership[_dappID][_addr] = false;
+
+        // Remove from array using swap-and-pop technique
         string[] storage addrs = mpcAddrs[_dappID];
         for (uint256 i = 0; i < addrs.length; i++) {
             if (keccak256(bytes(addrs[i])) == keccak256(bytes(_addr))) {
+                // Swap with last element and pop
                 addrs[i] = addrs[addrs.length - 1];
                 addrs.pop();
                 break;
@@ -436,6 +446,25 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      */
     function getMpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory) {
         return mpcPubkey[_dappID][_addr];
+    }
+
+    /**
+     * @notice Check if MPC address is a member of a DApp
+     * @param _dappID The DApp identifier
+     * @param _addr The MPC address
+     * @return True if the address is a member
+     */
+    function isMpcMember(uint256 _dappID, string memory _addr) external view returns (bool) {
+        return mpcMembership[_dappID][_addr];
+    }
+
+    /**
+     * @notice Get the count of MPC addresses for a DApp
+     * @param _dappID The DApp identifier
+     * @return The number of MPC addresses
+     */
+    function getMpcCount(uint256 _dappID) external view returns (uint256) {
+        return mpcAddrs[_dappID].length;
     }
 
     /**
