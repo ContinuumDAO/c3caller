@@ -23,6 +23,8 @@ import { IC3DAppManager } from "./IC3DAppManager.sol";
  * - Staking pool management
  * - MPC address and public key management
  * - Blacklist functionality
+ * - DApp lifecycle management (Active, Suspended, Deprecated)
+ * - Status-based access control and enforcement
  * - Pausable functionality for emergency stops
  * 
  * @notice This contract is the central management hub for C3 DApps
@@ -31,6 +33,14 @@ import { IC3DAppManager } from "./IC3DAppManager.sol";
 contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     using Strings for *;
     using SafeERC20 for IERC20;
+
+    // Events
+    event DAppStatusChanged(uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason);
+
+    // Errors
+    error C3DAppManager_DAppDeprecated(uint256 _dappID);
+    error C3DAppManager_DAppSuspended(uint256 _dappID);
+    error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
 
     /// @notice The DApp identifier for this manager
     uint256 public dappID;
@@ -43,6 +53,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     
     /// @notice Mapping of DApp ID to blacklist status
     mapping(uint256 => bool) public appBlacklist;
+    
+    /// @notice Mapping of DApp ID to DApp status
+    mapping(uint256 => DAppStatus) public dappStatus;
 
     /// @notice Mapping of asset address to fee per byte
     mapping(address => uint256) public feeCurrencies;
@@ -83,6 +96,34 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     }
 
     /**
+     * @dev Modifier to check DApp status
+     * @param _dappID The DApp identifier
+     * @notice Reverts if DApp is suspended or deprecated
+     */
+    modifier onlyActiveDApp(uint256 _dappID) {
+        DAppStatus status = dappStatus[_dappID];
+        if (status == DAppStatus.Suspended) {
+            revert C3DAppManager_DAppSuspended(_dappID);
+        }
+        if (status == DAppStatus.Deprecated) {
+            revert C3DAppManager_DAppDeprecated(_dappID);
+        }
+        _;
+    }
+
+    /**
+     * @dev Modifier to prevent registration of deprecated DApp IDs
+     * @param _dappID The DApp identifier
+     * @notice Reverts if DApp ID is deprecated
+     */
+    modifier notDeprecated(uint256 _dappID) {
+        if (dappStatus[_dappID] == DAppStatus.Deprecated) {
+            revert C3DAppManager_DAppDeprecated(_dappID);
+        }
+        _;
+    }
+
+    /**
      * @notice Pause the contract (governance only)
      * @dev Only the governor can call this function
      */
@@ -110,6 +151,51 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     }
 
     /**
+     * @notice Set DApp status (governance only)
+     * @dev Only the governor can call this function
+     * @param _dappID The DApp identifier
+     * @param _status The new status
+     * @param _reason The reason for the status change
+     * @notice Reverts if the status transition is invalid
+     */
+    function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external onlyGov {
+        DAppStatus oldStatus = dappStatus[_dappID];
+        
+        // Validate status transition
+        if (!_isValidStatusTransition(oldStatus, _status)) {
+            revert C3DAppManager_InvalidStatusTransition(oldStatus, _status);
+        }
+        
+        dappStatus[_dappID] = _status;
+        emit DAppStatusChanged(_dappID, oldStatus, _status, _reason);
+    }
+
+    /**
+     * @dev Internal function to validate status transitions
+     * @param _from The current status
+     * @param _to The target status
+     * @return True if the transition is valid
+     */
+    function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool) {
+        // Active can transition to Suspended or Deprecated
+        if (_from == DAppStatus.Active) {
+            return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
+        }
+        
+        // Suspended can transition to Active or Deprecated
+        if (_from == DAppStatus.Suspended) {
+            return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
+        }
+        
+        // Deprecated cannot transition to any other status (permanent)
+        if (_from == DAppStatus.Deprecated) {
+            return false;
+        }
+        
+        return false;
+    }
+
+    /**
      * @notice Set DApp configuration (governance only)
      * @dev Only the governor can call this function
      * @param _dappID The DApp identifier
@@ -117,7 +203,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _feeToken The fee token address
      * @param _appDomain The DApp domain
      * @param _email The DApp email
-     * @notice Reverts if fee token is zero or domain/email is empty
+     * @notice Reverts if fee token is zero, domain/email is empty, or DApp ID is deprecated
      */
     function setDAppConfig(
         uint256 _dappID,
@@ -125,7 +211,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         address _feeToken,
         string memory _appDomain,
         string memory _email
-    ) external onlyGov {
+    ) external onlyGov notDeprecated(_dappID) {
         if (_feeToken == address(0)) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
@@ -146,8 +232,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @dev Only governance or DApp admin can call this function
      * @param _dappID The DApp identifier
      * @param _addresses Array of DApp addresses
+     * @notice Reverts if DApp is not active
      */
-    function setDAppAddr(uint256 _dappID, string[] memory _addresses) external onlyGovOrAdmin(_dappID) {
+    function setDAppAddr(uint256 _dappID, string[] memory _addresses) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         for (uint256 i = 0; i < _addresses.length; i++) {
             c3DAppAddr[_addresses[i]] = _dappID;
         }
@@ -160,9 +247,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp identifier
      * @param _addr The MPC address
      * @param _pubkey The MPC public key
-     * @notice Reverts if DApp admin is zero, addresses are empty, or lengths don't match
+     * @notice Reverts if DApp admin is zero, addresses are empty, lengths don't match, or DApp is not active
      */
-    function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
+    function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
@@ -197,9 +284,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp identifier
      * @param _addr The MPC address to delete
      * @param _pubkey The MPC public key to delete
-     * @notice Reverts if DApp admin is zero or addresses are empty
+     * @notice Reverts if DApp admin is zero, addresses are empty, or DApp is not active
      */
-    function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) {
+    function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         if (dappConfig[_dappID].appAdmin == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
@@ -248,11 +335,11 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp identifier
      * @param _token The token address
      * @param _amount The amount to deposit
-     * @notice Reverts if the amount is zero
+     * @notice Reverts if the amount is zero or DApp is not active
      * BUG: #16 Pausable Bypass in C3DAppManager
      * PASSED: added whenNotPaused modifier
      */
-    function deposit(uint256 _dappID, address _token, uint256 _amount) external whenNotPaused {
+    function deposit(uint256 _dappID, address _token, uint256 _amount) external whenNotPaused onlyActiveDApp(_dappID) {
         if (_amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
@@ -321,6 +408,15 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      */
     function getDAppConfig(uint256 _dappID) external view returns (DAppConfig memory) {
         return dappConfig[_dappID];
+    }
+
+    /**
+     * @notice Get DApp status
+     * @param _dappID The DApp identifier
+     * @return The DApp status
+     */
+    function getDAppStatus(uint256 _dappID) external view returns (DAppStatus) {
+        return dappStatus[_dappID];
     }
 
     /**
@@ -404,9 +500,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @dev Only governance or DApp admin can call this function
      * @param _dappID The DApp identifier
      * @param _discount The discount amount
-     * @notice Reverts if DApp ID is zero or discount is zero
+     * @notice Reverts if DApp ID is zero, discount is zero, or DApp is not active
      */
-    function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) {
+    function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) onlyActiveDApp(_dappID) {
         if (_dappID == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.DAppID);
         }
