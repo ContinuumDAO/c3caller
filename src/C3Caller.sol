@@ -277,7 +277,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
         );
 
         if (success) {
-            IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+            IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid, _dappID);
         } else {
             emit LogFallbackCall(
                 _dappID,
@@ -345,7 +345,7 @@ contract C3Caller is IC3Caller, C3GovClient, Ownable, Pausable {
 
         context = C3Context({swapID: "", fromChainID: "", sourceTx: ""});
 
-        IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+        IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid, _dappID);
 
         emit LogExecFallback(
             _dappID,

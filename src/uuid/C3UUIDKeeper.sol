@@ -79,18 +79,22 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @notice Revoke a completed UUID (governance only)
      * @dev Only the governor can call this function
      * @param _uuid The UUID to revoke
+     * @param _dappID The DApp identifier associated with the UUID
      */
-    function revokeSwapin(bytes32 _uuid) external onlyGov {
+    function revokeSwapin(bytes32 _uuid, uint256 _dappID) external onlyGov {
         completedSwapin[_uuid] = false;
+        emit UUIDRevoked(_uuid, _dappID, msg.sender);
     }
 
     /**
      * @notice Register a UUID as completed (operator only)
      * @dev Only operators can call this function
      * @param _uuid The UUID to register as completed
+     * @param _dappID The DApp identifier associated with the UUID
      */
-    function registerUUID(bytes32 _uuid) external onlyOperator checkCompletion(_uuid) {
+    function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyOperator checkCompletion(_uuid) {
         completedSwapin[_uuid] = true;
+        emit UUIDCompleted(_uuid, _dappID, msg.sender);
     }
 
     /**
@@ -115,6 +119,8 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
             revert C3UUIDKeeper_UUIDAlreadyExists(_uuid);
         }
         uuid2Nonce[_uuid] = currentNonce;
+        
+        emit UUIDGenerated(_uuid, _dappID, msg.sender, _to, _toChainID, currentNonce, _data);
         return _uuid;
     }
 

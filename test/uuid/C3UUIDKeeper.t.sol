@@ -124,7 +124,7 @@ contract C3UUIDKeeperTest is Helpers {
             TO_CHAIN_ID,
             TEST_DATA
         );
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
 
         assertTrue(uuidKeeper.isCompleted(uuid));
         assertTrue(uuidKeeper.completedSwapin(uuid));
@@ -141,7 +141,7 @@ contract C3UUIDKeeperTest is Helpers {
             TO_CHAIN_ID,
             TEST_DATA
         );
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
 
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -149,7 +149,7 @@ contract C3UUIDKeeperTest is Helpers {
                 uuid
             )
         );
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
 
         vm.stopPrank();
     }
@@ -159,7 +159,7 @@ contract C3UUIDKeeperTest is Helpers {
 
         bytes32 uuid = keccak256("test");
         vm.expectRevert();
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
 
         vm.stopPrank();
     }
@@ -177,7 +177,7 @@ contract C3UUIDKeeperTest is Helpers {
         );
         assertFalse(uuidKeeper.isCompleted(uuid));
 
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
         assertTrue(uuidKeeper.isCompleted(uuid));
 
         vm.stopPrank();
@@ -210,13 +210,13 @@ contract C3UUIDKeeperTest is Helpers {
             TO_CHAIN_ID,
             TEST_DATA
         );
-        uuidKeeper.registerUUID(uuid);
+        uuidKeeper.registerUUID(uuid, 1);
         vm.stopPrank();
 
         assertTrue(uuidKeeper.isCompleted(uuid));
 
         vm.startPrank(gov);
-        uuidKeeper.revokeSwapin(uuid);
+        uuidKeeper.revokeSwapin(uuid, 1);
         vm.stopPrank();
 
         assertFalse(uuidKeeper.isCompleted(uuid));
@@ -227,7 +227,7 @@ contract C3UUIDKeeperTest is Helpers {
 
         bytes32 uuid = keccak256("test");
         vm.expectRevert();
-        uuidKeeper.revokeSwapin(uuid);
+        uuidKeeper.revokeSwapin(uuid, 1);
 
         vm.stopPrank();
     }

@@ -284,7 +284,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         
         // Test registerUUID functionality after upgrade
         vm.prank(mpc1);
-        c3UUIDKeeperV2Instance.registerUUID(uuid);
+        c3UUIDKeeperV2Instance.registerUUID(uuid, 1);
         
         assertTrue(c3UUIDKeeperV2Instance.isCompleted(uuid));
         assertTrue(c3UUIDKeeperV2Instance.completedSwapin(uuid));
@@ -379,7 +379,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         vm.prank(mpc1);
         bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
-        c3UUIDKeeperV1.registerUUID(uuid1);
+        c3UUIDKeeperV1.registerUUID(uuid1, 1);
 
         // Upgrade to V2
         vm.prank(gov);
@@ -427,7 +427,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         bytes32 uuid2 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, "different data");
         
         vm.prank(mpc1);
-        c3UUIDKeeperV1.registerUUID(uuid1);
+        c3UUIDKeeperV1.registerUUID(uuid1, 1);
 
         // Upgrade to V2
         vm.prank(gov);
@@ -538,13 +538,13 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
-        c3UUIDKeeperV2Instance.registerUUID(uuid);
+        c3UUIDKeeperV2Instance.registerUUID(uuid, 1);
         
         assertTrue(c3UUIDKeeperV2Instance.isCompleted(uuid));
         
         // Revoke the swapin
         vm.prank(gov);
-        c3UUIDKeeperV2Instance.revokeSwapin(uuid);
+        c3UUIDKeeperV2Instance.revokeSwapin(uuid, 1);
         
         assertFalse(c3UUIDKeeperV2Instance.isCompleted(uuid));
     }

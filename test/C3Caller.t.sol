@@ -447,7 +447,7 @@ contract C3CallerTest is Helpers {
 
         // Mark UUID as completed
         vm.prank(gov);
-        c3UUIDKeeper.registerUUID(uuid);
+        c3UUIDKeeper.registerUUID(uuid, 1);
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
@@ -608,7 +608,7 @@ contract C3CallerTest is Helpers {
 
         // Mark UUID as completed
         vm.prank(gov);
-        c3UUIDKeeper.registerUUID(uuid);
+        c3UUIDKeeper.registerUUID(uuid, 1);
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
