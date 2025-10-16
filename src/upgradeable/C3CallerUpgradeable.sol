@@ -299,7 +299,7 @@ contract C3CallerUpgradeable is
         // BUG: #9 _toUint Cannot Decode ABI-Encoded Dynamic Return Data
         // PASSED:
         if (success) {
-            IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+            IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid, _dappID);
         } else {
             emit LogFallbackCall(
                 _dappID,
@@ -367,7 +367,7 @@ contract C3CallerUpgradeable is
 
         context = C3Context({swapID: "", fromChainID: "", sourceTx: ""});
 
-        IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid);
+        IC3UUIDKeeper(uuidKeeper).registerUUID(_message.uuid, _dappID);
 
         emit LogExecFallback(
             _dappID,

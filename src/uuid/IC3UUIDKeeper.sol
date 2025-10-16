@@ -3,10 +3,34 @@
 pragma solidity 0.8.27;
 
 interface IC3UUIDKeeper {
+    // Events
+    event UUIDGenerated(
+        bytes32 indexed uuid,
+        uint256 indexed dappID,
+        address indexed operator,
+        string to,
+        string toChainID,
+        uint256 nonce,
+        bytes data
+    );
+    
+    event UUIDCompleted(
+        bytes32 indexed uuid,
+        uint256 indexed dappID,
+        address indexed operator
+    );
+    
+    event UUIDRevoked(
+        bytes32 indexed uuid,
+        uint256 indexed dappID,
+        address indexed governor
+    );
+
+    // Errors
     error C3UUIDKeeper_UUIDAlreadyExists(bytes32);
     error C3UUIDKeeper_UUIDAlreadyCompleted(bytes32);
 
-    function registerUUID(bytes32 _uuid) external;
+    function registerUUID(bytes32 _uuid, uint256 _dappID) external;
 
     function genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
@@ -45,5 +69,5 @@ interface IC3UUIDKeeper {
     function currentNonce() external view returns (uint256);
 
     // Additional functions
-    function revokeSwapin(bytes32 _uuid) external;
+    function revokeSwapin(bytes32 _uuid, uint256 _dappID) external;
 }
