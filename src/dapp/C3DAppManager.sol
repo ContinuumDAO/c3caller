@@ -34,35 +34,24 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     using Strings for *;
     using SafeERC20 for IERC20;
 
-    // Events
-    event DAppStatusChanged(uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason);
-
-    // Errors
-    error C3DAppManager_DAppDeprecated(uint256 _dappID);
-    error C3DAppManager_DAppSuspended(uint256 _dappID);
-    error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
-    error C3DAppManager_MpcAddressExists(string _addr);
-    error C3DAppManager_MpcAddressNotFound(string _addr);
-    error C3DAppManager_ZeroDAppID();
-
     /// @notice The DApp identifier for this manager
     uint256 public dappID;
 
     /// @notice Mapping of DApp ID to DApp configuration
     mapping(uint256 => DAppConfig) private dappConfig;
-    
+
     /// @notice Mapping of DApp address string to DApp ID
     mapping(string => uint256) public c3DAppAddr;
-    
+
     /// @notice Mapping of DApp ID to blacklist status
     mapping(uint256 => bool) public appBlacklist;
-    
+
     /// @notice Mapping of DApp ID to DApp status
     mapping(uint256 => DAppStatus) public dappStatus;
 
     /// @notice Mapping of asset address to fee per byte
     mapping(address => uint256) public feeCurrencies;
-    
+
     /// @notice Mapping of DApp ID and token address to staking pool balance
     mapping(uint256 => mapping(address => uint256)) public dappStakePool;
 
@@ -74,10 +63,10 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
 
     /// @notice Mapping of DApp ID and MPC address to public key
     mapping(uint256 => mapping(string => string)) public mpcPubkey;
-    
+
     /// @notice Mapping of DApp ID to array of MPC addresses
     mapping(uint256 => string[]) public mpcAddrs;
-    
+
     /// @notice Mapping of DApp ID and MPC address to membership status
     mapping(uint256 => mapping(string => bool)) public mpcMembership;
 
@@ -179,12 +168,12 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      */
     function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external onlyGov nonZeroDAppID(_dappID) {
         DAppStatus oldStatus = dappStatus[_dappID];
-        
+
         // Validate status transition
         if (!_isValidStatusTransition(oldStatus, _status)) {
             revert C3DAppManager_InvalidStatusTransition(oldStatus, _status);
         }
-        
+
         dappStatus[_dappID] = _status;
         emit DAppStatusChanged(_dappID, oldStatus, _status, _reason);
     }
@@ -200,17 +189,17 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         if (_from == DAppStatus.Active) {
             return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
         }
-        
+
         // Suspended can transition to Active or Deprecated
         if (_from == DAppStatus.Suspended) {
             return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
         }
-        
+
         // Deprecated cannot transition to any other status (permanent)
         if (_from == DAppStatus.Deprecated) {
             return false;
         }
-        
+
         return false;
     }
 

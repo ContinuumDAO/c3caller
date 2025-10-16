@@ -2,237 +2,217 @@
 
 pragma solidity 0.8.27;
 
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-
-import { IC3Governor } from "../../gov/IC3Governor.sol";
-
-import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
-import { C3CallerUtils } from "../../utils/C3CallerUtils.sol";
-
-import { C3GovernDAppUpgradeable } from "./C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IC3Governor} from "../../gov/IC3Governor.sol";
+import {C3GovernDAppUpgradeable} from "./C3GovernDAppUpgradeable.sol";
+import {C3CallerUtils, C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
- * @title C3GovernorUpgradeable
- * @dev Upgradeable governance contract for cross-chain proposal management in the C3 protocol.
- * This contract extends C3GovernDAppUpgradeable to provide proposal-based governance
- * functionality for cross-chain operations with upgradeable capabilities.
- * 
- * Key features:
- * - Proposal creation and management
- * - Cross-chain proposal execution
- * - Proposal data storage and retrieval
- * - Failed proposal handling and retry mechanisms
- * - Upgradeable functionality via UUPS pattern
- * 
- * @notice This contract enables governance-driven cross-chain operations with upgradeability
- * @author @potti ContinuumDAO
+ * @title C3Governor
+ * @author patrickcure, potti, Selqui (ContinuumDAO)
+ * @notice This contract acts as a wrapper for C3GovernDApp, for the purpose of cross-chain governance.
+ *   A client is deployed on every applicable network and clients communicate with one another to send/receive data.
+ *   The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a
+ *   call to this contract's function `sendParams` with an array of target contracts, their chain IDs, and calldata.
+ *   Included as a feature is the ability to retry reverted transactions, mirroring the execute function in Governor.
+ *   If one or more actions from a proposal fail, anyone may retry them until they succeed, obviating the need for
+ *   a duplicate proposal.
  */
-contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
-    using Strings for *;
+contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using C3CallerUtils for string;
 
-    /// @notice Mapping of proposal nonce to proposal data
-    mapping(uint256 => Proposal) private _proposal;
+    /// @notice A registry of active proposal IDs (or a custom nonce).
+    mapping(uint256 => bool) public proposalRegistered;
+    /// @notice The C3Governor clients deployed to destination networks.
+    mapping(string => string) public peer;
+    /// @notice Actions that have failed on the destination network have their data stored until they are retried.
+    mapping(uint256 => mapping(uint256 => Proposal)) public failed;
 
-    /// @notice Mapping of proposal nonce to whether it has been used already
-    mapping(uint256 => bool) private _nonceSpent;
-
-    /// @notice Current proposal identifier
-    uint256 public proposalId;
+    uint256 public constant VERSION = 1;
 
     /**
-     * @notice Initialize the upgradeable C3Governor contract
-     * @dev This function can only be called once during deployment
-     * @param _c3CallerProxy The C3Caller proxy address
-     * @param _txSender The transaction sender address
-     * @param _dappID The DApp identifier
+     * @notice Initialize C3GovernorUpgradeable
+     * @param _gov Deployed Governor contract (or admin of choice).
+     * @param _c3CallerProxy The C3Caller deployed instance.
+     * @param _txSender The MPC address that is whitelisted to execute incoming operations.
+     * @param _dappID The DApp ID of this C3CallerDApp.
      */
-    function initialize(address _c3CallerProxy, address _txSender, uint256 _dappID)
+    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
         external
         initializer
     {
-        __C3GovernDApp_init(msg.sender, _c3CallerProxy, _txSender, _dappID);
-        __ReentrancyGuard_init();
+        __C3GovernDApp_init(_gov, _c3CallerProxy, _txSender, _dappID);
     }
 
     /**
-     * @dev Get the current chain ID
-     * @return The current chain ID
+     * @notice Sets the peer address for a given chain ID.
+     * @param _chainIdStr The chain ID to set.
+     * @param _peerStr The deployed peer client on that network.
+     * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
      */
-    function chainID() internal view returns (uint256) {
-        return block.chainid;
+    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGov {
+        peer[_chainIdStr] = _peerStr;
     }
 
+    // INFO: allow retry of sending a given index of a given proposal, provided that it failed on previous attempt
     /**
-     * @notice Send a single parameter for governance proposal
-     * @dev Only the governor can call this function
-     * @param _data The proposal data
-     * @param _nonce The proposal nonce
-     * @notice Reverts if the data is empty
-     * FIX: changed nonce from bytes32 to uint256 to match Governor:getProposalId.
+     * @notice Allow anyone to retry a given transaction of a given proposal that reverted on another network.
+     * @param _nonce The proposal ID of the transaction.
+     * @param _index The index of the transaction in the proposal.
+     * @dev Some transactions in a given proposal may fail, but this does not stop other transactions in the proposal
+     *   from succeeding. This should be anticipated in the target contract architecture.
      */
-    function sendParams(bytes memory _data, uint256 _nonce) external onlyGov {
-        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
-        // PASSED:
-        if (_nonceSpent[_nonce]) {
-            revert C3Governor_NonceSpent(_nonce);
+    function doGov(uint256 _nonce, uint256 _index) external {
+        if (!proposalRegistered[_nonce]) {
+            revert C3Governor_InvalidProposal(_nonce);
         }
 
-        if (_data.length == 0) {
-            revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
-        }
-
-        _nonceSpent[_nonce] = true;
-
-        _proposal[_nonce].data.push(_data);
-        _proposal[_nonce].hasFailed.push(false);
-
-        // Set the current proposal ID for fallback handling
-        proposalId = _nonce;
-
-        emit NewProposal(_nonce);
-
-        _c3gov(_nonce, 0);
-    }
-
-    /**
-     * @notice Send multiple parameters for governance proposal
-     * @dev Only the governor can call this function
-     * @param _data Array of proposal data
-     * @param _nonce The proposal nonce
-     * @notice Reverts if the data array is empty or contains empty data
-     */
-    function sendMultiParams(bytes[] memory _data, uint256 _nonce) external onlyGov {
-        // BUG: #17 Nonce Reuse in Governance Submission (sendParams, sendMultiParams)
-        // PASSED:
-        if (_nonceSpent[_nonce]) {
-            revert C3Governor_NonceSpent(_nonce);
-        }
-
-        if (_data.length == 0) {
-            revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
-        }
-
-        _nonceSpent[_nonce] = true;
-
-        for (uint256 i = 0; i < _data.length; i++) {
-            if (_data[i].length == 0) {
-                revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
-            }
-            _proposal[_nonce].data.push(_data[i]);
-            _proposal[_nonce].hasFailed.push(false);
-        }
-
-        // Set the current proposal ID for fallback handling
-        // BUG: #8 missing proposalId Assignment in C3GovernorUpgradeaable
-        // PASSED:
-        proposalId = _nonce;
-
-        emit NewProposal(_nonce);
-
-        for (uint256 i = 0; i < _data.length; i++) {
-            _c3gov(_nonce, i);
-        }
-    }
-
-    /**
-     * @notice Execute a governance proposal that has failed
-     * @param _nonce The proposal nonce
-     * @param _offset The offset within the proposal data
-     * @notice Reverts if the offset is out of bounds or the proposal hasn't failed
-     */
-    function doGov(uint256 _nonce, uint256 _offset) external onlyGov {
-        if (_offset >= _proposal[_nonce].data.length) {
-            revert C3Governor_OutOfBounds();
-        }
-        if (!_proposal[_nonce].hasFailed[_offset]) {
+        // NOTE: failed is only set by fallback
+        if (failed[_nonce][_index].data.length == 0) {
             revert C3Governor_HasNotFailed();
         }
-        _c3gov(_nonce, _offset);
+
+        Proposal memory _proposal = failed[_nonce][_index];
+        // NOTE: remove data to ensure it is only called once
+        delete failed[_nonce][_index];
+        _sendParams(_nonce, _index, _proposal.target, _proposal.toChainId, _proposal.data);
     }
 
     /**
-     * @notice Get proposal data and failure status
-     * @param _nonce The proposal nonce
-     * @param _offset The offset within the proposal data
-     * @return The proposal data
-     * @return The failure status
+     * @notice Entry point for a proposal to be executed on another network (called by Governor).
+     *   This call should be encoded in a Governor proposal. Each proposal may only be initiated once.
+     * @param _nonce The ID of the proposal (can only be done once per proposal).
+     * @param _targetStrs The array of addresses that will be called on the destination network.
+     * @param _toChainIdStrs The array of chain IDs for each transaction.
+     * @param _calldatas The array of calldata that will be called on the corresponding address.
+     * @dev Arrays must be the same length, non-zero values. Chain IDs must be registered peers.
      */
-    function getProposalData(uint256 _nonce, uint256 _offset) external view returns (bytes memory, bool) {
-        return (_proposal[_nonce].data[_offset], _proposal[_nonce].hasFailed[_offset]);
-    }
+    function sendParams(
+        uint256 _nonce,
+        string[] memory _targetStrs,
+        string[] memory _toChainIdStrs,
+        bytes[] memory _calldatas
+    ) external onlyGov {
+        if (proposalRegistered[_nonce]) {
+            revert C3Governor_InvalidProposal(_nonce);
+        }
 
-    /**
-     * @dev Internal function to execute governance proposals
-     * @param _nonce The proposal nonce
-     * @param _offset The offset within the proposal data
-     */
-    function _c3gov(uint256 _nonce, uint256 _offset) internal nonReentrant {
-        uint256 _chainId;
-        string memory _target;
-        bytes memory _remoteData;
+        proposalRegistered[_nonce] = true;
 
-        bytes memory _rawData = _proposal[_nonce].data[_offset];
-        // TODO: add flag which config using gov to send or operator
-        (_chainId, _target, _remoteData) = abi.decode(_rawData, (uint256, string, bytes));
+        uint256 refLength = _targetStrs.length; // INFO: gas savings
+        if (refLength == 0) {
+            revert C3Governor_InvalidLength(C3ErrorParam.To);
+        }
 
-        if (_chainId == chainID()) {
-            address _to = _target.toAddress();
-            (bool _success,) = _to.call(_remoteData);
-            // BUG: #2 _c3gov inverts proposal failure logic
-            // PASSED:
-            if (!_success) {
-                _proposal[_nonce].hasFailed[_offset] = true;
+        if (refLength != _toChainIdStrs.length) {
+            revert C3Governor_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
+        } else if (refLength != _calldatas.length) {
+            revert C3Governor_LengthMismatch(C3ErrorParam.To, C3ErrorParam.Calldata);
+        }
+
+        for (uint8 i = 0; i < refLength; i++) {
+            if (bytes(_targetStrs[i]).length == 0) {
+                revert C3Governor_InvalidLength(C3ErrorParam.To);
+            } else if (bytes(peer[_toChainIdStrs[i]]).length == 0) {
+                revert C3Governor_UnsupportedChainID(_toChainIdStrs[i]);
+            } else if (bytes(_calldatas[i]).length == 0) {
+                revert C3Governor_InvalidLength(C3ErrorParam.Calldata);
             }
+        }
+
+        // INFO: build calldata for the peer C3Governor on another chain
+        for (uint256 i = 0; i < refLength; i++) {
+            _sendParams(_nonce, i, _targetStrs[i], _toChainIdStrs[i], _calldatas[i]);
+            emit C3GovernorCall(_nonce, i, _targetStrs[i], _toChainIdStrs[i], _calldatas[i]);
+        }
+    }
+
+    // INFO: called by C3Caller.execute on destination chain
+    // NOTE: nonce/index/chainID are included to enable fallback reference on failure
+    /**
+     * @notice Entry point on the destination network for calls that were initiated with `sendParams`.
+     * @param _nonce The ID of the proposal from the source network.
+     * @param _index The index of the transaction on the proposal.
+     * @param _targetStr The address of the contract to call on the destination network.
+     * @param _toChainIdStr The chain ID of the destination network (the network this function is called on).
+     * @param _calldata The data to call on the corresponding contract address.
+     * @dev Called by C3Caller execute. If the transaction reverts, it will be routed to fallback on source chain.
+     */
+    function receiveParams(
+        uint256 _nonce,
+        uint256 _index,
+        string memory _targetStr,
+        string memory _toChainIdStr,
+        bytes memory _calldata
+    ) external onlyCaller returns (bytes memory) {
+        address _target = _targetStr.toAddress();
+        // INFO: execute the proposal calldata on target
+        (bool success, bytes memory result) = _target.call(_calldata);
+        if (!success) {
+            // INFO: this will inform C3Caller.execute that the execution has failed, triggering _c3Fallback
+            revert C3Governor_ExecFailed(result);
         } else {
-            _proposal[_nonce].hasFailed[_offset] = true;
-            emit C3GovernorLog(_nonce, _chainId, _target, _remoteData);
+            emit C3GovernorExec(_nonce, _index, _targetStr, _toChainIdStr, _calldata);
+            return result;
         }
     }
 
     /**
-     * @notice Get the contract version
-     * @return The version number
+     * @notice Internal handler called by `sendParams` and `doGov`.
+     * @param _nonce The ID of the proposal.
+     * @param _index The index of the transaction on the proposal.
+     * @param _target The address of the contract to call on the destination network.
+     * @param _toChainIdStr The chain ID of the destination network.
+     * @param _calldata The data to execute on the corresponding contract address.
      */
-    function version() public pure returns (uint256) {
-        return (1);
+    function _sendParams(
+        uint256 _nonce,
+        uint256 _index,
+        string memory _target,
+        string memory _toChainIdStr,
+        bytes memory _calldata
+    ) internal {
+        bytes memory peerEncodedData = abi.encodeWithSelector(
+            this.receiveParams.selector, _nonce, _index, _target, _toChainIdStr, _calldata
+        );
+        _c3call(peer[_toChainIdStr], _toChainIdStr, peerEncodedData, "");
     }
 
     /**
-     * @dev Internal function to handle fallback calls
-     * @param _selector The function selector
-     * @param _data The call data
-     * @param _reason The failure reason
-     * @return True if the fallback was handled successfully
+     * @notice Called by C3Caller on the source network in the event of a reverted transaction.
+     * @param _selector The 4-byte selector of the transaction (necessarily the selector of `receiveParams`).
+     * @param _data The revert data (passed in as the arguments to the failed `receiveParams`).
+     * @param _reason The revert data of the failed `receiveParams`(encoded in the custom error C3Governor_ExecFailed).
+     * @dev This marks the transaction as eligible to retry using `doGov` by saving its target, chain ID and calldata.
      */
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override
         returns (bool)
     {
-        uint256 _len = proposalLength();
-
-        _proposal[proposalId].hasFailed[_len - 1] = true;
-
-        emit LogFallback(_selector, _data, _reason);
-        return true;
+        if (_selector == this.receiveParams.selector) {
+            // NOTE: `receiveParams` always reverts with C3Governor_ExecFailed(bytes reason)
+            bytes memory reason = abi.decode(_reason[4:], (bytes));
+            // NOTE: _data == (nonce, i, chainID, target, calldata)
+            (
+                uint256 _nonce,
+                uint256 _index,
+                string memory _targetStr,
+                string memory _toChainIdStr,
+                bytes memory _calldata
+            ) = abi.decode(_data, (uint256, uint256, string, string, bytes));
+            failed[_nonce][_index] = Proposal(_targetStr, _toChainIdStr, _calldata);
+            emit C3GovernorFallback(_nonce, _index, _targetStr, _toChainIdStr, _calldata, reason);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * @notice Get the number of cross-chain invocations in the current proposal
-     * @return The number of cross-chain invocations
-     */
-    function proposalLength() public view returns (uint256) {
-        uint256 _len = _proposal[proposalId].data.length;
-        return (_len);
-    }
-
-    /**
-     * @dev Internal function to authorize upgrades
+     * @notice Internal function to authorize upgrades
      * @param newImplementation The new implementation address
-     * @notice Only governance can authorize upgrades
+     * @dev Only Governor can authorize upgrades
      */
-    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov {}
 }

@@ -7,6 +7,9 @@
  optimizer_runs = 200
  evm_version = "cancun"
 
+[lint]
+lint_on_build = false
+
 remappings = [
     "forge-std/=lib/forge-std/src/",
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",

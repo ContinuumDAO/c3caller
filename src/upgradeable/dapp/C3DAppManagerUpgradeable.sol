@@ -41,6 +41,8 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     mapping(string => uint256) public c3DAppAddr;
     /// @notice Mapping of DApp ID to blacklist status
     mapping(uint256 => bool) public appBlacklist;
+    /// @notice Mapping of DApp ID to DApp status
+    mapping(uint256 => DAppStatus) public dappStatus;
     /// @notice Mapping of asset address to fee per byte
     mapping(address => uint256) public feeCurrencies;
     /// @notice Mapping of DApp ID and token address to staking pool balance
@@ -53,6 +55,20 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     mapping(uint256 => mapping(string => string)) public mpcPubkey;
     /// @notice Mapping of DApp ID to array of MPC addresses
     mapping(uint256 => string[]) public mpcAddrs;
+    /// @notice Mapping of DApp ID and MPC address to membership status
+    mapping(uint256 => mapping(string => bool)) public mpcMembership;
+
+    /**
+     * @dev Modifier to ensure DApp ID is non-zero
+     * @param _dappID The DApp identifier
+     * @notice Reverts if DApp ID is zero
+     */
+    modifier nonZeroDAppID(uint256 _dappID) {
+        if (_dappID == 0) {
+            revert C3DAppManager_ZeroDAppID();
+        }
+        _;
+    }
 
     /**
      * @notice Initialize the upgradeable C3DAppManager contract
@@ -101,6 +117,51 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     function setBlacklists(uint256 _dappID, bool _flag) external onlyGov {
         appBlacklist[_dappID] = _flag;
         emit SetBlacklists(_dappID, _flag);
+    }
+
+    /**
+     * @notice Set DApp status (governance only)
+     * @dev Only the governor can call this function
+     * @param _dappID The DApp identifier
+     * @param _status The new status
+     * @param _reason The reason for the status change
+     * @notice Reverts if the status transition is invalid or DApp ID is zero
+     */
+    function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external onlyGov nonZeroDAppID(_dappID) {
+        DAppStatus oldStatus = dappStatus[_dappID];
+
+        // Validate status transition
+        if (!_isValidStatusTransition(oldStatus, _status)) {
+            revert C3DAppManager_InvalidStatusTransition(oldStatus, _status);
+        }
+
+        dappStatus[_dappID] = _status;
+        emit DAppStatusChanged(_dappID, oldStatus, _status, _reason);
+    }
+
+    /**
+     * @dev Internal function to validate status transitions
+     * @param _from The current status
+     * @param _to The target status
+     * @return True if the transition is valid
+     */
+    function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool) {
+        // Active can transition to Suspended or Deprecated
+        if (_from == DAppStatus.Active) {
+            return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
+        }
+
+        // Suspended can transition to Active or Deprecated
+        if (_from == DAppStatus.Suspended) {
+            return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
+        }
+
+        // Deprecated cannot transition to any other status (permanent)
+        if (_from == DAppStatus.Deprecated) {
+            return false;
+        }
+
+        return false;
     }
 
     /**
@@ -318,6 +379,16 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
     }
 
     /**
+     * @notice Get DApp status
+     * @param _dappID The DApp identifier
+     * @return The DApp status
+     * @notice Reverts if DApp ID is zero
+     */
+    function getDAppStatus(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (DAppStatus) {
+        return dappStatus[_dappID];
+    }
+
+    /**
      * @notice Get MPC addresses for a DApp
      * @param _dappID The DApp identifier
      * @return Array of MPC addresses
@@ -334,6 +405,27 @@ contract C3DAppManagerUpgradeable is IC3DAppManager, C3GovClientUpgradeable, Pau
      */
     function getMpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory) {
         return mpcPubkey[_dappID][_addr];
+    }
+
+    /**
+     * @notice Check if MPC address is a member of a DApp
+     * @param _dappID The DApp identifier
+     * @param _addr The MPC address
+     * @return True if the address is a member
+     * @notice Reverts if DApp ID is zero
+     */
+    function isMpcMember(uint256 _dappID, string memory _addr) external view nonZeroDAppID(_dappID) returns (bool) {
+        return mpcMembership[_dappID][_addr];
+    }
+
+    /**
+     * @notice Get the count of MPC addresses for a DApp
+     * @param _dappID The DApp identifier
+     * @return The number of MPC addresses
+     * @notice Reverts if DApp ID is zero
+     */
+    function getMpcCount(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (uint256) {
+        return mpcAddrs[_dappID].length;
     }
 
     /**

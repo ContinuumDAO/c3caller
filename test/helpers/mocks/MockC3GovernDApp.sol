@@ -6,6 +6,7 @@ import {C3GovernDApp} from "../../../src/gov/C3GovernDApp.sol";
 
 contract MockC3GovernDApp is C3GovernDApp {
     bool public shouldRevert;
+    uint256 failCount = 0;
 
     constructor(
         address _gov,
@@ -28,6 +29,7 @@ contract MockC3GovernDApp is C3GovernDApp {
         if (shouldRevert) {
             revert("MockC3GovernDApp: intentional revert");
         }
+        failCount++;
         return true;
     }
 } 

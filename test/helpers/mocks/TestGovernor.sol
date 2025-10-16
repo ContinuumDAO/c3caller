@@ -56,7 +56,7 @@ contract TestGovernor is
     /**
      * @dev Required override for GovernorCountingSimple
      */
-    function _voteSucceeded(uint256 proposalId) internal view override(Governor, GovernorCountingSimple) returns (bool) {
+    function _voteSucceeded(uint256 /*proposalId*/) internal pure override(Governor, GovernorCountingSimple) returns (bool) {
         return true; // Mock: always succeeds
     }
 
@@ -64,12 +64,12 @@ contract TestGovernor is
      * @dev Required override for GovernorCountingSimple
      */
     function _countVote(
-        uint256 proposalId,
-        address account,
-        uint8 support,
+        uint256 /*proposalId*/,
+        address /*account*/,
+        uint8 /*support*/,
         uint256 weight,
-        bytes memory params
-    ) internal override(Governor, GovernorCountingSimple) returns (uint256) {
+        bytes memory /*params*/
+    ) internal pure override(Governor, GovernorCountingSimple) returns (uint256) {
         // Basic vote counting implementation - just return the weight
         return weight;
     }
