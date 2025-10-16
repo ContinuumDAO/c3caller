@@ -17,10 +17,14 @@ interface IC3Governor {
     event LogChangeGov(address _gov, address _newGov);
     event LogSendParams(address _target, uint256 _chainId, bytes _dataXChain);
 
-    error C3Governor_NonceSpent(uint256);
+    error C3Governor_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
+    error C3Governor_ExistingProposal(uint256);
+    error C3Governor_LengthMismatch(C3ErrorParam, C3ErrorParam);
     error C3Governor_InvalidLength(C3ErrorParam);
+    error C3Governor_ExecFailed(bytes);
     error C3Governor_OutOfBounds();
     error C3Governor_HasNotFailed();
+    error C3Governor_NonceSpent(uint256);
 
     struct Proposal {
         bytes[] data;

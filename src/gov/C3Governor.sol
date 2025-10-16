@@ -77,6 +77,7 @@ contract C3Governor is IC3Governor, C3GovernDApp, ReentrancyGuard {
 
         _nonceSpent[_nonce] = true;
 
+        // for retry purposes
         _proposal[_nonce].data.push(_data);
         _proposal[_nonce].hasFailed.push(false);
 
