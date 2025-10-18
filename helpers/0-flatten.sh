@@ -46,7 +46,6 @@ forge flatten src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol --output build/up
 # utils
 forge flatten src/utils/C3CallerProxy.sol --output build/utils/C3CallerProxy.sol
 forge flatten src/utils/C3CallerUtils.sol --output build/utils/C3CallerUtils.sol
-forge flatten src/utils/TestERC20.sol --output build/utils/TestERC20.sol
 
 # uuid
 forge flatten src/uuid/C3UUIDKeeper.sol --output build/uuid/C3UUIDKeeper.sol

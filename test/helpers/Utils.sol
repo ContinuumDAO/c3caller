@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
-import { C3CallerProxy } from "../../src/utils/C3CallerProxy.sol";
+import {C3CallerProxy} from "../../src/utils/C3CallerProxy.sol";
 
 contract Utils is Test {
     uint256 constant RWA_TYPE = 1;

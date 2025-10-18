@@ -40,14 +40,14 @@ contract C3CallerDAppTest is Helpers {
     // ============ CONSTRUCTOR TESTS ============
 
     function test_Constructor() public {
-        assertEq(c3CallerDApp.c3CallerProxy(), address(c3caller));
+        assertEq(c3CallerDApp.c3caller(), address(c3caller));
         assertEq(c3CallerDApp.dappID(), testDAppID);
     }
 
     function test_Constructor_ZeroAddressProxy() public {
         // This should work since MockC3CallerDApp doesn't validate the proxy address
         MockC3CallerDApp dapp = new MockC3CallerDApp(address(0), testDAppID);
-        assertEq(dapp.c3CallerProxy(), address(0));
+        assertEq(dapp.c3caller(), address(0));
         assertEq(dapp.dappID(), testDAppID);
     }
 
@@ -71,9 +71,7 @@ contract C3CallerDAppTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.C3Caller
+                IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
             )
         );
         c3CallerDApp.c3Fallback(testDAppID, data, reason);
@@ -112,13 +110,7 @@ contract C3CallerDAppTest is Helpers {
         bytes memory reason = abi.encodeWithSignature("reason()");
 
         vm.prank(address(c3caller));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3CallerDApp.C3CallerDApp_InvalidDAppID.selector,
-                testDAppID,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3CallerDApp.C3CallerDApp_InvalidDAppID.selector, testDAppID, 999));
         c3CallerDApp.c3Fallback(999, data, reason);
     }
 
@@ -380,7 +372,9 @@ contract C3CallerDAppTest is Helpers {
         bytes memory data = abi.encodeWithSignature("test()");
 
         vm.prank(address(c3caller));
-        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.ChainID));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3Caller.C3Caller_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.ChainID)
+        );
         c3CallerDApp.c3broadcast(to, toChainIDs, data);
     }
 

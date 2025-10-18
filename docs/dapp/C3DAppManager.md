@@ -1,581 +1,624 @@
 # C3DAppManager
 
-## Overview
+Contract for managing DApp configurations, fees, and MPC addresses in the C3 protocol. This contract provides comprehensive management functionality for DApps including configuration, fee management, staking pools, and MPC address management.
 
-C3DAppManager is a comprehensive contract for managing DApp configurations, fees, and MPC addresses in the C3 protocol. This contract provides centralized management functionality for DApps including configuration, fee management, staking pools, and MPC address management.
-
-### Key Features
+## Key Features
 
 - DApp configuration management
 - Fee configuration and management
 - Staking pool management
 - MPC address and public key management
 - Blacklist functionality
+- DApp lifecycle management (Active, Suspended, Deprecated)
+- Status-based access control and enforcement
 - Pausable functionality for emergency stops
-
-**Note:** This contract is the central management hub for C3 DApps
-
-## Contract Details
-
-- **Contract Name:** `C3DAppManager`
-- **Implements:** `IC3DAppManager`
-- **Inherits:** `C3GovClient`, `Pausable`
-- **Author:** @potti ContinuumDAO
-- **License:** BSL-1.1
-
-## State Variables
-
-### `dappID`
-```solidity
-uint256 public dappID
-```
-The DApp identifier for this manager.
-
-### `dappConfig`
-```solidity
-mapping(uint256 => DAppConfig) private dappConfig
-```
-Mapping of DApp ID to DApp configuration.
-
-### `c3DAppAddr`
-```solidity
-mapping(string => uint256) public c3DAppAddr
-```
-Mapping of DApp address string to DApp ID.
-
-### `appBlacklist`
-```solidity
-mapping(uint256 => bool) public appBlacklist
-```
-Mapping of DApp ID to blacklist status.
-
-### `feeCurrencies`
-```solidity
-mapping(address => uint256) public feeCurrencies
-```
-Mapping of asset address to fee per byte.
-
-### `dappStakePool`
-```solidity
-mapping(uint256 => mapping(address => uint256)) public dappStakePool
-```
-Mapping of DApp ID and token address to staking pool balance.
-
-### `speChainFees`
-```solidity
-mapping(string => mapping(address => uint256)) public speChainFees
-```
-Mapping of chain and token address to specific chain fees.
-
-### `fees`
-```solidity
-mapping(address => uint256) private fees
-```
-Mapping of token address to accumulated fees.
-
-### `mpcPubkey`
-```solidity
-mapping(uint256 => mapping(string => string)) public mpcPubkey
-```
-Mapping of DApp ID and MPC address to public key.
-
-### `mpcAddrs`
-```solidity
-mapping(uint256 => string[]) public mpcAddrs
-```
-Mapping of DApp ID to array of MPC addresses.
 
 ## Constructor
 
-### `constructor()`
-Initializes the C3DAppManager contract.
+```solidity
+constructor()
+```
 
-**Notes:**
-- Initializes the contract with the deployer as governor
-- C3GovClient constructor handles the initialization
+Initializes the contract with the deployer as governance address.
+
+## State Variables
+
+### dappID
+```solidity
+uint256 public dappID
+```
+The DApp ID for the DApp manager
+
+### dappConfig
+```solidity
+mapping(uint256 => DAppConfig) private dappConfig
+```
+Mapping of DApp ID to DApp configuration (admin, fee token, discount)
+
+### c3DAppAddr
+```solidity
+mapping(string => uint256) public c3DAppAddr
+```
+Mapping of DApp address string to DApp ID
+
+### appBlacklist
+```solidity
+mapping(uint256 => bool) public appBlacklist
+```
+Mapping of DApp ID to blacklist status
+
+### dappStatus
+```solidity
+mapping(uint256 => DAppStatus) public dappStatus
+```
+Mapping of DApp ID to DApp status (Active, Suspended, Deprecated)
+
+### feeCurrencies
+```solidity
+mapping(address => uint256) public feeCurrencies
+```
+Mapping of fee token address to fee per byte
+
+### dappStakePool
+```solidity
+mapping(uint256 => mapping(address => uint256)) public dappStakePool
+```
+Mapping of DApp ID and token address to staking pool balance
+
+### speChainFees
+```solidity
+mapping(string => mapping(address => uint256)) public speChainFees
+```
+Mapping of chain ID string and token address to fee, to inspect other networks' fees
+
+### fees
+```solidity
+mapping(address => uint256) private fees
+```
+Mapping of token address to accumulated fees
+
+### mpcPubkey
+```solidity
+mapping(uint256 => mapping(string => string)) public mpcPubkey
+```
+Mapping of DApp ID and MPC address to public key
+
+### mpcAddrs
+```solidity
+mapping(uint256 => string[]) public mpcAddrs
+```
+Mapping of DApp ID to array of MPC addresses
+
+### mpcMembership
+```solidity
+mapping(uint256 => mapping(string => bool)) public mpcMembership
+```
+Mapping of DApp ID and MPC address to membership status
 
 ## Modifiers
 
-### `onlyGovOrAdmin(uint256 _dappID)`
-Restricts access to governance or DApp admin.
+### onlyGovOrAdmin
+```solidity
+modifier onlyGovOrAdmin(uint256 _dappID)
+```
+Modifier to restrict access to governance or DApp admin.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
+- `_dappID`: The DApp ID
 
-**Notes:**
-- Reverts if the caller is neither governor nor DApp admin
+**Dev:** Reverts if the caller is neither governance address nor DApp admin
 
-## External Functions
+### onlyActiveDApp
+```solidity
+modifier onlyActiveDApp(uint256 _dappID)
+```
+Modifier to check DApp status (Active, Suspended, Deprecated).
 
-### `pause()`
+**Parameters:**
+- `_dappID`: The DApp ID
+
+**Dev:** Reverts if DApp is suspended or deprecated
+
+### notDeprecated
+```solidity
+modifier notDeprecated(uint256 _dappID)
+```
+Modifier to prevent registration of deprecated DApp IDs.
+
+**Parameters:**
+- `_dappID`: The DApp ID
+
+**Dev:** Reverts if DApp ID is deprecated
+
+### nonZeroDAppID
+```solidity
+modifier nonZeroDAppID(uint256 _dappID)
+```
+Modifier to ensure DApp ID is non-zero.
+
+**Parameters:**
+- `_dappID`: The DApp ID
+
+**Dev:** Reverts if DApp ID is zero
+
+## Functions
+
+### pause
+```solidity
+function pause() public onlyGov
+```
 Pause the contract (governance only).
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only the governance address can call this function
 
-**Notes:**
-- Only the governor can call this function
-
-### `unpause()`
+### unpause
+```solidity
+function unpause() public onlyGov
+```
 Unpause the contract (governance only).
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only the governance address can call this function
 
-**Notes:**
-- Only the governor can call this function
-
-### `setBlacklists(uint256 _dappID, bool _flag)`
+### setBlacklists
+```solidity
+function setBlacklists(uint256 _dappID, bool _flag) external onlyGov nonZeroDAppID(_dappID)
+```
 Set blacklist status for a DApp (governance only).
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_flag` (bool): The blacklist flag
+- `_dappID`: The DApp ID
+- `_flag`: The blacklist flag (true or false)
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Reverts if DApp ID is zero. Only the governance address can call this function
 
-**Notes:**
-- Only the governor can call this function
-
-### `setDAppConfig(uint256 _dappID, address _appAdmin, address _feeToken, string memory _appDomain, string memory _email)`
-Set DApp configuration (governance only).
-
-**Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_appAdmin` (address): The DApp admin address
-- `_feeToken` (address): The fee token address
-- `_appDomain` (string): The DApp domain
-- `_email` (string): The DApp email
-
-**Modifiers:**
-- `onlyGov`
-
-**Notes:**
-- Only the governor can call this function
-- Reverts if fee token is zero or domain/email is empty
-
-### `setDAppAddr(uint256 _dappID, string[] memory _addresses)`
-Set DApp addresses (governance or DApp admin only).
+### setDAppStatus
+```solidity
+function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external onlyGov nonZeroDAppID(_dappID)
+```
+Set DApp status (Active, Suspended, Deprecated).
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_addresses` (string[]): Array of DApp addresses
+- `_dappID`: The DApp ID
+- `_status`: The new status
+- `_reason`: The reason for the status change
 
-**Modifiers:**
-- `onlyGovOrAdmin`
+**Dev:** Reverts if the status transition is invalid or DApp ID is zero. Only the governance address can call this function
 
-**Notes:**
-- Only governance or DApp admin can call this function
-
-### `addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)`
-Add MPC address and public key (governance or DApp admin only).
-
-**Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_addr` (string): The MPC address
-- `_pubkey` (string): The MPC public key
-
-**Modifiers:**
-- `onlyGovOrAdmin`
-
-**Notes:**
-- Only governance or DApp admin can call this function
-- Reverts if DApp admin is zero, addresses are empty, or lengths don't match
-
-### `delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)`
-Delete MPC address and public key (governance or DApp admin only).
+### setDAppConfig
+```solidity
+function setDAppConfig(
+    uint256 _dappID,
+    address _appAdmin,
+    address _feeToken,
+    string memory _appDomain,
+    string memory _email
+) external onlyGov nonZeroDAppID(_dappID) notDeprecated(_dappID)
+```
+Set DApp configuration. This is how new C3Caller DApps can be registered.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_addr` (string): The MPC address to delete
-- `_pubkey` (string): The MPC public key to delete
+- `_dappID`: The DApp ID
+- `_appAdmin`: The DApp admin address
+- `_feeToken`: The fee token address
+- `_appDomain`: The DApp domain
+- `_email`: The DApp email
 
-**Modifiers:**
-- `onlyGovOrAdmin`
+**Dev:** Reverts if fee token is zero, domain/email is empty, DApp ID is zero, or DApp ID is deprecated. Only the governance address can call this function
 
-**Notes:**
-- Only governance or DApp admin can call this function
-- Reverts if DApp admin is zero or addresses are empty
-
-### `setFeeConfig(address _token, string memory _chain, uint256 _callPerByteFee)`
-Set fee configuration for a token and chain (governance only).
+### setDAppAddr
+```solidity
+function setDAppAddr(uint256 _dappID, string[] memory _addresses) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) onlyActiveDApp(_dappID)
+```
+Set DApp addresses.
 
 **Parameters:**
-- `_token` (address): The token address
-- `_chain` (string): The chain identifier
-- `_callPerByteFee` (uint256): The fee per byte
+- `_dappID`: The DApp ID
+- `_addresses`: Array of DApp addresses
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** This is network-agnostic, therefore all deployed instances using `_dappID` should be included. Reverts if DApp ID is zero or DApp is not active. Only governance or DApp admin can call this function
 
-**Notes:**
-- Only the governor can call this function
-- Reverts if the fee is zero
+### addMpcAddr
+```solidity
+function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) onlyActiveDApp(_dappID)
+```
+Add MPC address and its corresponding public key to a given DApp.
 
-### `deposit(uint256 _dappID, address _token, uint256 _amount)`
+**Parameters:**
+- `_dappID`: The DApp ID
+- `_addr`: The MPC address (EVM 20-byte address)
+- `_pubkey`: The MPC public key (32-byte MPC node public key)
+
+**Dev:** Reverts if DApp ID is zero, DApp admin is zero, addresses are empty, lengths don't match, DApp is not active, or address already exists. Only governance or DApp admin can call this function
+
+### delMpcAddr
+```solidity
+function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) onlyActiveDApp(_dappID)
+```
+Delete MPC address and its corresponding public key for a given DApp.
+
+**Parameters:**
+- `_dappID`: The DApp ID
+- `_addr`: The MPC address to delete
+- `_pubkey`: The MPC public key to delete
+
+**Dev:** Reverts if DApp ID is zero, DApp admin is zero, addresses are empty, DApp is not active, or address not found. Only governance or DApp admin can call this function
+
+### setFeeConfig
+```solidity
+function setFeeConfig(address _token, string memory _chain, uint256 _callPerByteFee) external onlyGov
+```
+Set fee configuration for a fee token and network.
+
+**Parameters:**
+- `_token`: The fee token address
+- `_chain`: The chain ID
+- `_callPerByteFee`: The fee per byte
+
+**Dev:** Reverts if the fee is zero. Only the governance address can call this function
+
+### deposit
+```solidity
+function deposit(uint256 _dappID, address _token, uint256 _amount) external whenNotPaused nonZeroDAppID(_dappID) onlyActiveDApp(_dappID)
+```
 Deposit tokens to a DApp's staking pool.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_token` (address): The token address
-- `_amount` (uint256): The amount to deposit
+- `_dappID`: The DApp ID
+- `_token`: The token address
+- `_amount`: The amount to deposit
 
-**Notes:**
-- Reverts if the amount is zero
+**Dev:** Reverts if DApp ID is zero, amount is zero, or DApp is not active
 
-### `withdraw(uint256 _dappID, address _token, uint256 _amount)`
-Withdraw tokens from a DApp's staking pool (governance or DApp admin only).
-
-**Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_token` (address): The token address
-- `_amount` (uint256): The amount to withdraw
-
-**Modifiers:**
-- `onlyGovOrAdmin`
-
-**Notes:**
-- Only governance or DApp admin can call this function
-- Reverts if the amount is zero or insufficient balance
-
-### `charging(uint256 _dappID, address _token, uint256 _bill)`
-Charge fees from a DApp's staking pool (governance or DApp admin only).
+### withdraw
+```solidity
+function withdraw(uint256 _dappID, address _token, uint256 _amount) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) whenNotPaused
+```
+Withdraw tokens from a DApp's staking pool.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_token` (address): The token address
-- `_bill` (uint256): The amount to charge
+- `_dappID`: The DApp ID
+- `_token`: The token address
+- `_amount`: The amount to withdraw
 
-**Modifiers:**
-- `onlyGovOrAdmin`
+**Dev:** Reverts if DApp ID is zero, amount is zero, or insufficient balance. Only governance or DApp admin can call this function
 
-**Notes:**
-- Only governance or DApp admin can call this function
-- Reverts if the bill is zero or insufficient balance
-
-### `getDAppConfig(uint256 _dappID)`
-Get DApp configuration.
+### charging
+```solidity
+function charging(uint256 _dappID, address _token, uint256 _bill) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) whenNotPaused
+```
+Charge fees from a DApp's staking pool.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
+- `_dappID`: The DApp ID
+- `_token`: The token address
+- `_bill`: The amount to charge
+
+**Dev:** Reverts if DApp ID is zero, bill is zero, or insufficient balance. Only governance or DApp admin can call this function
+
+### getDAppConfig
+```solidity
+function getDAppConfig(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (DAppConfig memory)
+```
+Get DApp configuration (admin, fee token, discount).
+
+**Parameters:**
+- `_dappID`: The DApp ID
 
 **Returns:**
 - `DAppConfig`: The DApp configuration
 
-### `getMpcAddrs(uint256 _dappID)`
-Get MPC addresses for a DApp.
+**Dev:** Reverts if DApp ID is zero
+
+### getDAppStatus
+```solidity
+function getDAppStatus(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (DAppStatus)
+```
+Get DApp status (Active, Suspended, Deprecated).
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
+- `_dappID`: The DApp ID
+
+**Returns:**
+- `DAppStatus`: The DApp status
+
+**Dev:** Reverts if DApp ID is zero
+
+### getMpcAddrs
+```solidity
+function getMpcAddrs(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (string[] memory)
+```
+Get MPC addresses that have been added for a given DApp.
+
+**Parameters:**
+- `_dappID`: The DApp ID
 
 **Returns:**
 - `string[]`: Array of MPC addresses
 
-### `getMpcPubkey(uint256 _dappID, string memory _addr)`
+**Dev:** Reverts if DApp ID is zero
+
+### getMpcPubkey
+```solidity
+function getMpcPubkey(uint256 _dappID, string memory _addr) external view nonZeroDAppID(_dappID) returns (string memory)
+```
 Get MPC public key for a DApp and address.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_addr` (string): The MPC address
+- `_dappID`: The DApp ID
+- `_addr`: The MPC address
 
 **Returns:**
 - `string`: The MPC public key
 
-### `getFeeCurrency(address _token)`
-Get fee currency for a token.
+**Dev:** Reverts if DApp ID is zero
+
+### isMpcMember
+```solidity
+function isMpcMember(uint256 _dappID, string memory _addr) external view nonZeroDAppID(_dappID) returns (bool)
+```
+Check if MPC address is a member of a DApp.
 
 **Parameters:**
-- `_token` (address): The token address
+- `_dappID`: The DApp ID
+- `_addr`: The MPC address
+
+**Returns:**
+- `bool`: True if the address is a member
+
+**Dev:** Reverts if DApp ID is zero
+
+### getMpcCount
+```solidity
+function getMpcCount(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (uint256)
+```
+Get the number of MPC addresses for a DApp.
+
+**Parameters:**
+- `_dappID`: The DApp ID
+
+**Returns:**
+- `uint256`: The number of MPC addresses
+
+**Dev:** Reverts if DApp ID is zero
+
+### getFeeCurrency
+```solidity
+function getFeeCurrency(address _token) external view returns (uint256)
+```
+Get fee currency for a token (fee per byte).
+
+**Parameters:**
+- `_token`: The token address
 
 **Returns:**
 - `uint256`: The fee per byte for the token
 
-### `getSpeChainFee(string memory _chain, address _token)`
-Get specific chain fee for a token.
+### getSpeChainFee
+```solidity
+function getSpeChainFee(string memory _chain, address _token) external view returns (uint256)
+```
+Get specific network's fee for a token.
 
 **Parameters:**
-- `_chain` (string): The chain identifier
-- `_token` (address): The token address
+- `_chain`: The chain ID
+- `_token`: The fee token address
 
 **Returns:**
-- `uint256`: The fee per byte for the token on the specific chain
+- `uint256`: The fee per byte of the fee token on the specific network
 
-### `getDAppStakePool(uint256 _dappID, address _token)`
-Get DApp staking pool balance.
+### getDAppStakePool
+```solidity
+function getDAppStakePool(uint256 _dappID, address _token) external view nonZeroDAppID(_dappID) returns (uint256)
+```
+Get staking pool balance of a specific DApp.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_token` (address): The token address
+- `_dappID`: The DApp ID
+- `_token`: The token address
 
 **Returns:**
 - `uint256`: The staking pool balance
 
-### `getFee(address _token)`
+**Dev:** Reverts if DApp ID is zero
+
+### getFee
+```solidity
+function getFee(address _token) external view returns (uint256)
+```
 Get accumulated fees for a token.
 
 **Parameters:**
-- `_token` (address): The token address
+- `_token`: The fee token address
 
 **Returns:**
 - `uint256`: The accumulated fees
 
-### `setFee(address _token, uint256 _fee)`
-Set accumulated fees for a token (governance only).
+### setFee
+```solidity
+function setFee(address _token, uint256 _fee) external onlyGov
+```
+Set accumulated fees for a token.
 
 **Parameters:**
-- `_token` (address): The token address
-- `_fee` (uint256): The fee amount
+- `_token`: The fee token address
+- `_fee`: The fee amount
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only the governance address can call this function
 
-**Notes:**
-- Only the governor can call this function
-
-### `setDAppID(uint256 _dappID)`
+### setDAppID
+```solidity
+function setDAppID(uint256 _dappID) external onlyGov
+```
 Set the DApp ID for this manager (governance only).
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
+- `_dappID`: The DApp ID
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only the governance address can call this function
 
-**Notes:**
-- Only the governor can call this function
-
-### `setDAppConfigDiscount(uint256 _dappID, uint256 _discount)`
-Set DApp configuration discount (governance or DApp admin only).
+### setDAppConfigDiscount
+```solidity
+function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external onlyGovOrAdmin(_dappID) nonZeroDAppID(_dappID) onlyActiveDApp(_dappID)
+```
+Set DApp configuration discount.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_discount` (uint256): The discount amount
+- `_dappID`: The DApp ID
+- `_discount`: The discount amount
 
-**Modifiers:**
-- `onlyGovOrAdmin`
+**Dev:** Reverts if DApp ID is zero, discount is zero, or DApp is not active. Only governance or DApp admin can call this function
 
-**Notes:**
-- Only governance or DApp admin can call this function
-- Reverts if DApp ID is zero or discount is zero
+## Internal Functions
 
-## Data Structures
-
-### `DAppConfig`
-Represents the configuration for a DApp.
-
+### _isValidStatusTransition
 ```solidity
-struct DAppConfig {
-    uint256 id;
-    address appAdmin; // account who admin the application's config
-    address feeToken; // token address for fee token
-    uint256 discount; // discount
-}
+function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool)
 ```
+Internal function to validate status transitions.
 
-**Fields:**
-- `id` (uint256): The DApp identifier
-- `appAdmin` (address): Account who administers the application's config
-- `feeToken` (address): Token address for fee token
-- `discount` (uint256): Discount amount
+**Parameters:**
+- `_from`: The current status
+- `_to`: The target status
+
+**Returns:**
+- `bool`: True if the transition is valid
+
+**Dev:** Deprecated DApps cannot undergo status change - deprecation is permanent
 
 ## Events
 
-### `SetDAppConfig`
-Emitted when DApp configuration is set.
-
+### SetBlacklists
 ```solidity
-event SetDAppConfig(
-    uint256 indexed dappID,
-    address indexed appAdmin,
-    address indexed feeToken,
-    string appDomain,
-    string email
-);
+event SetBlacklists(uint256 indexed dappID, bool flag)
 ```
 
-### `SetBlacklists`
-Emitted when blacklist status is set.
-
+### DAppStatusChanged
 ```solidity
-event SetBlacklists(uint256 _dappID, bool _flag);
+event DAppStatusChanged(uint256 indexed dappID, DAppStatus oldStatus, DAppStatus newStatus, string reason)
 ```
 
-### `SetDAppAddr`
-Emitted when DApp addresses are set.
-
+### SetDAppConfig
 ```solidity
-event SetDAppAddr(uint256 _dappID, string[] _addresses);
+event SetDAppConfig(uint256 indexed dappID, address appAdmin, address feeToken, string appDomain, string email)
 ```
 
-### `AddMpcAddr`
-Emitted when MPC address is added.
-
+### SetDAppAddr
 ```solidity
-event AddMpcAddr(uint256 _dappID, string _addr, string _pubkey);
+event SetDAppAddr(uint256 indexed dappID, string[] addresses)
 ```
 
-### `DelMpcAddr`
-Emitted when MPC address is deleted.
-
+### AddMpcAddr
 ```solidity
-event DelMpcAddr(uint256 _dappID, string _addr, string _pubkey);
+event AddMpcAddr(uint256 indexed dappID, string addr, string pubkey)
 ```
 
-### `SetFeeConfig`
-Emitted when fee configuration is set.
-
+### DelMpcAddr
 ```solidity
-event SetFeeConfig(address _token, string _chain, uint256 _callPerByteFee);
+event DelMpcAddr(uint256 indexed dappID, string addr, string pubkey)
 ```
 
-### `Deposit`
-Emitted when tokens are deposited to staking pool.
-
+### SetFeeConfig
 ```solidity
-event Deposit(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
+event SetFeeConfig(address indexed token, string chain, uint256 callPerByteFee)
 ```
 
-### `Withdraw`
-Emitted when tokens are withdrawn from staking pool.
-
+### Deposit
 ```solidity
-event Withdraw(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
+event Deposit(uint256 indexed dappID, address indexed token, uint256 amount, uint256 balance)
 ```
 
-### `Charging`
-Emitted when fees are charged from staking pool.
-
+### Withdraw
 ```solidity
-event Charging(uint256 _dappID, address _token, uint256 _bill, uint256 _amount, uint256 _left);
+event Withdraw(uint256 indexed dappID, address indexed token, uint256 amount, uint256 balance)
+```
+
+### Charging
+```solidity
+event Charging(uint256 indexed dappID, address indexed token, uint256 bill, uint256 fee, uint256 balance)
 ```
 
 ## Errors
 
-### `C3DAppManager_IsZero`
-Thrown when a required parameter is zero.
-
+### C3DAppManager_OnlyAuthorized
 ```solidity
-error C3DAppManager_IsZero(C3ErrorParam);
+error C3DAppManager_OnlyAuthorized(C3ErrorParam, C3ErrorParam)
 ```
 
-### `C3DAppManager_IsZeroAddress`
-Thrown when a required address parameter is zero.
-
+### C3DAppManager_DAppSuspended
 ```solidity
-error C3DAppManager_IsZeroAddress(C3ErrorParam);
+error C3DAppManager_DAppSuspended(uint256)
 ```
 
-### `C3DAppManager_InvalidDAppID`
-Thrown when the DApp ID is invalid.
-
+### C3DAppManager_DAppDeprecated
 ```solidity
-error C3DAppManager_InvalidDAppID(uint256);
+error C3DAppManager_DAppDeprecated(uint256)
 ```
 
-### `C3DAppManager_NotZeroAddress`
-Thrown when an address parameter should not be zero.
-
+### C3DAppManager_ZeroDAppID
 ```solidity
-error C3DAppManager_NotZeroAddress(C3ErrorParam);
+error C3DAppManager_ZeroDAppID()
 ```
 
-### `C3DAppManager_LengthMismatch`
-Thrown when two parameters have mismatched lengths.
-
+### C3DAppManager_InvalidStatusTransition
 ```solidity
-error C3DAppManager_LengthMismatch(C3ErrorParam, C3ErrorParam);
+error C3DAppManager_InvalidStatusTransition(DAppStatus, DAppStatus)
 ```
 
-### `C3DAppManager_OnlyAuthorized`
-Thrown when an unauthorized address attempts to perform an operation.
-
+### C3DAppManager_IsZero
 ```solidity
-error C3DAppManager_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
+error C3DAppManager_IsZero(C3ErrorParam)
 ```
 
-### `C3DAppManager_InsufficientBalance`
-Thrown when there is insufficient balance for an operation.
-
+### C3DAppManager_IsZeroAddress
 ```solidity
-error C3DAppManager_InsufficientBalance(address _token);
+error C3DAppManager_IsZeroAddress(C3ErrorParam)
 ```
 
-## Usage Examples
-
-### Setting Up a DApp Configuration
+### C3DAppManager_LengthMismatch
 ```solidity
-// Set DApp configuration (governance only)
-dappManager.setDAppConfig(
-    1, // dappID
-    0x1234567890123456789012345678901234567890, // appAdmin
-    0x0987654321098765432109876543210987654321, // feeToken
-    "example.com", // appDomain
-    "admin@example.com" // email
-);
-
-// Set DApp addresses
-string[] memory addresses = new string[](2);
-addresses[0] = "0x1234567890123456789012345678901234567890";
-addresses[1] = "0x0987654321098765432109876543210987654321";
-dappManager.setDAppAddr(1, addresses);
+error C3DAppManager_LengthMismatch(C3ErrorParam, C3ErrorParam)
 ```
 
-### Managing MPC Addresses
+### C3DAppManager_MpcAddressExists
 ```solidity
-// Add MPC address and public key
-dappManager.addMpcAddr(
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // addr
-    "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890" // pubkey
-);
-
-// Delete MPC address
-dappManager.delMpcAddr(
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // addr
-    "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890" // pubkey
-);
+error C3DAppManager_MpcAddressExists(string)
 ```
 
-### Managing Fees and Staking
+### C3DAppManager_MpcAddressNotFound
 ```solidity
-// Set fee configuration
-dappManager.setFeeConfig(
-    0x1234567890123456789012345678901234567890, // token
-    "1", // chain
-    1000000000000000 // fee per byte
-);
-
-// Deposit to staking pool
-dappManager.deposit(
-    1, // dappID
-    0x1234567890123456789012345678901234567890, // token
-    1000000000000000000 // amount
-);
-
-// Charge fees
-dappManager.charging(
-    1, // dappID
-    0x1234567890123456789012345678901234567890, // token
-    1000000000000000 // bill
-);
+error C3DAppManager_MpcAddressNotFound(string)
 ```
 
-## Security Considerations
+### C3DAppManager_InsufficientBalance
+```solidity
+error C3DAppManager_InsufficientBalance(address)
+```
 
-1. **Access Control**: Only governance or DApp admins can perform administrative functions
-2. **Pausability**: The contract can be paused in emergency situations
-3. **Balance Validation**: Ensures sufficient balance before withdrawals or charges
-4. **Parameter Validation**: Validates all input parameters to prevent invalid operations
-5. **MPC Management**: Secure management of MPC addresses and public keys
+## Structs
 
-## Dependencies
+### DAppConfig
+```solidity
+struct DAppConfig {
+    uint256 id;
+    address appAdmin;
+    address feeToken;
+    uint256 discount;
+}
+```
 
-- `@openzeppelin/contracts/token/ERC20/IERC20.sol`
-- `@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol`
-- `@openzeppelin/contracts/utils/Pausable.sol`
-- `@openzeppelin/contracts/utils/Strings.sol`
-- `C3GovClient.sol`
-- `C3ErrorParam` from `C3CallerUtils.sol`
-- `IC3DAppManager.sol`
+### DAppStatus
+```solidity
+enum DAppStatus {
+    Active,
+    Suspended,
+    Deprecated
+}
+```
+
+## Author
+
+@potti ContinuumDAO
+
+## Dev
+
+This contract is the central management hub for C3 DApps

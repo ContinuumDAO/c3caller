@@ -2,25 +2,30 @@
 
 pragma solidity 0.8.27;
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { IC3GovClient } from "../../gov/IC3GovClient.sol";
-import { C3ErrorParam } from "../../utils/C3CallerUtils.sol";
+import {IC3GovClient} from "../../gov/IC3GovClient.sol";
+import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
  * @title C3GovClientUpgradeable
- * @dev Upgradeable base contract for governance client functionality in the C3 protocol.
- * This contract provides governance and operator management capabilities with upgradeable
- * storage using the ERC-7201 storage pattern.
- * 
+ * @notice Upgradeable base contract for governance client functionality in the C3 protocol.
+ * This contract provides governance and operator management capabilities that can be inherited by other contracts
+ * in the C3 ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
+ * contain a DApp ID, as it is designed to provide governance functionality without cross-chain functionality.
+ * It features upgradeable storage using the ERC-7201 storage pattern.
+ *
+ * Examples of contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol
+ * contracts and therefore do not need to be a C3GovernDApp.
+ *
  * Key features:
  * - Governance address management with pending changes
  * - Operator management (add/remove operators)
  * - Access control modifiers for governance and operators
  * - Event emission for governance changes
  * - Upgradeable storage using ERC-7201 pattern
- * 
- * @notice This contract provides the foundation for upgradeable governance functionality
+ *
+ * @dev This contract provides the foundation for upgradeable governance functionality
  * @author @potti ContinuumDAO
  */
 contract C3GovClientUpgradeable is IC3GovClient, Initializable {
@@ -41,113 +46,8 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3GovClientStorageLocation =
-        0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
-
-    /**
-     * @dev Get the storage struct for C3GovClient
-     * @return $ The storage struct
-     */
-    function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
-        assembly {
-            $.slot := C3GovClientStorageLocation
-        }
-    }
-
-    /**
-     * @dev Modifier to restrict access to governance only
-     * @notice Reverts if the caller is not the governor
-     */
-    modifier onlyGov() {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        if (msg.sender != $.gov) {
-            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
-        }
-        _;
-    }
-
-    /**
-     * @dev Modifier to restrict access to governance or operators
-     * @notice Reverts if the caller is neither governor nor an operator
-     */
-    modifier onlyOperator() {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        if (msg.sender != $.gov && !$.isOperator[msg.sender]) {
-            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrOperator);
-        }
-        _;
-    }
-
-    /**
-     * @dev Internal function to initialize the upgradeable C3GovClient
-     * @param _gov The initial governance address
-     */
-    function __C3GovClient_init(address _gov) internal onlyInitializing {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        $.gov = _gov;
-        emit ApplyGov(address(0), _gov, block.timestamp);
-    }
-
-    /**
-     * @notice Change the governance address (two-step process)
-     * @dev Only the current governor can call this function
-     * @param _gov The new governance address
-     */
-    function changeGov(address _gov) external onlyGov {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        $.pendingGov = _gov;
-        emit ChangeGov($.gov, _gov, block.timestamp);
-    }
-
-    /**
-     * @notice Apply the pending governance change
-     * @dev Anyone can call this function to finalize the governance change
-     * @notice Reverts if there is no pending governance address
-     */
-    function applyGov() external {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        if ($.pendingGov == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
-        }
-        emit ApplyGov($.gov, $.pendingGov, block.timestamp);
-        $.gov = $.pendingGov;
-        $.pendingGov = address(0);
-    }
-
-    /**
-     * @dev Internal function to add an operator
-     * @param _op The address to add as an operator
-     * @notice Reverts if the address is zero or already an operator
-     */
-    function _addOperator(address _op) internal {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        if (_op == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
-        }
-        if ($.isOperator[_op]) {
-            revert C3GovClient_AlreadyOperator(_op);
-        }
-        $.isOperator[_op] = true;
-        $.operators.push(_op);
-        emit AddOperator(_op);
-    }
-
-    /**
-     * @notice Add an operator (governance only)
-     * @dev Only the governor can call this function
-     * @param _op The address to add as an operator
-     */
-    function addOperator(address _op) external onlyGov {
-        _addOperator(_op);
-    }
-
-    /**
-     * @notice Get all operator addresses
-     * @return Array of all operator addresses
-     */
-    function getAllOperators() external view returns (address[] memory) {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        return $.operators;
-    }
+    // 0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+    0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
 
     /**
      * @notice Get the current governance address
@@ -188,10 +88,96 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
     }
 
     /**
-     * @notice Revoke operator status from an address (governance only)
-     * @dev Only the governor can call this function
-     * @param _op The address to revoke operator status from
-     * @notice Reverts if the address is not an operator
+     * @notice Modifier to restrict access to governance only
+     * @dev Reverts if the caller is not the governor
+     */
+    modifier onlyGov() {
+        if (msg.sender != gov()) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
+        }
+        _;
+    }
+
+    /**
+     * @notice Modifier to restrict access to governance or operators
+     * @dev Reverts if the caller is neither governor nor an operator
+     */
+    modifier onlyOperator() {
+        if (msg.sender != gov() && !isOperator(msg.sender)) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrOperator);
+        }
+        _;
+    }
+
+    /**
+     * @notice Get the storage struct for C3GovClient
+     * @return $ The storage struct
+     */
+    function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
+        assembly {
+            $.slot := C3GovClientStorageLocation
+        }
+    }
+
+    /**
+     * @notice Internal initializer for the upgradeable C3GovClient contract
+     * @param _gov The initial governance address
+     */
+    function __C3GovClient_init(address _gov) internal onlyInitializing {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        $.gov = _gov;
+        emit ApplyGov(address(0), _gov, block.timestamp);
+    }
+
+    /**
+     * @notice Change the governance address (two-step process)
+     * @param _gov The new governance address
+     * @dev Only the current governance address can call this function
+     */
+    function changeGov(address _gov) external onlyGov {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        $.pendingGov = _gov;
+        emit ChangeGov($.gov, _gov, block.timestamp);
+    }
+
+    /**
+     * @notice Apply the pending governance change
+     * @dev Reverts if there is no pending governance address
+     * @dev Anyone can call this function to finalize the governance change
+     */
+    function applyGov() external {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        if ($.pendingGov == address(0)) {
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
+        }
+        emit ApplyGov($.gov, $.pendingGov, block.timestamp);
+        $.gov = $.pendingGov;
+        $.pendingGov = address(0);
+    }
+
+    /**
+     * @notice Add an operator
+     * @param _op The address to add as an operator
+     * @dev Only the governance address can call this function
+     */
+    function addOperator(address _op) external onlyGov {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        if (_op == address(0)) {
+            revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
+        }
+        if ($.isOperator[_op]) {
+            revert C3GovClient_AlreadyOperator(_op);
+        }
+        $.isOperator[_op] = true;
+        $.operators.push(_op);
+        emit AddOperator(_op);
+    }
+
+    /**
+     * @notice Revoke operator status from an address
+     * @param _op The address from which to revoke operator status
+     * @dev Reverts if the address is already not an operator
+     * @dev Only the governance address can call this function
      */
     function revokeOperator(address _op) external onlyGov {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
@@ -207,5 +193,14 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
                 return;
             }
         }
+    }
+
+    /**
+     * @notice Get all operator addresses
+     * @return Array of all operator addresses
+     */
+    function getAllOperators() external view returns (address[] memory) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.operators;
     }
 }

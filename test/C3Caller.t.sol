@@ -43,7 +43,7 @@ contract C3CallerTest is Helpers {
         // Gov is always allowed, but not necessarily stored as an operator
         // Let's check if gov can call operator functions
         vm.prank(gov);
-        assertTrue(c3caller.isExecutor(gov));
+        assertTrue(c3caller.isOperator(gov));
     }
 
     function test_C3Call() public {
@@ -53,13 +53,7 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            data
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, data);
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
@@ -83,13 +77,7 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            data
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, data);
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
@@ -118,22 +106,8 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUIDs for each destination
-        bytes32 uuid1 = c3UUIDKeeper.calcCallerUUIDWithNonce(
-            address(c3caller),
-            dappID,
-            to[0],
-            toChainIDs[0],
-            data,
-            1
-        );
-        bytes32 uuid2 = c3UUIDKeeper.calcCallerUUIDWithNonce(
-            address(c3caller),
-            dappID,
-            to[1],
-            toChainIDs[1],
-            data,
-            2
-        );
+        bytes32 uuid1 = c3UUIDKeeper.calcCallerUUIDWithNonce(address(c3caller), dappID, to[0], toChainIDs[0], data, 1);
+        bytes32 uuid2 = c3UUIDKeeper.calcCallerUUIDWithNonce(address(c3caller), dappID, to[1], toChainIDs[1], data, 2);
 
         // Expect events for both destinations
         vm.startPrank(user1);
@@ -197,52 +171,6 @@ contract C3CallerTest is Helpers {
         assertTrue(c3UUIDKeeper.isCompleted(uuid));
     }
 
-    function test_Execute_FailedCall() public {
-        bytes32 uuid = keccak256("test-uuid");
-        bytes memory data = abi.encodeWithSignature("failedCall()");
-
-        IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
-            uuid: uuid,
-            to: address(mockDApp),
-            fromChainID: "ethereum",
-            sourceTx: "0x1234567890abcdef",
-            fallbackTo: "",
-            data: data
-        });
-
-        vm.prank(mpc1);
-        vm.expectEmit(true, true, true, true);
-        emit IC3Caller.LogExecCall(
-            testDAppID,
-            address(mockDApp),
-            uuid,
-            "ethereum",
-            "0x1234567890abcdef",
-            data,
-            true, // success
-            abi.encode(uint256(0)) // result
-        );
-
-        vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogFallbackCall(
-            testDAppID,
-            uuid,
-            "", // fallbackTo is empty
-            abi.encodeWithSelector(
-                IC3CallerDApp.c3Fallback.selector,
-                testDAppID,
-                data,
-                abi.encode(uint256(0))
-            ),
-            abi.encode(uint256(0))
-        );
-
-        c3caller.execute(testDAppID, message);
-
-        // Verify UUID was NOT registered (because call failed)
-        assertFalse(c3UUIDKeeper.isCompleted(uuid));
-    }
-
     function test_Execute_RevertingCall() public {
         bytes32 uuid = keccak256("test-uuid");
         bytes memory data = abi.encodeWithSignature("revertingCall()");
@@ -256,40 +184,7 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
-        vm.prank(gov);
-        vm.expectEmit(true, true, true, true);
-        emit IC3Caller.LogExecCall(
-            testDAppID,
-            address(mockDApp),
-            uuid,
-            "ethereum",
-            "0x1234567890abcdef",
-            data,
-            false, // success
-            abi.encodeWithSignature(
-                "Error(string)",
-                "MockC3CallerDApp: call reverted"
-            ) // ABI-encoded error
-        );
-
-        c3caller.execute(testDAppID, message);
-
-        // Verify UUID was NOT registered (because call reverted)
-        assertFalse(c3UUIDKeeper.isCompleted(uuid));
-    }
-
-    function test_Execute_InvalidDataCall() public {
-        bytes32 uuid = keccak256("test-uuid");
-        bytes memory data = abi.encodeWithSignature("invalidDataCall()");
-
-        IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
-            uuid: uuid,
-            to: address(mockDApp),
-            fromChainID: "ethereum",
-            sourceTx: "0x1234567890abcdef",
-            fallbackTo: "",
-            data: data
-        });
+        bytes memory revertData = abi.encodeWithSignature("Error(string)", "MockC3CallerDApp: call reverted");
 
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
@@ -300,33 +195,28 @@ contract C3CallerTest is Helpers {
             "ethereum",
             "0x1234567890abcdef",
             data,
-            true, // success
-            abi.encode("invalid") // result
+            false, // reverted
+            revertData // result
         );
 
-        vm.expectEmit(true, true, false, true);
+        vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogFallbackCall(
             testDAppID,
             uuid,
             "", // fallbackTo is empty
-            abi.encodeWithSelector(
-                IC3CallerDApp.c3Fallback.selector,
-                testDAppID,
-                data,
-                abi.encode("invalid")
-            ),
-            abi.encode("invalid")
+            abi.encodeWithSelector(IC3CallerDApp.c3Fallback.selector, testDAppID, data, revertData),
+            revertData // result
         );
 
         c3caller.execute(testDAppID, message);
 
-        // Verify UUID was NOT registered (because data is invalid)
+        // Verify UUID was NOT registered (because call failed)
         assertFalse(c3UUIDKeeper.isCompleted(uuid));
     }
 
     function test_Execute_WithFallbackTo() public {
         bytes32 uuid = keccak256("test-uuid");
-        bytes memory data = abi.encodeWithSignature("failedCall()");
+        bytes memory data = abi.encodeWithSignature("revertingCall()");
 
         IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage({
             uuid: uuid,
@@ -337,6 +227,8 @@ contract C3CallerTest is Helpers {
             data: data
         });
 
+        bytes memory revertData = abi.encodeWithSignature("Error(string)", "MockC3CallerDApp: call reverted");
+
         vm.prank(mpc1);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogExecCall(
@@ -346,8 +238,8 @@ contract C3CallerTest is Helpers {
             "ethereum",
             "0x1234567890abcdef",
             data,
-            true, // success
-            abi.encode(uint256(0)) // result
+            false, // reverted
+            revertData // result
         );
 
         vm.expectEmit(true, true, false, true);
@@ -355,13 +247,8 @@ contract C3CallerTest is Helpers {
             testDAppID,
             uuid,
             "0xfallbackaddress", // fallbackTo
-            abi.encodeWithSelector(
-                IC3CallerDApp.c3Fallback.selector,
-                testDAppID,
-                data,
-                abi.encode(uint256(0))
-            ),
-            abi.encode(uint256(0))
+            abi.encodeWithSelector(IC3CallerDApp.c3Fallback.selector, testDAppID, data, revertData),
+            revertData
         );
 
         c3caller.execute(testDAppID, message);
@@ -381,12 +268,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidLength.selector,
-                C3ErrorParam.Calldata
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
         c3caller.execute(testDAppID, message);
     }
 
@@ -408,11 +290,7 @@ contract C3CallerTest is Helpers {
 
         vm.prank(mpc1);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_OnlyAuthorized.selector,
-                C3ErrorParam.To,
-                C3ErrorParam.Valid
-            )
+            abi.encodeWithSelector(IC3Caller.C3Caller_OnlyAuthorized.selector, C3ErrorParam.To, C3ErrorParam.Valid)
         );
         c3caller.execute(testDAppID, message);
     }
@@ -431,13 +309,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidDAppID.selector,
-                testDAppID,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidDAppID.selector, testDAppID, 999));
         c3caller.execute(999, message); // Wrong dappID
     }
 
@@ -459,12 +331,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_UUIDAlreadyCompleted.selector,
-                uuid
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_UUIDAlreadyCompleted.selector, uuid));
         c3caller.execute(testDAppID, message);
     }
 
@@ -484,9 +351,7 @@ contract C3CallerTest is Helpers {
         vm.prank(user1); // Non-operator
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrOperator
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrOperator
             )
         );
         c3caller.execute(testDAppID, message);
@@ -542,12 +407,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidLength.selector,
-                C3ErrorParam.Calldata
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
         c3caller.c3Fallback(testDAppID, message);
     }
 
@@ -569,11 +429,7 @@ contract C3CallerTest is Helpers {
 
         vm.prank(mpc1);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_OnlyAuthorized.selector,
-                C3ErrorParam.To,
-                C3ErrorParam.Valid
-            )
+            abi.encodeWithSelector(IC3Caller.C3Caller_OnlyAuthorized.selector, C3ErrorParam.To, C3ErrorParam.Valid)
         );
         c3caller.c3Fallback(testDAppID, message);
     }
@@ -592,13 +448,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidDAppID.selector,
-                testDAppID,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidDAppID.selector, testDAppID, 999));
         c3caller.c3Fallback(999, message); // Wrong dappID
     }
 
@@ -620,12 +470,7 @@ contract C3CallerTest is Helpers {
         });
 
         vm.prank(mpc1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_UUIDAlreadyCompleted.selector,
-                uuid
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_UUIDAlreadyCompleted.selector, uuid));
         c3caller.c3Fallback(testDAppID, message);
     }
 
@@ -645,9 +490,7 @@ contract C3CallerTest is Helpers {
         vm.prank(user1); // Non-operator
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrOperator
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrOperator
             )
         );
         c3caller.c3Fallback(testDAppID, message);
@@ -699,25 +542,11 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            complexData
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, complexData);
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(
-            dappID,
-            uuid,
-            user1,
-            toChainID,
-            to,
-            complexData,
-            "" // empty extra data
-        );
+        emit IC3Caller.LogC3Call(dappID, uuid, user1, toChainID, to, complexData, "" /*empty extra data*/);
         c3caller.c3call(dappID, to, toChainID, complexData);
     }
 
@@ -742,25 +571,11 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 999_999;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            data
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, data);
 
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(
-            dappID,
-            uuid,
-            user2,
-            toChainID,
-            to,
-            data,
-            "" // empty extra data
-        );
+        emit IC3Caller.LogC3Call(dappID, uuid, user2, toChainID, to, data, "" /*empty extra data*/);
         c3caller.c3call(dappID, to, toChainID, data);
     }
 
@@ -773,25 +588,11 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            maxData
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, maxData);
 
         vm.prank(mpc1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(
-            dappID,
-            uuid,
-            mpc1,
-            toChainID,
-            to,
-            maxData,
-            "" // empty extra data
-        );
+        emit IC3Caller.LogC3Call(dappID, uuid, mpc1, toChainID, to, maxData, "" /*empty extra data*/);
         c3caller.c3call(dappID, to, toChainID, maxData);
     }
 
@@ -812,25 +613,11 @@ contract C3CallerTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3caller),
-            dappID,
-            to,
-            toChainID,
-            data
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3caller), dappID, to, toChainID, data);
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(
-            dappID,
-            uuid,
-            user1,
-            toChainID,
-            to,
-            data,
-            extraData
-        );
+        emit IC3Caller.LogC3Call(dappID, uuid, user1, toChainID, to, data, extraData);
         c3caller.c3call(dappID, to, toChainID, data, extraData);
     }
 
@@ -842,12 +629,7 @@ contract C3CallerTest is Helpers {
         string memory toChainID = "_toChainID";
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_IsZero.selector,
-                C3ErrorParam.DAppID
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_IsZero.selector, C3ErrorParam.DAppID));
         c3caller.c3call(0, to, toChainID, data);
     }
 
@@ -857,12 +639,7 @@ contract C3CallerTest is Helpers {
         string memory toChainID = "_toChainID";
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidLength.selector,
-                C3ErrorParam.To
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.To));
         c3caller.c3call(1, to, toChainID, data);
     }
 
@@ -872,12 +649,7 @@ contract C3CallerTest is Helpers {
         string memory toChainID = "";
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidLength.selector,
-                C3ErrorParam.ChainID
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.ChainID));
         c3caller.c3call(1, to, toChainID, data);
     }
 
@@ -887,12 +659,7 @@ contract C3CallerTest is Helpers {
         string memory toChainID = "_toChainID";
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_InvalidLength.selector,
-                C3ErrorParam.Calldata
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3Caller.C3Caller_InvalidLength.selector, C3ErrorParam.Calldata));
         c3caller.c3call(1, to, toChainID, data);
     }
 }

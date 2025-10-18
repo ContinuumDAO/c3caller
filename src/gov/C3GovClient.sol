@@ -2,22 +2,26 @@
 
 pragma solidity 0.8.27;
 
-import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
-import { IC3GovClient } from "./IC3GovClient.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
+import {IC3GovClient} from "./IC3GovClient.sol";
 
 /**
  * @title C3GovClient
- * @dev Base contract for governance client functionality in the C3 protocol.
- * This contract provides governance and operator management capabilities
- * that can be inherited by other contracts in the C3 ecosystem.
- * 
+ * @notice Base contract for governance client functionality in the C3 protocol.
+ * This contract provides governance and operator management capabilities that can be inherited by other contracts
+ * in the C3 ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
+ * contain a DApp ID, as it is designed to provide governance functionality without cross-chain functionality.
+ *
+ * Examples of contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol
+ * contracts and therefore do not need to be a C3GovernDApp.
+ *
  * Key features:
  * - Governance address management with pending changes
  * - Operator management (add/remove operators)
  * - Access control modifiers for governance and operators
  * - Event emission for governance changes
- * 
- * @notice This contract provides the foundation for governance functionality
+ *
+ * @dev This contract provides the foundation for governance functionality
  * @author @potti ContinuumDAO
  */
 contract C3GovClient is IC3GovClient {
@@ -34,17 +38,8 @@ contract C3GovClient is IC3GovClient {
     address[] public operators;
 
     /**
-     * @dev Constructor for C3GovClient
-     * @param _gov The initial governance address
-     */
-    constructor(address _gov) {
-        gov = _gov;
-        emit ApplyGov(address(0), _gov, block.timestamp);
-    }
-
-    /**
-     * @dev Modifier to restrict access to governance only
-     * @notice Reverts if the caller is not the governor
+     * @notice Modifier to restrict access to governance only
+     * @dev Reverts if the caller is not the governance address
      */
     modifier onlyGov() {
         if (msg.sender != gov) {
@@ -54,8 +49,8 @@ contract C3GovClient is IC3GovClient {
     }
 
     /**
-     * @dev Modifier to restrict access to governance or operators
-     * @notice Reverts if the caller is neither governor nor an operator
+     * @notice Modifier to restrict access to governance or operators
+     * @dev Reverts if the caller is neither governance address nor an operator
      */
     modifier onlyOperator() {
         if (msg.sender != gov && !isOperator[msg.sender]) {
@@ -65,9 +60,17 @@ contract C3GovClient is IC3GovClient {
     }
 
     /**
+     * @param _gov The initial governance address
+     */
+    constructor(address _gov) {
+        gov = _gov;
+        emit ApplyGov(address(0), _gov, block.timestamp);
+    }
+
+    /**
      * @notice Change the governance address (two-step process)
-     * @dev Only the current governor can call this function
      * @param _gov The new governance address
+     * @dev Only the current governance address can call this function
      */
     function changeGov(address _gov) external onlyGov {
         pendingGov = _gov;
@@ -76,8 +79,8 @@ contract C3GovClient is IC3GovClient {
 
     /**
      * @notice Apply the pending governance change
-     * @dev Anyone can call this function to finalize the governance change
      * @notice Reverts if there is no pending governance address
+     * @dev Anyone can call this function to finalize the governance change
      */
     function applyGov() external {
         if (pendingGov == address(0)) {
@@ -89,11 +92,11 @@ contract C3GovClient is IC3GovClient {
     }
 
     /**
-     * @dev Internal function to add an operator
+     * @notice Add an operator
      * @param _op The address to add as an operator
-     * @notice Reverts if the address is zero or already an operator
+     * @dev Only the governance address can call this function
      */
-    function _addOperator(address _op) internal {
+    function addOperator(address _op) external onlyGov {
         if (_op == address(0)) {
             revert C3GovClient_IsZeroAddress(C3ErrorParam.Operator);
         }
@@ -106,27 +109,10 @@ contract C3GovClient is IC3GovClient {
     }
 
     /**
-     * @notice Add an operator (governance only)
-     * @dev Only the governor can call this function
-     * @param _op The address to add as an operator
-     */
-    function addOperator(address _op) external onlyGov {
-        _addOperator(_op);
-    }
-
-    /**
-     * @notice Get all operator addresses
-     * @return Array of all operator addresses
-     */
-    function getAllOperators() external view returns (address[] memory) {
-        return operators;
-    }
-
-    /**
-     * @notice Revoke operator status from an address (governance only)
-     * @dev Only the governor can call this function
-     * @param _op The address to revoke operator status from
-     * @notice Reverts if the address is not an operator
+     * @notice Revoke operator status from an address
+     * @param _op The address from which to revoke operator status
+     * @dev Reverts if the address is already not an operator
+     * @dev Only the governance address can call this function
      */
     function revokeOperator(address _op) external onlyGov {
         if (!isOperator[_op]) {
@@ -141,5 +127,13 @@ contract C3GovClient is IC3GovClient {
                 return;
             }
         }
+    }
+
+    /**
+     * @notice Get all operator addresses
+     * @return Array of all operator addresses
+     */
+    function getAllOperators() external view returns (address[] memory) {
+        return operators;
     }
 }

@@ -3,22 +3,25 @@
 pragma solidity 0.8.27;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IC3Governor} from "../../gov/IC3Governor.sol";
+import {IC3GovernorUpgradeable} from "./IC3GovernorUpgradeable.sol";
 import {C3GovernDAppUpgradeable} from "./C3GovernDAppUpgradeable.sol";
 import {C3CallerUtils, C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
- * @title C3Governor
- * @author patrickcure, potti, Selqui (ContinuumDAO)
+ * @title C3GovernorUpgradeable
  * @notice This contract acts as a wrapper for C3GovernDApp, for the purpose of cross-chain governance.
- *   A client is deployed on every applicable network and clients communicate with one another to send/receive data.
- *   The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a
- *   call to this contract's function `sendParams` with an array of target contracts, their chain IDs, and calldata.
- *   Included as a feature is the ability to retry reverted transactions, mirroring the execute function in Governor.
- *   If one or more actions from a proposal fail, anyone may retry them until they succeed, obviating the need for
- *   a duplicate proposal.
+ * A client is deployed on every applicable network and clients communicate with one another to send/receive data.
+ * The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a
+ * call to this contract's function `sendParams` with an array of target contracts, their chain IDs, and calldata.
+ * Included as a feature is the ability to retry reverted transactions, mirroring the execute function in Governor.
+ * If one or more actions from a proposal fail, anyone may retry them until they succeed, obviating the need for
+ * a duplicate proposal. This contract provides the same functionality as C3Caller but with upgradeable capabilities
+ * using the UUPS (Universal Upgradeable Proxy Standard) pattern.
+ *
+ * @dev This contract is the upgradeable version of the cross-chain governance client
+ * @author @patrickcure, @potti, @Selqui (ContinuumDAO)
  */
-contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgradeable {
+contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using C3CallerUtils for string;
 
     /// @notice A registry of active proposal IDs (or a custom nonce).
@@ -28,6 +31,7 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
     /// @notice Actions that have failed on the destination network have their data stored until they are retried.
     mapping(uint256 => mapping(uint256 => Proposal)) public failed;
 
+    /// @notice The current version of C3Governor
     uint256 public constant VERSION = 1;
 
     /**
@@ -37,11 +41,16 @@ contract C3GovernorUpgradeable is IC3Governor, C3GovernDAppUpgradeable, UUPSUpgr
      * @param _txSender The MPC address that is whitelisted to execute incoming operations.
      * @param _dappID The DApp ID of this C3CallerDApp.
      */
-    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
-        external
-        initializer
-    {
+    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID) external initializer {
         __C3GovernDApp_init(_gov, _c3CallerProxy, _txSender, _dappID);
+        __UUPSUpgradeable_init();
+    }
+
+    /**
+     * @notice Disable initializers
+     */
+    constructor() {
+        _disableInitializers();
     }
 
     /**

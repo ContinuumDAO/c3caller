@@ -37,7 +37,7 @@ contract C3GovernorTest is Helpers {
 
     string[] private testTargets = [
         "0x1234567890123456789012345678901234567890",
-        "0x2345678901234567890123456789012345678901", 
+        "0x2345678901234567890123456789012345678901",
         "0x3456789012345678901234567890123456789012",
         "0x4567890123456789012345678901234567890123",
         "0x5678901234567890123456789012345678901234"
@@ -93,10 +93,10 @@ contract C3GovernorTest is Helpers {
 
         mockGovernedDApp = new MockGovernedDApp(address(c3Governor));
 
-        c3Governor.setPeer("1",     "0xaabbccddaabbccddaabbccddaabbccddaabbccdd");
-        c3Governor.setPeer("10",    "0xbbccddeebbccddeebbccddeebbccddeebbccddee");
-        c3Governor.setPeer("56",    "0xccddeeffccddeeffccddeeffccddeeffccddeeff");
-        c3Governor.setPeer("137",   "0xddeeff00ddeeff00ddeeff00ddeeff00ddeeff00");
+        c3Governor.setPeer("1", "0xaabbccddaabbccddaabbccddaabbccddaabbccdd");
+        c3Governor.setPeer("10", "0xbbccddeebbccddeebbccddeebbccddeebbccddee");
+        c3Governor.setPeer("56", "0xccddeeffccddeeffccddeeffccddeeffccddeeff");
+        c3Governor.setPeer("137", "0xddeeff00ddeeff00ddeeff00ddeeff00ddeeff00");
         c3Governor.setPeer("421614", "0xeeff0011eeff0011eeff0011eeff0011eeff0011");
 
         vm.stopPrank();
@@ -193,7 +193,8 @@ contract C3GovernorTest is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3Governor.C3Governor_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.Calldata
-        ));
+            )
+        );
         c3Governor.sendParams(nonce, new string[](1), new string[](1), new bytes[](0));
 
         // Test 4: Length mismatch - targets vs chainIds
@@ -302,9 +303,8 @@ contract C3GovernorTest is Helpers {
         string memory toChainId = getTestChainId(0);
         bytes memory data = abi.encodeWithSelector(MockGovernedDApp.sensitiveNumberChange.selector, 1);
 
-        bytes memory destChainData = abi.encodeWithSelector(
-            C3Governor.receiveParams.selector, nonce, index, target, toChainId, data
-        );
+        bytes memory destChainData =
+            abi.encodeWithSelector(C3Governor.receiveParams.selector, nonce, index, target, toChainId, data);
 
         bytes memory revertData =
             abi.encodeWithSelector(IC3Governor.C3Governor_ExecFailed.selector, "Target contract revert data");
@@ -354,9 +354,8 @@ contract C3GovernorTest is Helpers {
         vm.prank(address(c3Caller));
         c3Governor.c3Fallback(testDAppID, destChainData, revertData);
 
-        bytes32 expectedUUID = c3UUIDKeeper.calcCallerUUID(
-            address(c3Caller), testDAppID, peer, toChainId, destChainData
-        );
+        bytes32 expectedUUID =
+            c3UUIDKeeper.calcCallerUUID(address(c3Caller), testDAppID, peer, toChainId, destChainData);
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogC3Call(testDAppID, expectedUUID, address(c3Governor), toChainId, peer, destChainData, "");
         c3Governor.doGov(nonce, index);

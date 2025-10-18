@@ -23,3 +23,6 @@ build/
 
 # NodeJS
 node_modules/
+
+# User
+checklist.md

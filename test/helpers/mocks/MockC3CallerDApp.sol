@@ -32,7 +32,11 @@ contract MockC3CallerDApp is C3CallerDApp {
         return isValidSenderResult;
     }
 
-    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool) {
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+        internal
+        override
+        returns (bool)
+    {
         if (shouldRevert) {
             revert("MockC3CallerDApp: intentional revert");
         }
@@ -53,23 +57,13 @@ contract MockC3CallerDApp is C3CallerDApp {
         return 1;
     }
 
-    // Function to simulate a failed call that returns 0
-    function failedCall() external pure returns (uint256) {
-        return 0;
-    }
-
     // Function to simulate a call that reverts
     function revertingCall() external pure {
         revert("MockC3CallerDApp: call reverted");
     }
 
-    // Function to simulate a call that returns invalid data
-    function invalidDataCall() external pure returns (bytes memory) {
-        return "invalid";
-    }
-
-    function isCaller(address _sender) external returns (bool) {
-        return _isCaller(_sender);
+    function isCaller(address _sender) external view returns (bool) {
+        return _sender == c3caller;
     }
 
     function c3call(string memory _to, string memory _toChainID, bytes memory _data) external {

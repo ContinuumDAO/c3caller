@@ -1,297 +1,206 @@
 # C3GovernDApp
 
-## Overview
+Base contract that extends C3CallerDApp for governance functionality in the C3 protocol. This contract provides governance-specific features including delayed governance changes and MPC address validation.
 
-C3GovernDApp is an abstract contract for governance DApp functionality in the C3 protocol. This contract extends C3CallerDApp to provide governance-specific features including delayed governance changes and transaction sender management.
+The key difference with C3GovClient is that this contract registers a DApp ID. DApp developers can implement it in their C3DApp to allow governance functionality.
 
-### Key Features
+## Key Features
 
 - Delayed governance address changes
-- Transaction sender management
+- MPC address validation
 - Governance-driven cross-chain operations
 - Fallback mechanism for failed operations
 
-**Note:** This contract provides governance functionality for DApps
+## Constructor
 
-## Contract Details
+```solidity
+constructor(address _gov, address _c3caller, address _txSender, uint256 _dappID)
+```
 
-- **Contract Name:** `C3GovernDApp`
-- **Type:** Abstract Contract
-- **Implements:** `IC3GovernDApp`
-- **Inherits:** `C3CallerDApp`
-- **Author:** @potti ContinuumDAO
-- **License:** BSL-1.1
+**Parameters:**
+- `_gov`: The initial governance address
+- `_c3caller`: The C3Caller address
+- `_txSender`: The initial valid MPC address
+- `_dappID`: The DApp ID (obtained from registering with C3DAppManager)
 
 ## State Variables
 
-### `delay`
+### delay
 ```solidity
 uint256 public delay
 ```
-Delay period for governance changes (default: 2 days).
+Delay period for governance changes (default: 2 days)
 
-### `_oldGov`
+### _oldGov
 ```solidity
 address internal _oldGov
 ```
-The old governance address.
+The old governance address
 
-### `_newGov`
+### _newGov
 ```solidity
 address internal _newGov
 ```
-The new governance address.
+The new governance address
 
-### `_newGovEffectiveTime`
+### _newGovEffectiveTime
 ```solidity
 uint256 internal _newGovEffectiveTime
 ```
-The effective time for the new governance address.
+The delay between declaring a new governance address and it being confirmed
 
-### `_txSenders`
+### txSenders
 ```solidity
-mapping(address => bool) internal _txSenders
+mapping(address => bool) public txSenders
 ```
-Mapping of transaction sender addresses to their validity.
+Mapping of MPC addresses to their validity
 
-## Constructor
-
-### `constructor(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)`
-Initializes the C3GovernDApp contract.
-
-**Parameters:**
-- `_gov` (address): The initial governance address
-- `_c3callerProxy` (address): The C3Caller proxy address
-- `_txSender` (address): The initial transaction sender address
-- `_dappID` (uint256): The DApp identifier
-
-**Notes:**
-- Sets default delay to 2 days
-- Initializes governance addresses and effective time
-- Adds the initial transaction sender
+### senders
+```solidity
+address[] public senders
+```
+Array of all txSender addresses
 
 ## Modifiers
 
-### `onlyGov`
-Restricts access to governance or C3Caller.
+### onlyGov
+```solidity
+modifier onlyGov()
+```
+Modifier to restrict access to governance or C3Caller.
 
-**Notes:**
-- Reverts if the caller is neither governor nor C3Caller
+**Dev:** Reverts if the caller is neither governance address nor C3Caller
 
-## External Functions
+## Functions
 
-### `txSenders(address sender)`
-Check if an address is a valid transaction sender.
-
-**Parameters:**
-- `sender` (address): The address to check
-
-**Returns:**
-- `bool`: True if the address is a valid transaction sender
-
-### `gov()`
+### gov
+```solidity
+function gov() public view returns (address)
+```
 Get the current governance address.
 
 **Returns:**
 - `address`: The current governance address (new or old based on effective time)
 
-### `changeGov(address newGov_)`
-Change the governance address with delay.
+### changeGov
+```solidity
+function changeGov(address newGov_) external onlyGov
+```
+Change the governance address. The new governance address will be valid after delay.
 
 **Parameters:**
-- `newGov_` (address): The new governance address
+- `newGov_`: The new governance address
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Reverts if the new governance address is zero. Only governance or C3Caller can call this function
 
-**Notes:**
-- Only governance or C3Caller can call this function
-- Reverts if the new governance address is zero
-
-### `setDelay(uint256 _delay)`
+### setDelay
+```solidity
+function setDelay(uint256 _delay) external onlyGov
+```
 Set the delay period for governance changes.
 
 **Parameters:**
-- `_delay` (uint256): The new delay period in seconds
+- `_delay`: The new delay period in seconds
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only governance or C3Caller can call this function
 
-**Notes:**
-- Only governance or C3Caller can call this function
-
-### `addTxSender(address _txSender)`
-Add a transaction sender address.
-
-**Parameters:**
-- `_txSender` (address): The transaction sender address to add
-
-**Modifiers:**
-- `onlyGov`
-
-**Notes:**
-- Only governance or C3Caller can call this function
-
-### `disableTxSender(address _txSender)`
-Disable a transaction sender address.
+### addTxSender
+```solidity
+function addTxSender(address _txSender) external onlyGov
+```
+Add an MPC address that can call functions that should be targeted by C3Caller execute.
 
 **Parameters:**
-- `_txSender` (address): The transaction sender address to disable
+- `_txSender`: The MPC address to add
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only governance or C3Caller can call this function
 
-**Notes:**
-- Only governance or C3Caller can call this function
-
-### `doGov(string memory _to, string memory _toChainID, bytes memory _data)`
-Execute governance operation on a single target.
-
-**Parameters:**
-- `_to` (string): The target address on the destination chain
-- `_toChainID` (string): The destination chain identifier
-- `_data` (bytes): The calldata to execute
-
-**Modifiers:**
-- `onlyGov`
-
-**Notes:**
-- Only governance or C3Caller can call this function
-
-### `doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)`
-Execute governance operation on multiple targets.
+### disableTxSender
+```solidity
+function disableTxSender(address _txSender) external onlyGov
+```
+Disable an MPC address, which will no longer be able to call functions targeted by C3Caller execute.
 
 **Parameters:**
-- `_targets` (string[]): Array of target addresses on destination chains
-- `_toChainIDs` (string[]): Array of destination chain identifiers
-- `_data` (bytes): The calldata to execute
+- `_txSender`: The MPC address to disable
 
-**Modifiers:**
-- `onlyGov`
+**Dev:** Only governance or C3Caller can call this function
 
-**Notes:**
-- Only governance or C3Caller can call this function
-- Reverts if the arrays have different lengths
-
-### `isValidSender(address _txSender)`
-Check if an address is a valid sender for this DApp.
+### doGov
+```solidity
+function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGov
+```
+Execute an arbitrary cross-chain operation on a single target.
 
 **Parameters:**
-- `_txSender` (address): The address to check
+- `_to`: The target address on the destination network
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata to execute
+
+**Dev:** Only governance or C3Caller can call this function
+
+### doGovBroadcast
+```solidity
+function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data) external onlyGov
+```
+Execute an arbitrary cross-chain operation on multiple targets and multiple networks.
+
+**Parameters:**
+- `_targets`: Array of target addresses on destination networks
+- `_toChainIDs`: Array of destination chain IDs
+- `_data`: The calldata to execute
+
+**Dev:** Only governance or C3Caller can call this function
+
+### getAllTxSenders
+```solidity
+function getAllTxSenders() external view returns (address[] memory)
+```
+Get all txSender addresses.
 
 **Returns:**
-- `bool`: True if the address is a valid sender
+- `address[]`: Array of all txSender addresses
 
-**Notes:**
-- Overrides the function from IC3CallerDApp and C3CallerDApp
+### isValidSender
+```solidity
+function isValidSender(address _txSender) external view override(IC3CallerDApp, C3CallerDApp) returns (bool)
+```
+Check if an address is a valid MPC address executor for this DApp.
+
+**Parameters:**
+- `_txSender`: The address to check
+
+**Returns:**
+- `bool`: True if the address is a valid sender, false otherwise
 
 ## Events
 
-### `LogChangeGov`
-Emitted when the governance address is changed.
-
+### LogChangeGov
 ```solidity
-event LogChangeGov(
-    address indexed _oldGov,
-    address indexed _newGov,
-    uint256 indexed _effectiveTime,
-    uint256 _chainID
-);
+event LogChangeGov(address oldGov, address newGov, uint256 effectiveTime, uint256 chainId)
 ```
 
-### `LogTxSender`
-Emitted when a transaction sender is added or disabled.
-
+### LogTxSender
 ```solidity
-event LogTxSender(address indexed _txSender, bool _valid);
+event LogTxSender(address txSender, bool enabled)
 ```
 
 ## Errors
 
-### `C3GovernDApp_OnlyAuthorized`
-Thrown when an unauthorized address attempts to perform an operation.
-
+### C3GovernDApp_OnlyAuthorized
 ```solidity
-error C3GovernDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
+error C3GovernDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam)
 ```
 
-### `C3GovernDApp_IsZeroAddress`
-Thrown when a required address parameter is zero.
-
+### C3GovernDApp_IsZeroAddress
 ```solidity
-error C3GovernDApp_IsZeroAddress(C3ErrorParam);
+error C3GovernDApp_IsZeroAddress(C3ErrorParam)
 ```
 
-### `C3GovernDApp_LengthMismatch`
-Thrown when two arrays have mismatched lengths.
+## Author
 
-```solidity
-error C3GovernDApp_LengthMismatch(C3ErrorParam, C3ErrorParam);
-```
+@potti ContinuumDAO
 
-## Usage Examples
+## Dev
 
-### Governance Change with Delay
-```solidity
-// Change governance address (takes effect after delay)
-governDApp.changeGov(newGovernanceAddress);
-
-// Check current governance address
-address currentGov = governDApp.gov();
-
-// Set custom delay period
-governDApp.setDelay(7 days); // 7 days delay
-```
-
-### Transaction Sender Management
-```solidity
-// Add a new transaction sender
-governDApp.addTxSender(newTxSenderAddress);
-
-// Check if address is valid sender
-bool isValid = governDApp.txSenders(someAddress);
-
-// Disable a transaction sender
-governDApp.disableTxSender(oldTxSenderAddress);
-```
-
-### Cross-Chain Governance Operations
-```solidity
-// Execute governance operation on single target
-governDApp.doGov(
-    "0x1234567890123456789012345678901234567890", // target
-    "1", // chainId
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2) // data
-);
-
-// Execute governance operation on multiple targets
-string[] memory targets = new string[](2);
-targets[0] = "0x1234567890123456789012345678901234567890";
-targets[1] = "0x0987654321098765432109876543210987654321";
-
-string[] memory chainIDs = new string[](2);
-chainIDs[0] = "1";
-chainIDs[1] = "137";
-
-governDApp.doGovBroadcast(
-    targets,
-    chainIDs,
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2)
-);
-```
-
-## Security Considerations
-
-1. **Delayed Governance Changes**: Governance changes have a delay period to prevent immediate takeovers
-2. **Access Control**: Strict access control through modifiers ensures only authorized addresses can perform operations
-3. **Transaction Sender Management**: Validates transaction senders for cross-chain operations
-4. **Effective Time Tracking**: Tracks when governance changes take effect
-
-## Dependencies
-
-- `@openzeppelin/contracts/utils/Address.sol`
-- `@openzeppelin/contracts/utils/Strings.sol`
-- `C3CallerDApp.sol`
-- `IC3CallerDApp.sol`
-- `C3ErrorParam` from `C3CallerUtils.sol`
-- `IC3GovernDApp.sol`
+This contract provides governance functionality for DApps

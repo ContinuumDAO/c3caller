@@ -8,7 +8,7 @@ import {C3CallerUtils, C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 /**
  * @title C3Governor
- * @author patrickcure, potti, Selqui (ContinuumDAO)
+ * @author @patrickcure, @potti, @Selqui (ContinuumDAO)
  * @notice This contract acts as a wrapper for C3GovernDApp, for the purpose of cross-chain governance.
  *   A client is deployed on every applicable network and clients communicate with one another to send/receive data.
  *   The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a

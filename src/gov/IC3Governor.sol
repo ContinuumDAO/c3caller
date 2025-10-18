@@ -31,7 +31,7 @@ interface IC3Governor {
 
     function proposalRegistered(uint256 _nonce) external view returns (bool);
     function peer(string memory _chainIdStr) external view returns (string memory);
-    function failed(uint256 _nonce, uint256 _index) external view returns (string memory,string memory,bytes memory);
+    function failed(uint256 _nonce, uint256 _index) external view returns (string memory, string memory, bytes memory);
 
     function setPeer(string memory _chainIdStr, string memory _peerStr) external;
     function sendParams(

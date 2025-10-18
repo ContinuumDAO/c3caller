@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MockGovernedDApp is Ownable {
     error Broken(uint256);

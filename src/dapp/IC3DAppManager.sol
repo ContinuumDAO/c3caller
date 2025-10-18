@@ -2,17 +2,15 @@
 
 pragma solidity 0.8.27;
 
-import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3DAppManager {
-    // DApp status enum
     enum DAppStatus {
-        Active,     // DApp is active and operational
-        Suspended,  // DApp is temporarily suspended
-        Deprecated  // DApp is permanently deprecated and cannot be reused
+        Active, // DApp is active and operational
+        Suspended, // DApp is temporarily suspended
+        Deprecated // DApp is permanently deprecated and cannot be reused
     }
 
-    // DApp config
     struct DAppConfig {
         uint256 id;
         address appAdmin; // account who admin the application's config
@@ -24,7 +22,9 @@ interface IC3DAppManager {
         uint256 indexed dappID, address indexed appAdmin, address indexed feeToken, string appDomain, string email
     );
     event SetBlacklists(uint256 _dappID, bool _flag);
-    event DAppStatusChanged(uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason);
+    event DAppStatusChanged(
+        uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason
+    );
 
     event SetDAppAddr(uint256 _dappID, string[] _addresses);
 

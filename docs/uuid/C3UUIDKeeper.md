@@ -1,271 +1,246 @@
 # C3UUIDKeeper
 
-## Overview
+Contract for managing Universally Unique Identifiers (UUIDs) in the C3 protocol. This contract is responsible for generating, tracking, and validating UUIDs for cross-chain operations to prevent replay attacks and ensure uniqueness.
 
-C3UUIDKeeper is a contract for managing unique identifiers (UUIDs) in the C3 protocol. This contract is responsible for generating, tracking, and validating UUIDs for cross-chain operations to prevent replay attacks and ensure uniqueness.
-
-### Key Features
+## Key Features
 
 - UUID generation with nonce-based uniqueness
 - UUID completion tracking
 - UUID revocation capabilities
-- Cross-chain UUID calculation utilities
-
-**Note:** This contract is critical for cross-chain security and uniqueness
-
-## Contract Details
-
-- **Contract Name:** `C3UUIDKeeper`
-- **Implements:** `IC3UUIDKeeper`
-- **Inherits:** `C3GovClient`
-- **Author:** @potti ContinuumDAO
-- **License:** BSL-1.1
-
-## State Variables
-
-### `completedSwapin`
-```solidity
-mapping(bytes32 => bool) public completedSwapin
-```
-Mapping of UUID to completion status.
-
-### `uuid2Nonce`
-```solidity
-mapping(bytes32 => uint256) public uuid2Nonce
-```
-Mapping of UUID to its associated nonce.
-
-### `currentNonce`
-```solidity
-uint256 public currentNonce
-```
-Current nonce for UUID generation.
+- Utilities to calculate UUID before OR after it happens
 
 ## Constructor
 
-### `constructor()`
-Initializes the C3UUIDKeeper contract.
+```solidity
+constructor()
+```
 
-**Notes:**
-- Initializes the contract with the deployer as governor
+Initializes the contract with the deployer as governance address.
+
+## State Variables
+
+### completedSwapin
+```solidity
+mapping(bytes32 => bool) public completedSwapin
+```
+Mapping of UUID to completion status
+
+### uuid2Nonce
+```solidity
+mapping(bytes32 => uint256) public uuid2Nonce
+```
+Mapping of UUID to its associated nonce
+
+### currentNonce
+```solidity
+uint256 public currentNonce
+```
+Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
 
 ## Modifiers
 
-### `autoIncreaseSwapoutNonce`
-Automatically increase the swapout nonce.
+### autoIncreaseSwapoutNonce
+```solidity
+modifier autoIncreaseSwapoutNonce()
+```
+Modifier to automatically increment the swapout nonce.
 
-**Notes:**
-- Increments the current nonce before executing the function
+**Dev:** Increments the current nonce before executing the function
 
-### `checkCompletion(bytes32 _uuid)`
-Check if a UUID has already been completed.
-
-**Parameters:**
-- `_uuid` (bytes32): The UUID to check
-
-**Notes:**
-- Reverts if the UUID has already been completed
-
-## External Functions
-
-### `isUUIDExist(bytes32 _uuid)`
-Check if a UUID exists in the system.
+### checkCompletion
+```solidity
+modifier checkCompletion(bytes32 _uuid)
+```
+Modifier to check if a UUID has already been completed.
 
 **Parameters:**
-- `_uuid` (bytes32): The UUID to check
+- `_uuid`: The UUID to check
 
-**Returns:**
-- `bool`: True if the UUID exists, false otherwise
+**Dev:** Reverts if the UUID has already been completed
 
-### `isCompleted(bytes32 _uuid)`
-Check if a UUID has been completed.
+## Functions
 
-**Parameters:**
-- `_uuid` (bytes32): The UUID to check
-
-**Returns:**
-- `bool`: True if the UUID has been completed, false otherwise
-
-### `revokeSwapin(bytes32 _uuid)`
-Revoke a completed UUID (governance only).
-
-**Parameters:**
-- `_uuid` (bytes32): The UUID to revoke
-
-**Modifiers:**
-- `onlyGov`
-
-**Notes:**
-- Only the governor can call this function
-
-### `registerUUID(bytes32 _uuid)`
-Register a UUID as completed (operator only).
+### genUUID
+```solidity
+function genUUID(
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data
+) external onlyOperator autoIncreaseSwapoutNonce returns (bytes32 _uuid)
+```
+Generate a new UUID for cross-chain operations and increment the nonce.
 
 **Parameters:**
-- `_uuid` (bytes32): The UUID to register as completed
-
-**Modifiers:**
-- `onlyOperator`
-- `checkCompletion`
-
-**Notes:**
-- Only operators can call this function
-
-### `genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)`
-Generate a new UUID for cross-chain operations.
-
-**Parameters:**
-- `_dappID` (uint256): The DApp identifier
-- `_to` (string): The target address on the destination chain
-- `_toChainID` (string): The destination chain identifier
-- `_data` (bytes): The calldata for the cross-chain operation
+- `_dappID`: The DApp identifier
+- `_to`: The target address on the destination chain
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata for the cross-chain operation
 
 **Returns:**
 - `bytes32`: The generated UUID
 
-**Modifiers:**
-- `onlyOperator`
-- `autoIncreaseSwapoutNonce`
+**Dev:** Only operator (C3Caller contract) can call this function
 
-**Notes:**
-- Only operators can call this function
-- Automatically increments the nonce before execution
-- Generates UUID using keccak256 hash of: (contract address, msg.sender, block.chainid, dappID, to, toChainID, currentNonce, data)
-- Checks if UUID already exists and reverts if it does
-- Stores the nonce associated with the generated UUID
-
-## Public Functions
-
-### `calcCallerUUID(address _from, uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)`
-Calculate a UUID for a caller without generating it.
+### registerUUID
+```solidity
+function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyOperator checkCompletion(_uuid)
+```
+Register a UUID as completed.
 
 **Parameters:**
-- `_from` (address): The address of the caller
-- `_dappID` (uint256): The DApp identifier
-- `_to` (string): The target address on the destination chain
-- `_toChainID` (string): The destination chain identifier
-- `_data` (bytes): The calldata for the cross-chain operation
+- `_uuid`: The UUID to register as completed
+- `_dappID`: The DApp identifier associated with the UUID
+
+**Dev:** Only operator (C3Caller contract) can call this function
+
+### revokeSwapin
+```solidity
+function revokeSwapin(bytes32 _uuid, uint256 _dappID) external onlyGov
+```
+Revoke a completed UUID (governance only).
+
+**Parameters:**
+- `_uuid`: The UUID to revoke
+- `_dappID`: The DApp identifier associated with the UUID
+
+**Dev:** Only the governance address can call this function
+
+### isCompleted
+```solidity
+function isCompleted(bytes32 _uuid) external view returns (bool)
+```
+Check if a UUID has been completed.
+
+**Parameters:**
+- `_uuid`: The UUID to check
+
+**Returns:**
+- `bool`: True if the UUID has been completed, false otherwise
+
+### doesUUIDExist
+```solidity
+function doesUUIDExist(bytes32 _uuid) public view returns (bool)
+```
+Check if a UUID exists in the system.
+
+**Parameters:**
+- `_uuid`: The UUID to check
+
+**Returns:**
+- `bool`: True if the UUID exists, false otherwise
+
+### calcCallerUUID
+```solidity
+function calcCallerUUID(
+    address _from,
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data
+) public view returns (bytes32)
+```
+Calculate the UUID for a given payload without incrementing the nonce.
+
+**Parameters:**
+- `_from`: The address of the caller (this is always the C3Caller contract)
+- `_dappID`: The DApp identifier
+- `_to`: The target address on the destination chain
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata for the cross-chain operation
 
 **Returns:**
 - `bytes32`: The calculated UUID
 
-### `calcCallerUUIDWithNonce(address _from, uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data, uint256 _nonce)`
-Calculate a UUID with a specific nonce.
+### calcCallerUUIDWithNonce
+```solidity
+function calcCallerUUIDWithNonce(
+    address _from,
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data,
+    uint256 _nonce
+) public view returns (bytes32)
+```
+Calculate the UUID for a given payload with a specific nonce, without incrementing it.
 
 **Parameters:**
-- `_from` (address): The address of the caller
-- `_dappID` (uint256): The DApp identifier
-- `_to` (string): The target address on the destination chain
-- `_toChainID` (string): The destination chain identifier
-- `_data` (bytes): The calldata for the cross-chain operation
-- `_nonce` (uint256): The specific nonce to use
+- `_from`: The address of the caller (this is always the C3Caller contract)
+- `_dappID`: The DApp identifier
+- `_to`: The target address on the destination chain
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata for the cross-chain operation
+- `_nonce`: The specific nonce to use
 
 **Returns:**
 - `bytes32`: The calculated UUID
 
-### `calcCallerEncode(address _from, uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)`
-Calculate the encoded data for a UUID without generating it.
+### calcCallerEncode
+```solidity
+function calcCallerEncode(
+    address _from,
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data
+) public view returns (bytes memory)
+```
+Calculate the encoded data for a given payload with a specific nonce, without incrementing it.
 
 **Parameters:**
-- `_from` (address): The address of the caller
-- `_dappID` (uint256): The DApp identifier
-- `_to` (string): The target address on the destination chain
-- `_toChainID` (string): The destination chain identifier
-- `_data` (bytes): The calldata for the cross-chain operation
+- `_from`: The address of the caller
+- `_dappID`: The DApp identifier
+- `_to`: The target address on the destination chain
+- `_toChainID`: The destination chain identifier
+- `_data`: The calldata for the cross-chain operation
 
 **Returns:**
 - `bytes`: The encoded data for the UUID
 
+**Dev:** This function returns the input to keccak256 that would produce the corresponding UUID
+
+## Events
+
+### UUIDGenerated
+```solidity
+event UUIDGenerated(
+    bytes32 indexed uuid,
+    uint256 indexed dappID,
+    address caller,
+    string to,
+    string toChainID,
+    uint256 nonce,
+    bytes data
+)
+```
+
+### UUIDCompleted
+```solidity
+event UUIDCompleted(bytes32 indexed uuid, uint256 indexed dappID, address caller)
+```
+
+### UUIDRevoked
+```solidity
+event UUIDRevoked(bytes32 indexed uuid, uint256 indexed dappID, address caller)
+```
+
 ## Errors
 
-### `C3UUIDKeeper_UUIDAlreadyExists`
-Thrown when attempting to register a UUID that already exists.
-
+### C3UUIDKeeper_UUIDAlreadyCompleted
 ```solidity
-error C3UUIDKeeper_UUIDAlreadyExists(bytes32);
+error C3UUIDKeeper_UUIDAlreadyCompleted(bytes32)
 ```
 
-### `C3UUIDKeeper_UUIDAlreadyCompleted`
-Thrown when attempting to register a UUID that has already been completed.
-
+### C3UUIDKeeper_UUIDAlreadyExists
 ```solidity
-error C3UUIDKeeper_UUIDAlreadyCompleted(bytes32);
+error C3UUIDKeeper_UUIDAlreadyExists(bytes32)
 ```
 
-## Usage Examples
+## Author
 
-### UUID Generation and Registration
-```solidity
-// Generate a new UUID for cross-chain operation
-bytes32 uuid = uuidKeeper.genUUID(
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // to
-    "1", // toChainID
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2) // data
-);
+@potti ContinuumDAO
 
-// Check if UUID exists
-bool exists = uuidKeeper.isUUIDExist(uuid);
+## Dev
 
-// Register UUID as completed
-uuidKeeper.registerUUID(uuid);
-
-// Check if UUID is completed
-bool completed = uuidKeeper.isCompleted(uuid);
-```
-
-### UUID Calculation
-```solidity
-// Calculate UUID without generating it
-bytes32 calculatedUUID = uuidKeeper.calcCallerUUID(
-    callerAddress,
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // to
-    "1", // toChainID
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2) // data
-);
-
-// Calculate UUID with specific nonce
-bytes32 uuidWithNonce = uuidKeeper.calcCallerUUIDWithNonce(
-    callerAddress,
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // to
-    "1", // toChainID
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2), // data
-    123 // nonce
-);
-
-// Calculate encoded data
-bytes memory encodedData = uuidKeeper.calcCallerEncode(
-    callerAddress,
-    1, // dappID
-    "0x1234567890123456789012345678901234567890", // to
-    "1", // toChainID
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2) // data
-);
-```
-
-### UUID Management
-```solidity
-// Get current nonce
-uint256 nonce = uuidKeeper.currentNonce();
-
-// Get nonce for specific UUID
-uint256 uuidNonce = uuidKeeper.uuid2Nonce(someUUID);
-
-// Revoke a completed UUID (governance only)
-uuidKeeper.revokeSwapin(completedUUID);
-```
-
-## Security Considerations
-
-1. **Nonce-Based Uniqueness**: UUIDs are generated using nonces to ensure uniqueness
-2. **Completion Tracking**: Prevents replay attacks by tracking completed UUIDs
-3. **Access Control**: Only operators can generate and register UUIDs
-4. **Revocation Capability**: Governance can revoke completed UUIDs if needed
-5. **Cross-Chain Safety**: UUIDs include chain ID to prevent cross-chain replay attacks
-
-## Dependencies
-
-- `C3GovClient.sol`
-- `IC3UUIDKeeper.sol`
+This contract is critical for cross-chain security and uniqueness

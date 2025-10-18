@@ -1,300 +1,210 @@
 # C3Governor
 
-## Overview
-
-C3Governor is a governance contract for cross-chain proposal management in the C3 protocol. This contract extends C3GovernDApp to provide proposal-based governance functionality for cross-chain operations.
-
-### Key Features
-
-- Proposal creation and management
-- Cross-chain proposal execution
-- Proposal data storage and retrieval
-- Failed proposal handling and retry mechanisms
-
-**Note:** This contract enables governance-driven cross-chain operations
-
-## Contract Details
-
-- **Contract Name:** `C3Governor`
-- **Implements:** `IC3Governor`
-- **Inherits:** `C3GovernDApp`
-- **Author:** @potti and @selqui ContinuumDAO
-- **License:** BSL-1.1
-
-## State Variables
-
-### `_proposal`
-```solidity
-mapping(bytes32 => Proposal) private _proposal
-```
-Mapping of proposal nonce to proposal data.
-
-### `proposalId`
-```solidity
-bytes32 public proposalId
-```
-Current proposal identifier.
+This contract acts as a wrapper for C3GovernDApp, for the purpose of cross-chain governance. A client is deployed on every applicable network and clients communicate with one another to send/receive data. The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a call to this contract's function `sendParams` with an array of target contracts, their chain IDs, and calldata. Included as a feature is the ability to retry reverted transactions, mirroring the execute function in Governor. If one or more actions from a proposal fail, anyone may retry them until they succeed, obviating the need for a duplicate proposal.
 
 ## Constructor
 
-### `constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)`
-Initializes the C3Governor contract.
+```solidity
+constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
+```
 
 **Parameters:**
-- `_gov` (address): The governance address
-- `_c3CallerProxy` (address): The C3Caller proxy address
-- `_txSender` (address): The transaction sender address
-- `_dappID` (uint256): The DApp identifier
+- `_gov`: Deployed Governor contract (or admin of choice)
+- `_c3CallerProxy`: The C3Caller deployed instance
+- `_txSender`: The MPC address that is whitelisted to execute incoming operations
+- `_dappID`: The DApp ID of this C3CallerDApp
 
-**Notes:**
-- Calls the C3GovernDApp constructor
+## State Variables
 
-## External Functions
+### VERSION
+```solidity
+uint256 public constant VERSION = 1
+```
 
-### `sendParams(bytes memory _data, bytes32 _nonce)`
-Send a single parameter for governance proposal.
+### proposalRegistered
+```solidity
+mapping(uint256 => bool) public proposalRegistered
+```
+A registry of active proposal IDs (or a custom nonce)
 
-**Parameters:**
-- `_data` (bytes): The proposal data
-- `_nonce` (bytes32): The proposal nonce
+### peer
+```solidity
+mapping(string => string) public peer
+```
+The C3Governor clients deployed to destination networks
 
-**Modifiers:**
-- `onlyGov`
+### failed
+```solidity
+mapping(uint256 => mapping(uint256 => Proposal)) public failed
+```
+Actions that have failed on the destination network have their data stored until they are retried
 
-**Notes:**
-- Only the governor can call this function
-- Reverts if the data is empty
+## Functions
 
-### `sendMultiParams(bytes[] memory _data, bytes32 _nonce)`
-Send multiple parameters for governance proposal.
-
-**Parameters:**
-- `_data` (bytes[]): Array of proposal data
-- `_nonce` (bytes32): The proposal nonce
-
-**Modifiers:**
-- `onlyGov`
-
-**Notes:**
-- Only the governor can call this function
-- Reverts if the data array is empty or contains empty data
-
-### `doGov(bytes32 _nonce, uint256 _offset)`
-Execute a governance proposal that has failed.
+### setPeer
+```solidity
+function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGov
+```
+Sets the peer address for a given chain ID.
 
 **Parameters:**
-- `_nonce` (bytes32): The proposal nonce
-- `_offset` (uint256): The offset within the proposal data
+- `_chainIdStr`: The chain ID to set
+- `_peerStr`: The deployed peer client on that network
 
-**Notes:**
-- Reverts if the offset is out of bounds or the proposal hasn't failed
+**Dev:** Chain ID and peer address are encoded as a string to allow non-EVM data
 
-### `getProposalData(bytes32 _nonce, uint256 _offset)`
-Get proposal data and failure status.
+### doGov
+```solidity
+function doGov(uint256 _nonce, uint256 _index) external
+```
+Allow anyone to retry a given transaction of a given proposal that reverted on another network.
 
 **Parameters:**
-- `_nonce` (bytes32): The proposal nonce
-- `_offset` (uint256): The offset within the proposal data
+- `_nonce`: The proposal ID of the transaction
+- `_index`: The index of the transaction in the proposal
+
+**Dev:** Some transactions in a given proposal may fail, but this does not stop other transactions in the proposal from succeeding. This should be anticipated in the target contract architecture
+
+### sendParams
+```solidity
+function sendParams(
+    uint256 _nonce,
+    string[] memory _targetStrs,
+    string[] memory _toChainIdStrs,
+    bytes[] memory _calldatas
+) external onlyGov
+```
+Entry point for a proposal to be executed on another network (called by Governor). This call should be encoded in a Governor proposal. Each proposal may only be initiated once.
+
+**Parameters:**
+- `_nonce`: The ID of the proposal (can only be done once per proposal)
+- `_targetStrs`: The array of addresses that will be called on the destination network
+- `_toChainIdStrs`: The array of chain IDs for each transaction
+- `_calldatas`: The array of calldata that will be called on the corresponding address
+
+**Dev:** Arrays must be the same length, non-zero values. Chain IDs must be registered peers
+
+### receiveParams
+```solidity
+function receiveParams(
+    uint256 _nonce,
+    uint256 _index,
+    string memory _targetStr,
+    string memory _toChainIdStr,
+    bytes memory _calldata
+) external onlyCaller returns (bytes memory)
+```
+Entry point on the destination network for calls that were initiated with `sendParams`.
+
+**Parameters:**
+- `_nonce`: The ID of the proposal from the source network
+- `_index`: The index of the transaction on the proposal
+- `_targetStr`: The address of the contract to call on the destination network
+- `_toChainIdStr`: The chain ID of the destination network (the network this function is called on)
+- `_calldata`: The data to call on the corresponding contract address
 
 **Returns:**
-- `bytes`: The proposal data
-- `bool`: The failure status
+- `bytes`: The result of the call
 
-### `version()`
-Get the contract version.
-
-**Returns:**
-- `uint256`: The version number
-
-### `proposalLength()`
-Get the number of cross-chain invocations in the current proposal.
-
-**Returns:**
-- `uint256`: The number of cross-chain invocations
+**Dev:** Called by C3Caller execute. If the transaction reverts, it will be routed to fallback on source chain
 
 ## Internal Functions
 
-### `chainID()`
-Get the current chain ID.
-
-**Returns:**
-- `uint256`: The current chain ID
-
-### `_c3gov(bytes32 _nonce, uint256 _offset)`
-Internal function to execute governance proposals.
-
-**Parameters:**
-- `_nonce` (bytes32): The proposal nonce
-- `_offset` (uint256): The offset within the proposal data
-
-**Notes:**
-- Decodes proposal data into chainId, target, and remoteData
-- If chainId matches current chain, executes local call to target address
-- If local call fails, marks the proposal as failed
-- If chainId doesn't match current chain, marks proposal as failed and emits C3GovernorLog event
-- TODO: Add flag to configure whether to use governance or operator for sending
-
-### `_c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)`
-Internal function to handle fallback calls.
-
-**Parameters:**
-- `_selector` (bytes4): The function selector
-- `_data` (bytes): The call data
-- `_reason` (bytes): The failure reason
-
-**Returns:**
-- `bool`: True if the fallback was handled successfully
-
-**Notes:**
-- Overrides the function from C3CallerDApp
-- Marks the current proposal as failed by setting hasFailed[_len - 1] = true
-- Emits a LogFallback event with selector, data, and reason
-
-## Data Structures
-
-### `Proposal`
-Represents a governance proposal.
-
+### _sendParams
 ```solidity
-struct Proposal {
-    bytes[] data;
-    bool[] hasFailed;
-}
+function _sendParams(
+    uint256 _nonce,
+    uint256 _index,
+    string memory _target,
+    string memory _toChainIdStr,
+    bytes memory _calldata
+) internal
 ```
+Internal handler called by `sendParams` and `doGov`.
 
-**Fields:**
-- `data` (bytes[]): Array of proposal data
-- `hasFailed` (bool[]): Array indicating which proposals have failed
+**Parameters:**
+- `_nonce`: The ID of the proposal
+- `_index`: The index of the transaction on the proposal
+- `_target`: The address of the contract to call on the destination network
+- `_toChainIdStr`: The chain ID of the destination network
+- `_calldata`: The data to execute on the corresponding contract address
+
+### _c3Fallback
+```solidity
+function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool)
+```
+Called by C3Caller on the source network in the event of a reverted transaction.
+
+**Parameters:**
+- `_selector`: The 4-byte selector of the transaction (necessarily the selector of `receiveParams`)
+- `_data`: The revert data (passed in as the arguments to the failed `receiveParams`)
+- `_reason`: The revert data of the failed `receiveParams`(encoded in the custom error C3Governor_ExecFailed)
+
+**Returns:**
+- `bool`: True if the fallback was handled
+
+**Dev:** This marks the transaction as eligible to retry using `doGov` by saving its target, chain ID and calldata
 
 ## Events
 
-### `NewProposal`
-Emitted when a new proposal is created.
-
+### C3GovernorCall
 ```solidity
-event NewProposal(bytes32 indexed uuid);
+event C3GovernorCall(uint256 indexed nonce, uint256 indexed index, string targetStr, string toChainIdStr, bytes calldata)
 ```
 
-### `C3GovernorLog`
-Emitted when a cross-chain governance operation is logged.
-
+### C3GovernorExec
 ```solidity
-event C3GovernorLog(bytes32 indexed _nonce, uint256 indexed _toChainID, string _to, bytes _toData);
+event C3GovernorExec(uint256 indexed nonce, uint256 indexed index, string targetStr, string toChainIdStr, bytes calldata)
 ```
 
-### `LogChangeMPC`
-Emitted when MPC address is changed.
-
+### C3GovernorFallback
 ```solidity
-event LogChangeMPC(
-    address indexed _oldMPC,
-    address indexed _newMPC,
-    uint256 indexed _effectiveTime,
-    uint256 _chainID
-);
-```
-
-### `LogFallback`
-Emitted when a fallback occurs.
-
-```solidity
-event LogFallback(bytes4 _selector, bytes _data, bytes _reason);
-```
-
-### `LogChangeGov`
-Emitted when governance address is changed.
-
-```solidity
-event LogChangeGov(address _gov, address _newGov);
-```
-
-### `LogSendParams`
-Emitted when parameters are sent.
-
-```solidity
-event LogSendParams(address _target, uint256 _chainId, bytes _dataXChain);
+event C3GovernorFallback(uint256 indexed nonce, uint256 indexed index, string targetStr, string toChainIdStr, bytes calldata, bytes reason)
 ```
 
 ## Errors
 
-### `C3Governor_InvalidLength`
-Thrown when proposal data has invalid length.
-
+### C3Governor_InvalidProposal
 ```solidity
-error C3Governor_InvalidLength(C3ErrorParam);
+error C3Governor_InvalidProposal(uint256)
 ```
 
-### `C3Governor_OutOfBounds`
-Thrown when accessing proposal data out of bounds.
-
+### C3Governor_HasNotFailed
 ```solidity
-error C3Governor_OutOfBounds();
+error C3Governor_HasNotFailed()
 ```
 
-### `C3Governor_HasNotFailed`
-Thrown when attempting to retry a proposal that hasn't failed.
-
+### C3Governor_InvalidLength
 ```solidity
-error C3Governor_HasNotFailed();
+error C3Governor_InvalidLength(C3ErrorParam)
 ```
 
-## Usage Examples
-
-### Creating a Single Parameter Proposal
+### C3Governor_LengthMismatch
 ```solidity
-// Create a proposal with single parameter
-bytes memory proposalData = abi.encode(
-    1, // chainId
-    "0x1234567890123456789012345678901234567890", // target
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2) // remoteData
-);
-
-bytes32 nonce = keccak256(abi.encodePacked(block.timestamp, msg.sender));
-governor.sendParams(proposalData, nonce);
+error C3Governor_LengthMismatch(C3ErrorParam, C3ErrorParam)
 ```
 
-### Creating a Multi-Parameter Proposal
+### C3Governor_UnsupportedChainID
 ```solidity
-// Create a proposal with multiple parameters
-bytes[] memory proposalData = new bytes[](2);
-proposalData[0] = abi.encode(1, "0x123...", abi.encode(...));
-proposalData[1] = abi.encode(137, "0x456...", abi.encode(...));
-
-bytes32 nonce = keccak256(abi.encodePacked(block.timestamp, msg.sender));
-governor.sendMultiParams(proposalData, nonce);
+error C3Governor_UnsupportedChainID(string)
 ```
 
-### Retrying Failed Proposals
+### C3Governor_ExecFailed
 ```solidity
-// Check if a proposal failed
-(bytes memory data, bool hasFailed) = governor.getProposalData(nonce, 0);
+error C3Governor_ExecFailed(bytes)
+```
 
-if (hasFailed) {
-    // Retry the failed proposal
-    governor.doGov(nonce, 0);
+## Structs
+
+### Proposal
+```solidity
+struct Proposal {
+    string target;
+    string toChainId;
+    bytes data;
 }
 ```
 
-### Getting Proposal Information
-```solidity
-// Get current proposal length
-uint256 length = governor.proposalLength();
+## Authors
 
-// Get current proposal ID
-bytes32 currentProposalId = governor.proposalId();
-```
-
-## Security Considerations
-
-1. **Access Control**: Only the governor can create proposals
-2. **Proposal Validation**: Validates proposal data before execution
-3. **Failure Handling**: Tracks failed proposals for retry mechanisms
-4. **Cross-Chain Safety**: Handles cross-chain proposal execution safely
-5. **Fallback Mechanism**: Provides fallback handling for failed operations
-
-## Dependencies
-
-- `@openzeppelin/contracts/utils/Strings.sol`
-- `C3CallerUtils.sol`
-- `C3GovernDApp.sol`
-- `IC3Governor.sol`
+@patrickcure, @potti, @Selqui (ContinuumDAO)

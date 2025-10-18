@@ -40,15 +40,10 @@ contract C3UUIDKeeperTest is Helpers {
     function test_GenUUID() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
 
         assertTrue(uuid != bytes32(0));
-        assertTrue(uuidKeeper.isUUIDExist(uuid));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid));
         assertEq(uuidKeeper.uuid2Nonce(uuid), 1);
         assertEq(uuidKeeper.currentNonce(), 1);
 
@@ -58,22 +53,12 @@ contract C3UUIDKeeperTest is Helpers {
     function test_GenUUIDMultiple() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid1 = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
-        bytes32 uuid2 = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid1 = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
+        bytes32 uuid2 = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
 
         assertTrue(uuid1 != uuid2);
-        assertTrue(uuidKeeper.isUUIDExist(uuid1));
-        assertTrue(uuidKeeper.isUUIDExist(uuid2));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid1));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid2));
         assertEq(uuidKeeper.uuid2Nonce(uuid1), 1);
         assertEq(uuidKeeper.uuid2Nonce(uuid2), 2);
         assertEq(uuidKeeper.currentNonce(), 2);
@@ -83,21 +68,11 @@ contract C3UUIDKeeperTest is Helpers {
 
     function test_GenUUIDDifferentOperators() public {
         vm.startPrank(mpc1);
-        bytes32 uuid1 = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid1 = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         vm.stopPrank();
 
         vm.startPrank(mpc2);
-        bytes32 uuid2 = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid2 = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         vm.stopPrank();
 
         assertTrue(uuid1 != uuid2);
@@ -118,12 +93,7 @@ contract C3UUIDKeeperTest is Helpers {
     function test_RegisterUUID() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         uuidKeeper.registerUUID(uuid, 1);
 
         assertTrue(uuidKeeper.isCompleted(uuid));
@@ -135,20 +105,10 @@ contract C3UUIDKeeperTest is Helpers {
     function test_RegisterUUIDAlreadyCompleted() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         uuidKeeper.registerUUID(uuid, 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3UUIDKeeper.C3UUIDKeeper_UUIDAlreadyCompleted.selector,
-                uuid
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3UUIDKeeper.C3UUIDKeeper_UUIDAlreadyCompleted.selector, uuid));
         uuidKeeper.registerUUID(uuid, 1);
 
         vm.stopPrank();
@@ -169,12 +129,7 @@ contract C3UUIDKeeperTest is Helpers {
     function test_IsCompleted() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         assertFalse(uuidKeeper.isCompleted(uuid));
 
         uuidKeeper.registerUUID(uuid, 1);
@@ -186,16 +141,11 @@ contract C3UUIDKeeperTest is Helpers {
     function test_IsUUIDExist() public {
         vm.startPrank(mpc1);
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
-        assertTrue(uuidKeeper.isUUIDExist(uuid));
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
+        assertTrue(uuidKeeper.doesUUIDExist(uuid));
 
         bytes32 nonExistentUUID = keccak256("non-existent");
-        assertFalse(uuidKeeper.isUUIDExist(nonExistentUUID));
+        assertFalse(uuidKeeper.doesUUIDExist(nonExistentUUID));
 
         vm.stopPrank();
     }
@@ -204,12 +154,7 @@ contract C3UUIDKeeperTest is Helpers {
 
     function test_RevokeSwapin() public {
         vm.startPrank(mpc1);
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         uuidKeeper.registerUUID(uuid, 1);
         vm.stopPrank();
 
@@ -235,21 +180,10 @@ contract C3UUIDKeeperTest is Helpers {
     // ============ CALCULATION TESTS ============
 
     function test_CalcCallerUUID() public {
-        bytes32 expectedUUID = uuidKeeper.calcCallerUUID(
-            mpc1,
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 expectedUUID = uuidKeeper.calcCallerUUID(mpc1, DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
 
         vm.startPrank(mpc1);
-        bytes32 actualUUID = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 actualUUID = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         vm.stopPrank();
 
         assertEq(expectedUUID, actualUUID);
@@ -257,55 +191,25 @@ contract C3UUIDKeeperTest is Helpers {
 
     function test_CalcCallerUUIDWithNonce() public view {
         uint256 nonce = 123;
-        bytes32 uuid = uuidKeeper.calcCallerUUIDWithNonce(
-            mpc1,
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA,
-            nonce
-        );
+        bytes32 uuid = uuidKeeper.calcCallerUUIDWithNonce(mpc1, DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA, nonce);
 
         assertTrue(uuid != bytes32(0));
 
         // Verify the calculation is correct
         bytes32 expectedUUID = keccak256(
-            abi.encode(
-                address(uuidKeeper),
-                mpc1,
-                block.chainid,
-                DAPP_ID,
-                TO_ADDRESS,
-                TO_CHAIN_ID,
-                nonce,
-                TEST_DATA
-            )
+            abi.encode(address(uuidKeeper), mpc1, block.chainid, DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, nonce, TEST_DATA)
         );
         assertEq(uuid, expectedUUID);
     }
 
     function test_CalcCallerEncode() public view {
-        bytes memory encoded = uuidKeeper.calcCallerEncode(
-            mpc1,
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes memory encoded = uuidKeeper.calcCallerEncode(mpc1, DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
 
         assertTrue(encoded.length > 0);
 
         // Verify the encoding is correct
-        bytes memory expectedEncoded = abi.encode(
-            address(uuidKeeper),
-            mpc1,
-            block.chainid,
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            1,
-            TEST_DATA
-        );
+        bytes memory expectedEncoded =
+            abi.encode(address(uuidKeeper), mpc1, block.chainid, DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, 1, TEST_DATA);
         assertEq(encoded, expectedEncoded);
     }
 
@@ -360,7 +264,7 @@ contract C3UUIDKeeperTest is Helpers {
         bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, "");
 
         assertTrue(uuid != bytes32(0));
-        assertTrue(uuidKeeper.isUUIDExist(uuid));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid));
 
         vm.stopPrank();
     }
@@ -373,15 +277,10 @@ contract C3UUIDKeeperTest is Helpers {
             largeData[i] = bytes1(uint8(i % 256));
         }
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            largeData
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, largeData);
 
         assertTrue(uuid != bytes32(0));
-        assertTrue(uuidKeeper.isUUIDExist(uuid));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid));
 
         vm.stopPrank();
     }
@@ -392,15 +291,10 @@ contract C3UUIDKeeperTest is Helpers {
         string memory specialTo = "0x!@#$%^&*()_+-=[]{}|;':\",./<>?";
         string memory specialChainId = "chain-id-with-special-chars!@#";
 
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            specialTo,
-            specialChainId,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, specialTo, specialChainId, TEST_DATA);
 
         assertTrue(uuid != bytes32(0));
-        assertTrue(uuidKeeper.isUUIDExist(uuid));
+        assertTrue(uuidKeeper.doesUUIDExist(uuid));
 
         vm.stopPrank();
     }
@@ -411,13 +305,8 @@ contract C3UUIDKeeperTest is Helpers {
         vm.startPrank(mpc1);
 
         for (uint256 i = 0; i < 10; i++) {
-            bytes32 uuid = uuidKeeper.genUUID(
-                i,
-                TO_ADDRESS,
-                TO_CHAIN_ID,
-                TEST_DATA
-            );
-            assertTrue(uuidKeeper.isUUIDExist(uuid));
+            bytes32 uuid = uuidKeeper.genUUID(i, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
+            assertTrue(uuidKeeper.doesUUIDExist(uuid));
             assertEq(uuidKeeper.uuid2Nonce(uuid), i + 1);
         }
 
@@ -431,16 +320,11 @@ contract C3UUIDKeeperTest is Helpers {
 
         bytes32[] memory uuids = new bytes32[](5);
         for (uint256 i = 0; i < 5; i++) {
-            uuids[i] = uuidKeeper.genUUID(
-                i,
-                TO_ADDRESS,
-                TO_CHAIN_ID,
-                TEST_DATA
-            );
+            uuids[i] = uuidKeeper.genUUID(i, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         }
 
         for (uint256 i = 0; i < 5; i++) {
-            uuidKeeper.registerUUID(uuids[i]);
+            uuidKeeper.registerUUID(uuids[i], 1);
             assertTrue(uuidKeeper.isCompleted(uuids[i]));
         }
 
@@ -453,12 +337,7 @@ contract C3UUIDKeeperTest is Helpers {
         vm.startPrank(mpc1);
 
         // This should work as the contract address is used in the calculation
-        bytes32 uuid = uuidKeeper.genUUID(
-            DAPP_ID,
-            TO_ADDRESS,
-            TO_CHAIN_ID,
-            TEST_DATA
-        );
+        bytes32 uuid = uuidKeeper.genUUID(DAPP_ID, TO_ADDRESS, TO_CHAIN_ID, TEST_DATA);
         assertTrue(uuid != bytes32(0));
 
         vm.stopPrank();
@@ -468,7 +347,7 @@ contract C3UUIDKeeperTest is Helpers {
         vm.startPrank(mpc1);
 
         bytes32 nonExistentUUID = keccak256("non-existent");
-        uuidKeeper.registerUUID(nonExistentUUID);
+        uuidKeeper.registerUUID(nonExistentUUID, 1);
 
         assertTrue(uuidKeeper.isCompleted(nonExistentUUID));
 

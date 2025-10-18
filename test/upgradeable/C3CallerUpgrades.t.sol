@@ -36,9 +36,7 @@ contract C3CallerUpgradeableV2 is C3CallerUpgradeable {
     }
 
     // Override _authorizeUpgrade to allow testing
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override onlyOperator {}
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyOperator {}
 }
 
 contract C3CallerUpgradeableV3 is C3CallerUpgradeableV2 {
@@ -58,9 +56,7 @@ contract C3CallerUpgradeableV3 is C3CallerUpgradeableV2 {
     }
 
     // Override _authorizeUpgrade to allow testing
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOperator {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOperator {}
 }
 
 contract C3CallerUpgradesTest is Helpers {
@@ -89,11 +85,9 @@ contract C3CallerUpgradesTest is Helpers {
 
         vm.startPrank(gov);
         address c3UUIDKeeperImpl = address(new C3UUIDKeeperUpgradeable());
-        c3UUIDKeeper = C3UUIDKeeper(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
-        bytes memory initData = abi.encodeCall(
-            C3CallerUpgradeable.initialize,
-            (address(c3UUIDKeeper))
-        );
+        c3UUIDKeeper =
+            C3UUIDKeeper(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+        bytes memory initData = abi.encodeCall(C3CallerUpgradeable.initialize, (address(c3UUIDKeeper)));
         proxy = _deployProxy(implementationV1, initData);
         c3callerV1 = C3CallerUpgradeable(proxy);
 
@@ -113,13 +107,11 @@ contract C3CallerUpgradesTest is Helpers {
         assertEq(IC3CallerProxy(proxy).getImplementation(), implementationV1);
         assertEq(c3callerV1.gov(), gov);
         assertEq(c3callerV1.uuidKeeper(), address(c3UUIDKeeper));
-        assertTrue(c3callerV1.isExecutor(gov));
+        assertTrue(c3callerV1.isOperator(gov));
     }
 
     function test_InitializationRevertsIfCalledTwice() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         c3callerV1.initialize(address(c3UUIDKeeper));
     }
 
@@ -135,10 +127,7 @@ contract C3CallerUpgradesTest is Helpers {
 
         // Upgrade to V2
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         // Verify upgrade
         assertEq(IC3CallerProxy(proxy).getImplementation(), implementationV2);
@@ -156,17 +145,12 @@ contract C3CallerUpgradesTest is Helpers {
     function test_UpgradeToV3() public {
         // First upgrade to V2
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         // Then upgrade to V3
         vm.prank(gov);
-        C3CallerUpgradeableV2(proxy).upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ())
-        );
+        C3CallerUpgradeableV2(proxy)
+            .upgradeToAndCall(implementationV3, abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ()));
 
         // Verify upgrade
         assertEq(IC3CallerProxy(proxy).getImplementation(), implementationV3);
@@ -188,8 +172,7 @@ contract C3CallerUpgradesTest is Helpers {
         // Upgrade to V2 with initialization
         vm.prank(gov);
         c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.setNewStorageVariable, (999))
+            implementationV2, abi.encodeCall(C3CallerUpgradeableV2.setNewStorageVariable, (999))
         );
 
         // Verify upgrade and initialization
@@ -203,18 +186,14 @@ contract C3CallerUpgradesTest is Helpers {
     function test_UpgradeRevertsIfNotAuthorized() public {
         vm.prank(user1);
         vm.expectRevert();
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
     }
 
     function test_UpgradeAndCallRevertsIfNotAuthorized() public {
         vm.prank(user1);
         vm.expectRevert();
         c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.setNewStorageVariable, (999))
+            implementationV2, abi.encodeCall(C3CallerUpgradeableV2.setNewStorageVariable, (999))
         );
     }
 
@@ -225,10 +204,7 @@ contract C3CallerUpgradesTest is Helpers {
 
         // Upgrade by operator
         vm.prank(user1);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         // Verify upgrade
         assertEq(IC3CallerProxy(proxy).getImplementation(), implementationV2);
@@ -239,10 +215,7 @@ contract C3CallerUpgradesTest is Helpers {
     function test_C3CallAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         // Test c3call functionality after upgrade
         bytes memory data = abi.encodeWithSignature("test()");
@@ -251,13 +224,7 @@ contract C3CallerUpgradesTest is Helpers {
         uint256 dappID = 1;
 
         // Calculate expected UUID
-        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(
-            address(c3callerV1),
-            dappID,
-            to,
-            toChainID,
-            data
-        );
+        bytes32 uuid = c3UUIDKeeper.calcCallerUUID(address(c3callerV1), dappID, to, toChainID, data);
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
@@ -281,14 +248,11 @@ contract C3CallerUpgradesTest is Helpers {
 
         // Upgrade to V2
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         // Verify state persistence
         C3CallerUpgradeableV2 c3callerV2Instance = C3CallerUpgradeableV2(proxy);
-        assertTrue(c3callerV2Instance.isExecutor(user2));
+        assertTrue(c3callerV2Instance.isOperator(user2));
 
         // Set new storage variable
         c3callerV2Instance.setNewStorageVariable(123);
@@ -296,14 +260,11 @@ contract C3CallerUpgradesTest is Helpers {
 
         // Upgrade to V3
         vm.prank(gov);
-        c3callerV2Instance.upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ())
-        );
+        c3callerV2Instance.upgradeToAndCall(implementationV3, abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ()));
 
         // Verify all state persistence
         C3CallerUpgradeableV3 c3callerV3Instance = C3CallerUpgradeableV3(proxy);
-        assertTrue(c3callerV3Instance.isExecutor(user2));
+        assertTrue(c3callerV3Instance.isOperator(user2));
         assertEq(c3callerV3Instance.getNewStorageVariable(), 123);
     }
 
@@ -316,15 +277,10 @@ contract C3CallerUpgradesTest is Helpers {
     }
 
     function test_UpgradeToSameImplementation() public {
-        bytes memory initData = abi.encodeCall(
-            C3CallerUpgradeableV2.initializeV2,
-            ()
-        );
+        bytes memory initData = abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ());
         vm.startPrank(gov);
         c3callerV1.upgradeToAndCall(implementationV2, initData);
-        vm.expectRevert(
-            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         c3callerV1.upgradeToAndCall(implementationV2, initData);
         vm.stopPrank();
     }
@@ -368,36 +324,30 @@ contract C3CallerUpgradesTest is Helpers {
 
         // Upgrade to V2
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
 
         C3CallerUpgradeableV2 c3callerV2Instance = C3CallerUpgradeableV2(proxy);
         c3callerV2Instance.setNewStorageVariable(999);
 
         // Verify all operators still exist
-        assertTrue(c3callerV2Instance.isExecutor(gov));
-        assertTrue(c3callerV2Instance.isExecutor(user1));
-        assertTrue(c3callerV2Instance.isExecutor(user2));
-        assertTrue(c3callerV2Instance.isExecutor(mpc1));
-        assertTrue(c3callerV2Instance.isExecutor(mpc2));
+        assertTrue(c3callerV2Instance.isOperator(gov));
+        assertTrue(c3callerV2Instance.isOperator(user1));
+        assertTrue(c3callerV2Instance.isOperator(user2));
+        assertTrue(c3callerV2Instance.isOperator(mpc1));
+        assertTrue(c3callerV2Instance.isOperator(mpc2));
 
         // Upgrade to V3
         vm.prank(gov);
-        c3callerV2Instance.upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ())
-        );
+        c3callerV2Instance.upgradeToAndCall(implementationV3, abi.encodeCall(C3CallerUpgradeableV3.initializeV3, ()));
 
         C3CallerUpgradeableV3 c3callerV3Instance = C3CallerUpgradeableV3(proxy);
 
         // Verify all state persists
-        assertTrue(c3callerV3Instance.isExecutor(gov));
-        assertTrue(c3callerV3Instance.isExecutor(user1));
-        assertTrue(c3callerV3Instance.isExecutor(user2));
-        assertTrue(c3callerV3Instance.isExecutor(mpc1));
-        assertTrue(c3callerV3Instance.isExecutor(mpc2));
+        assertTrue(c3callerV3Instance.isOperator(gov));
+        assertTrue(c3callerV3Instance.isOperator(user1));
+        assertTrue(c3callerV3Instance.isOperator(user2));
+        assertTrue(c3callerV3Instance.isOperator(mpc1));
+        assertTrue(c3callerV3Instance.isOperator(mpc2));
         assertEq(c3callerV3Instance.getNewStorageVariable(), 999);
     }
 
@@ -408,23 +358,14 @@ contract C3CallerUpgradesTest is Helpers {
 
         // After upgrade
         vm.prank(gov);
-        c3callerV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ())
-        );
+        c3callerV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3CallerUpgradeableV2.initializeV2, ()));
         assertEq(IC3CallerProxy(proxy).getImplementation(), implementationV2);
     }
 
     function test_ProxyImplementationSlot() public view {
         // Verify implementation slot
-        bytes32 implementationSlot = bytes32(
-            uint256(uint160(implementationV1))
-        );
-        bytes32 slot = bytes32(
-            uint256(
-                0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
-            )
-        );
+        bytes32 implementationSlot = bytes32(uint256(uint160(implementationV1)));
+        bytes32 slot = bytes32(uint256(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc));
         bytes32 value = vm.load(proxy, slot);
         assertEq(value, implementationSlot);
     }
