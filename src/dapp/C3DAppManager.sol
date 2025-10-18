@@ -277,10 +277,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
         if (bytes(_addr).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
-        }
-        if (bytes(_pubkey).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
         if (bytes(_addr).length != bytes(_pubkey).length) {
             revert C3DAppManager_LengthMismatch(C3ErrorParam.Address, C3ErrorParam.PubKey);
@@ -317,10 +314,10 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
         if (bytes(_addr).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
         if (bytes(_pubkey).length == 0) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
+            revert C3DAppManager_IsZeroAddress(C3ErrorParam.PubKey);
         }
 
         // Check if MPC address exists
@@ -582,10 +579,6 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         nonZeroDAppID(_dappID)
         onlyActiveDApp(_dappID)
     {
-        if (_discount == 0) {
-            revert C3DAppManager_LengthMismatch(C3ErrorParam.DAppID, C3ErrorParam.Token);
-        }
-
         dappConfig[_dappID].discount = _discount;
     }
 }
