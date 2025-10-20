@@ -15,7 +15,7 @@ import {Helpers} from "../../helpers/Helpers.sol";
 contract C3UUIDKeeperUpgradeableV2 is C3UUIDKeeperUpgradeable {
     // New storage variable to test storage layout compatibility
     uint256 public newStorageVariable;
-    
+
     // New mapping to test complex storage upgrades
     mapping(bytes32 => string) public uuidMetadata;
 
@@ -42,15 +42,13 @@ contract C3UUIDKeeperUpgradeableV2 is C3UUIDKeeperUpgradeable {
     }
 
     // Override _authorizeUpgrade to allow testing
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal virtual override onlyGov {}
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyGov {}
 }
 
 contract C3UUIDKeeperUpgradeableV3 is C3UUIDKeeperUpgradeableV2 {
     // Another storage variable to test multiple upgrades
     string public version;
-    
+
     // New functionality for UUID statistics
     mapping(bytes32 => uint256) public uuidUsageCount;
 
@@ -76,9 +74,7 @@ contract C3UUIDKeeperUpgradeableV3 is C3UUIDKeeperUpgradeableV2 {
     }
 
     // Override _authorizeUpgrade to allow testing
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyGov {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 }
 
 contract C3UUIDKeeperUpgradesTest is Helpers {
@@ -106,10 +102,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
 
         // Deploy C3UUIDKeeper proxy with V1 implementation
         vm.startPrank(gov);
-        bytes memory initData = abi.encodeCall(
-            C3UUIDKeeperUpgradeable.initialize,
-            ()
-        );
+        bytes memory initData = abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ());
         proxy = _deployProxy(implementationV1, initData);
         c3UUIDKeeperV1 = C3UUIDKeeperUpgradeable(proxy);
 
@@ -129,22 +122,14 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     }
 
     function test_InitializationRevertsIfCalledTwice() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         c3UUIDKeeperV1.initialize();
     }
 
     function test_ProxyImplementationAddress() public view {
         // Verify implementation slot
-        bytes32 implementationSlot = bytes32(
-            uint256(uint160(implementationV1))
-        );
-        bytes32 slot = bytes32(
-            uint256(
-                0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
-            )
-        );
+        bytes32 implementationSlot = bytes32(uint256(uint160(implementationV1)));
+        bytes32 slot = bytes32(uint256(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc));
         bytes32 value = vm.load(proxy, slot);
         assertEq(value, implementationSlot);
     }
@@ -157,10 +142,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
 
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Cast to V2 and test new functionality
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
@@ -176,17 +158,12 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_UpgradeToV3() public {
         // First upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Then upgrade to V3
         vm.prank(gov);
-        C3UUIDKeeperUpgradeableV2(proxy).upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
-        );
+        C3UUIDKeeperUpgradeableV2(proxy)
+            .upgradeToAndCall(implementationV3, abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ()));
 
         // Cast to V3 and test new functionality
         C3UUIDKeeperUpgradeableV3 c3UUIDKeeperV3Instance = C3UUIDKeeperUpgradeableV3(proxy);
@@ -206,8 +183,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Upgrade to V2 with initialization
         vm.prank(gov);
         c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.setNewStorageVariable, (999))
+            implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.setNewStorageVariable, (999))
         );
 
         // Verify upgrade and initialization
@@ -220,28 +196,21 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_UpgradeRevertsIfNotAuthorized() public {
         vm.prank(user1);
         vm.expectRevert();
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
     }
 
     function test_UpgradeAndCallRevertsIfNotAuthorized() public {
         vm.prank(user1);
         vm.expectRevert();
         c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.setNewStorageVariable, (999))
+            implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.setNewStorageVariable, (999))
         );
     }
 
     function test_UpgradeByGov() public {
         // Upgrade by gov
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Verify upgrade
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
@@ -253,18 +222,15 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_GenUUIDAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Test genUUID functionality after upgrade
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
-        
-        assertTrue(c3UUIDKeeperV2Instance.isUUIDExist(uuid));
+
+        assertTrue(c3UUIDKeeperV2Instance.doesUUIDExist(uuid));
         assertEq(c3UUIDKeeperV2Instance.uuid2Nonce(uuid), 1);
         assertEq(c3UUIDKeeperV2Instance.currentNonce(), 1);
     }
@@ -272,20 +238,17 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_RegisterUUIDAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Generate a UUID first
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
-        
+
         // Test registerUUID functionality after upgrade
         vm.prank(mpc1);
-        c3UUIDKeeperV2Instance.registerUUID(uuid);
-        
+        c3UUIDKeeperV2Instance.registerUUID(uuid, 1);
+
         assertTrue(c3UUIDKeeperV2Instance.isCompleted(uuid));
         assertTrue(c3UUIDKeeperV2Instance.completedSwapin(uuid));
     }
@@ -293,14 +256,11 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_CalcCallerUUIDAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Test calcCallerUUID functionality after upgrade
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         // Calculate expected UUID using the current nonce + 1
         bytes32 expectedUUID = c3UUIDKeeperV2Instance.calcCallerUUID(
             mpc1, // Use mpc1 as the caller
@@ -309,62 +269,54 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
             testToChainID,
             testData
         );
-        
+
         // Generate UUID and verify it matches
         vm.prank(mpc1); // Use mpc1 which is an operator
         bytes32 actualUUID = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
-        
+
         assertEq(actualUUID, expectedUUID);
     }
 
     function test_NewUUIDMetadataFunctionality() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         // Generate a UUID
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
-        
+
         // Test new metadata functionality
         string memory metadata = "test metadata";
         vm.prank(mpc1);
         c3UUIDKeeperV2Instance.setUUIDMetadata(uuid, metadata);
-        
+
         assertEq(c3UUIDKeeperV2Instance.getUUIDMetadata(uuid), metadata);
     }
 
     function test_NewUUIDUsageTrackingFunctionality() public {
         // Upgrade to V3
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
-        
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
+
         vm.prank(gov);
-        C3UUIDKeeperUpgradeableV2(proxy).upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
-        );
+        C3UUIDKeeperUpgradeableV2(proxy)
+            .upgradeToAndCall(implementationV3, abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ()));
 
         C3UUIDKeeperUpgradeableV3 c3UUIDKeeperV3Instance = C3UUIDKeeperUpgradeableV3(proxy);
-        
+
         // Generate a UUID
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV3Instance.genUUID(testDAppID, testTo, testToChainID, testData);
-        
+
         // Test new usage tracking functionality
         vm.prank(mpc1);
         c3UUIDKeeperV3Instance.incrementUUIDUsage(uuid);
         vm.prank(mpc1);
         c3UUIDKeeperV3Instance.incrementUUIDUsage(uuid);
-        
+
         assertEq(c3UUIDKeeperV3Instance.getUUIDUsageCount(uuid), 2);
     }
 
@@ -379,14 +331,11 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         vm.prank(mpc1);
         bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
-        c3UUIDKeeperV1.registerUUID(uuid1);
+        c3UUIDKeeperV1.registerUUID(uuid1, 1);
 
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         // Verify state persistence
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
@@ -401,8 +350,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Upgrade to V3
         vm.prank(gov);
         c3UUIDKeeperV2Instance.upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
+            implementationV3, abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
         );
 
         // Verify all state persistence
@@ -425,16 +373,13 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         bytes32 uuid1 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
         bytes32 uuid2 = c3UUIDKeeperV1.genUUID(testDAppID, testTo, testToChainID, "different data");
-        
+
         vm.prank(mpc1);
-        c3UUIDKeeperV1.registerUUID(uuid1);
+        c3UUIDKeeperV1.registerUUID(uuid1, 1);
 
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
         c3UUIDKeeperV2Instance.setNewStorageVariable(999);
@@ -444,8 +389,8 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         assertTrue(c3UUIDKeeperV2Instance.isOperator(user1));
         assertTrue(c3UUIDKeeperV2Instance.isOperator(user2));
         assertTrue(c3UUIDKeeperV2Instance.isOperator(mpc1));
-        assertTrue(c3UUIDKeeperV2Instance.isUUIDExist(uuid1));
-        assertTrue(c3UUIDKeeperV2Instance.isUUIDExist(uuid2));
+        assertTrue(c3UUIDKeeperV2Instance.doesUUIDExist(uuid1));
+        assertTrue(c3UUIDKeeperV2Instance.doesUUIDExist(uuid2));
         assertTrue(c3UUIDKeeperV2Instance.isCompleted(uuid1));
         assertFalse(c3UUIDKeeperV2Instance.isCompleted(uuid2));
         assertEq(c3UUIDKeeperV2Instance.currentNonce(), 2);
@@ -453,8 +398,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         // Upgrade to V3
         vm.prank(gov);
         c3UUIDKeeperV2Instance.upgradeToAndCall(
-            implementationV3,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
+            implementationV3, abi.encodeCall(C3UUIDKeeperUpgradeableV3.initializeV3, ())
         );
 
         C3UUIDKeeperUpgradeableV3 c3UUIDKeeperV3Instance = C3UUIDKeeperUpgradeableV3(proxy);
@@ -464,8 +408,8 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
         assertTrue(c3UUIDKeeperV3Instance.isOperator(user1));
         assertTrue(c3UUIDKeeperV3Instance.isOperator(user2));
         assertTrue(c3UUIDKeeperV3Instance.isOperator(mpc1));
-        assertTrue(c3UUIDKeeperV3Instance.isUUIDExist(uuid1));
-        assertTrue(c3UUIDKeeperV3Instance.isUUIDExist(uuid2));
+        assertTrue(c3UUIDKeeperV3Instance.doesUUIDExist(uuid1));
+        assertTrue(c3UUIDKeeperV3Instance.doesUUIDExist(uuid2));
         assertTrue(c3UUIDKeeperV3Instance.isCompleted(uuid1));
         assertFalse(c3UUIDKeeperV3Instance.isCompleted(uuid2));
         assertEq(c3UUIDKeeperV3Instance.currentNonce(), 2);
@@ -481,15 +425,10 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     }
 
     function test_UpgradeToSameImplementation() public {
-        bytes memory initData = abi.encodeCall(
-            C3UUIDKeeperUpgradeableV2.initializeV2,
-            ()
-        );
+        bytes memory initData = abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ());
         vm.startPrank(gov);
         c3UUIDKeeperV1.upgradeToAndCall(implementationV2, initData);
-        vm.expectRevert(
-            abi.encodeWithSelector(Initializable.InvalidInitialization.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         c3UUIDKeeperV1.upgradeToAndCall(implementationV2, initData);
         vm.stopPrank();
     }
@@ -527,82 +466,57 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
     function test_RevokeSwapinAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         // Generate and register a UUID
         vm.prank(mpc1);
         bytes32 uuid = c3UUIDKeeperV2Instance.genUUID(testDAppID, testTo, testToChainID, testData);
         vm.prank(mpc1);
-        c3UUIDKeeperV2Instance.registerUUID(uuid);
-        
+        c3UUIDKeeperV2Instance.registerUUID(uuid, 1);
+
         assertTrue(c3UUIDKeeperV2Instance.isCompleted(uuid));
-        
+
         // Revoke the swapin
         vm.prank(gov);
-        c3UUIDKeeperV2Instance.revokeSwapin(uuid);
-        
+        c3UUIDKeeperV2Instance.revokeSwapin(uuid, 1);
+
         assertFalse(c3UUIDKeeperV2Instance.isCompleted(uuid));
     }
 
     function test_CalcCallerUUIDWithNonceAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         // Test calcCallerUUIDWithNonce functionality after upgrade
-        bytes32 expectedUUID = c3UUIDKeeperV2Instance.calcCallerUUIDWithNonce(
-            user1,
-            testDAppID,
-            testTo,
-            testToChainID,
-            testData,
-            5
-        );
-        
+        bytes32 expectedUUID =
+            c3UUIDKeeperV2Instance.calcCallerUUIDWithNonce(user1, testDAppID, testTo, testToChainID, testData, 5);
+
         // Verify the calculation is correct
-        bytes32 manualUUID = keccak256(abi.encode(
-            address(c3UUIDKeeperV2Instance),
-            user1,
-            block.chainid,
-            testDAppID,
-            testTo,
-            testToChainID,
-            5,
-            testData
-        ));
-        
+        bytes32 manualUUID = keccak256(
+            abi.encode(
+                address(c3UUIDKeeperV2Instance), user1, block.chainid, testDAppID, testTo, testToChainID, 5, testData
+            )
+        );
+
         assertEq(expectedUUID, manualUUID);
     }
 
     function test_CalcCallerEncodeAfterUpgrade() public {
         // Upgrade to V2
         vm.prank(gov);
-        c3UUIDKeeperV1.upgradeToAndCall(
-            implementationV2,
-            abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ())
-        );
+        c3UUIDKeeperV1.upgradeToAndCall(implementationV2, abi.encodeCall(C3UUIDKeeperUpgradeableV2.initializeV2, ()));
 
         C3UUIDKeeperUpgradeableV2 c3UUIDKeeperV2Instance = C3UUIDKeeperUpgradeableV2(proxy);
-        
+
         // Test calcCallerEncode functionality after upgrade
-        bytes memory encoded = c3UUIDKeeperV2Instance.calcCallerEncode(
-            user1,
-            testDAppID,
-            testTo,
-            testToChainID,
-            testData
-        );
-        
+        bytes memory encoded =
+            c3UUIDKeeperV2Instance.calcCallerEncode(user1, testDAppID, testTo, testToChainID, testData);
+
         // Verify the encoding is correct
         bytes memory expectedEncoded = abi.encode(
             address(c3UUIDKeeperV2Instance),
@@ -614,7 +528,7 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
             1, // currentNonce + 1
             testData
         );
-        
+
         assertEq(encoded, expectedEncoded);
     }
 
@@ -628,25 +542,15 @@ contract C3UUIDKeeperUpgradesTest is Helpers {
 
     function test_ImplementationSlot() public view {
         // Verify implementation slot
-        bytes32 implementationSlot = bytes32(
-            uint256(uint160(implementationV1))
-        );
-        bytes32 slot = bytes32(
-            uint256(
-                0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
-            )
-        );
+        bytes32 implementationSlot = bytes32(uint256(uint160(implementationV1)));
+        bytes32 slot = bytes32(uint256(0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc));
         bytes32 value = vm.load(proxy, slot);
         assertEq(value, implementationSlot);
     }
 
     function test_AdminSlot() public view {
         // Verify admin slot (should be empty for UUPS)
-        bytes32 adminSlot = bytes32(
-            uint256(
-                0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
-            )
-        );
+        bytes32 adminSlot = bytes32(uint256(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103));
         bytes32 value = vm.load(proxy, adminSlot);
         assertEq(value, bytes32(0));
     }

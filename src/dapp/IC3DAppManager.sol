@@ -2,10 +2,15 @@
 
 pragma solidity 0.8.27;
 
-import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3DAppManager {
-    // DApp config
+    enum DAppStatus {
+        Active, // DApp is active and operational
+        Suspended, // DApp is temporarily suspended
+        Deprecated // DApp is permanently deprecated and cannot be reused
+    }
+
     struct DAppConfig {
         uint256 id;
         address appAdmin; // account who admin the application's config
@@ -17,6 +22,9 @@ interface IC3DAppManager {
         uint256 indexed dappID, address indexed appAdmin, address indexed feeToken, string appDomain, string email
     );
     event SetBlacklists(uint256 _dappID, bool _flag);
+    event DAppStatusChanged(
+        uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason
+    );
 
     event SetDAppAddr(uint256 _dappID, string[] _addresses);
 
@@ -37,6 +45,12 @@ interface IC3DAppManager {
     error C3DAppManager_LengthMismatch(C3ErrorParam, C3ErrorParam);
     error C3DAppManager_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3DAppManager_InsufficientBalance(address _token);
+    error C3DAppManager_DAppDeprecated(uint256 _dappID);
+    error C3DAppManager_DAppSuspended(uint256 _dappID);
+    error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
+    error C3DAppManager_MpcAddressExists(string _addr);
+    error C3DAppManager_MpcAddressNotFound(string _addr);
+    error C3DAppManager_ZeroDAppID();
 
     // Public functions
     function pause() external;
@@ -46,14 +60,17 @@ interface IC3DAppManager {
     // Public variables
     function c3DAppAddr(string memory _addr) external view returns (uint256);
     function appBlacklist(uint256 _dappID) external view returns (bool);
+    function dappStatus(uint256 _dappID) external view returns (DAppStatus);
     function feeCurrencies(address _token) external view returns (uint256);
     function dappStakePool(uint256 _dappID, address _token) external view returns (uint256);
     function speChainFees(string memory _chain, address _token) external view returns (uint256);
     function mpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory);
     function mpcAddrs(uint256 _dappID, uint256 _index) external view returns (string memory);
+    function mpcMembership(uint256 _dappID, string memory _addr) external view returns (bool);
 
     // External functions
     function setBlacklists(uint256 _dappID, bool _flag) external;
+    function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external;
     function setDAppConfig(
         uint256 _dappID,
         address _appAdmin,
@@ -69,8 +86,11 @@ interface IC3DAppManager {
     function withdraw(uint256 _dappID, address _token, uint256 _amount) external;
     function charging(uint256 _dappID, address _token, uint256 _bill) external;
     function getDAppConfig(uint256 _dappID) external view returns (DAppConfig memory);
+    function getDAppStatus(uint256 _dappID) external view returns (DAppStatus);
     function getMpcAddrs(uint256 _dappID) external view returns (string[] memory);
     function getMpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory);
+    function isMpcMember(uint256 _dappID, string memory _addr) external view returns (bool);
+    function getMpcCount(uint256 _dappID) external view returns (uint256);
     function getFeeCurrency(address _token) external view returns (uint256);
     function getSpeChainFee(string memory _chain, address _token) external view returns (uint256);
     function getDAppStakePool(uint256 _dappID, address _token) external view returns (uint256);

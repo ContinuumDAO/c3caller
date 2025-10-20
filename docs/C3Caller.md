@@ -1,213 +1,208 @@
 # C3Caller
 
-## Overview
+Main contract for handling cross-chain calls in the Continuum Cross-Chain protocol. This contract serves as the central hub for initiating and executing cross-chain transactions. It integrates with governance, UUID management, and DApp functionality.
 
-C3Caller is the main contract for handling cross-chain calls in the Continuum
-Cross-Chain protocol. This contract serves as the central hub for initiating and
-executing cross-chain transactions, integrating with governance, UUID
-management, and DApp functionality.
+## Key Features
 
-### Key Features
+### Source Network:
+- Cross-chain call initiation (c3call)
+- Cross-chain multiple calls functionality (c3broadcast)
+- Fallback mechanism for failed calls (c3Fallback)
 
-**Source Network Operations:**
-- Cross-chain call initiation (`c3call`)
-- Cross-chain multiple calls functionality (`c3broadcast`)
-- Fallback mechanism for failed calls (`c3Fallback`)
+### Destination Network:
+- Cross-chain message execution (execute)
 
-**Destination Network Operations:**
-- Cross-chain message execution (`execute`)
-
-**Additional Features:**
-- Pausable functionality for early-stage security
-- Governance integration for access control (adding/removing valid MPC addresses)
-- UUID management for transaction tracking
-
-## Contract Details
-
-- **Contract Name:** `C3Caller`
-- **Inherits:** `IC3Caller`, `C3GovClient`, `Ownable`, `Pausable`
-- **Author:** @potti ContinuumDAO
-- **License:** BSL-1.1
-
-## State Variables
-
-### `context`
-```solidity
-C3Context public context
-```
-Current execution context for cross-chain operations, set/reset during each
-execution.
-
-### `uuidKeeper`
-```solidity
-address public uuidKeeper
-```
-Address of the UUID keeper contract for managing unique identifiers.
+- Pausable functionality for emergency stops
+- Governance integration for access control
 
 ## Constructor
 
-### `constructor(address _uuidKeeper)`
-Initializes the C3Caller contract.
+```solidity
+constructor(address _uuidKeeper)
+```
 
 **Parameters:**
-- `_uuidKeeper` (address): Address of the UUID keeper contract
+- `_uuidKeeper`: Address of the UUID keeper contract
 
-**Notes:**
-- Initializes the Owner of the contract to the `msg.sender`
-- Inherits from `C3GovClient`, `Ownable`, and `Pausable`
+**Dev:** Initializes the Owner of the contract to the msg.sender
 
-## Public Functions
+## State Variables
 
-### `isExecutor(address _sender)`
-Check if an address is an authorized executor (aka operator).
-Functions with this modifier should only be called by the MPC address.
+### context
+```solidity
+C3Context public context
+```
+Current execution context for cross-chain operations, set/reset during each execution
 
-**Parameters:**
-- `_sender` (address): Address to check
+### uuidKeeper
+```solidity
+address public uuidKeeper
+```
+Address of the UUID keeper contract for managing unique identifiers
 
-**Returns:**
-- `bool`: True if the address is an operator, false otherwise
+## Functions
 
-### `c3caller()`
-Get the address of this C3Caller contract, for backwards compatibility.
+### c3call (with extra data)
+```solidity
+function c3call(
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data,
+    bytes memory _extra
+) external whenNotPaused
+```
 
-**Returns:**
-- `address`: The address of this contract
-
-### `isCaller(address _sender)`
-Check if an address is the C3Caller contract itself, for backwards compatibility.
-
-**Parameters:**
-- `_sender` (address): Address to check
-
-**Returns:**
-- `bool`: True if the address is this contract, false otherwise
-
-## External Functions
-
-### `c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)`
-Initiate a cross-chain call without extra custom data.
-
-**Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_to` (string): The target address on the destination chain (C3CallerDApp implementation)
-- `_toChainID` (string): The destination chain ID
-- `_data` (bytes): The calldata to execute on the destination chain (ABI encoded)
-
-**Modifiers:**
-- `whenNotPaused`
-
-**Notes:**
-- Called within registered DApps to initiate cross-chain transactions
-- Calls `_c3call` with `msg.sender` as the caller
-
-### `c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data, bytes memory _extra)`
 Initiate a cross-chain call with extra custom data.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier of the C3CallerDApp implementation
-- `_to` (string): The target address on the destination chain (C3CallerDApp implementation)
-- `_toChainID` (string): The destination chain ID
-- `_data` (bytes): The calldata to execute on the destination chain (ABI encoded)
-- `_extra` (bytes): Additional custom data for the cross-chain call
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_to`: The target address on the destination network (C3CallerDApp implementation)
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata to execute on the destination network (ABI encoded)
+- `_extra`: Additional custom data for the cross-chain call
 
-**Modifiers:**
-- `whenNotPaused`
+**Dev:** Calls `_c3call` with msg.sender as the caller
 
-**Notes:**
-- Calls `_c3call` with `msg.sender` as the caller
+### c3call (without extra data)
+```solidity
+function c3call(
+    uint256 _dappID,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data
+) external whenNotPaused
+```
 
-### `c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)`
+Initiate a cross-chain call without extra custom data.
+
+**Parameters:**
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_to`: The target address on the destination network (C3CallerDApp implementation)
+- `_toChainID`: The destination network' chain ID
+- `_data`: The calldata to execute on the destination network (ABI encoded)
+
+**Dev:** Called within registered DApps to initiate cross-chain transactions. Calls `_c3call` with msg.sender as the caller
+
+### c3broadcast
+```solidity
+function c3broadcast(
+    uint256 _dappID,
+    string[] calldata _to,
+    string[] calldata _toChainIDs,
+    bytes calldata _data
+) external whenNotPaused
+```
+
 Initiate cross-chain broadcasts to multiple chains.
 
 **Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_to` (string[]): Array of target addresses on destination chains (C3CallerDApp implementation)
-- `_toChainIDs` (string[]): Array of destination chain IDs
-- `_data` (bytes): The calldata to execute on each destination chain (ABI encoded)
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_to`: Array of target addresses on destination networks (C3CallerDApp destination implementations)
+- `_toChainIDs`: Array of destination chain IDs
+- `_data`: The calldata to execute on each destination network (ABI encoded)
 
-**Modifiers:**
-- `whenNotPaused`
+**Dev:** Called within registered DApps to broadcast transactions to multiple other chains. Calls `_c3broadcast` with msg.sender as the caller
 
-**Notes:**
-- Called within registered DApps to broadcast transactions to multiple other chains
-- Calls `_c3broadcast` with `msg.sender` as the caller
+### execute
+```solidity
+function execute(uint256 _dappID, C3EvmMessage calldata _message) external onlyOperator whenNotPaused
+```
 
-### `execute(uint256 _dappID, C3EvmMessage calldata _message)`
-Execute a cross-chain message (this is called on the target chain).
-
-**Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_message` (C3EvmMessage): The cross-chain message to execute
-
-**Modifiers:**
-- `onlyOperator`
-- `whenNotPaused`
-
-**Notes:**
-- Called by MPC network to execute cross-chain messages
-
-### `c3Fallback(uint256 _dappID, C3EvmMessage calldata _message)`
-Execute a fallback call for failed cross-chain operations (this is called on the origin chain).
+Execute a cross-chain message (this is called on the destination chain).
 
 **Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_message` (C3EvmMessage): The cross-chain calldata that failed to execute
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_message`: The cross-chain message to execute
 
-**Modifiers:**
-- `onlyOperator`
-- `whenNotPaused`
+**Dev:** Called by MPC network to execute cross-chain messages
 
-**Notes:**
-- Called by MPC network to handle failed cross-chain calls
+### c3Fallback
+```solidity
+function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external onlyOperator whenNotPaused
+```
+
+Execute a fallback call for reverted cross-chain operations.
+
+**Parameters:**
+- `_dappID`: The ID of the C3CallerDApp implementation
+- `_message`: The cross-chain calldata that failed to execute
+
+**Dev:** Called by the MPC network on the source network
 
 ## Internal Functions
 
-### `_c3call(uint256 _dappID, address _caller, string calldata _to, string calldata _toChainID, bytes calldata _data, bytes memory _extra)`
+### _c3call
+```solidity
+function _c3call(
+    uint256 _dappID,
+    address _caller,
+    string calldata _to,
+    string calldata _toChainID,
+    bytes calldata _data,
+    bytes memory _extra
+) internal
+```
+
 Internal function to initiate a cross-chain call.
 
 **Parameters:**
-- `_dappID` (uint256): The DApp identifier of the C3CallerDApp implementation
-- `_caller` (address): The address initiating the call
-- `_to` (string): The target address on the destination chain (C3CallerDApp implementation)
-- `_toChainID` (string): The destination chain ID
-- `_data` (bytes): The calldata to execute on the destination chain (ABI encoded)
-- `_extra` (bytes): Additional custom data for the cross-chain call
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_caller`: The address initiating the call (C3CallerDApp implementation)
+- `_to`: The target address on the destination network (C3CallerDApp implementation)
+- `_toChainID`: The destination chain ID
+- `_data`: The calldata to execute on the destination network (ABI encoded)
+- `_extra`: Additional custom data for the cross-chain call
 
-### `_c3broadcast(uint256 _dappID, address _caller, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)`
+### _c3broadcast
+```solidity
+function _c3broadcast(
+    uint256 _dappID,
+    address _caller,
+    string[] calldata _to,
+    string[] calldata _toChainIDs,
+    bytes calldata _data
+) internal
+```
+
 Internal function to initiate multiple cross-chain calls.
 
 **Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_caller` (address): The address initiating the broadcast
-- `_to` (string[]): Array of target addresses on destination chains (C3CallerDApp implementation)
-- `_toChainIDs` (string[]): Array of destination chain IDs
-- `_data` (bytes): The calldata to execute on each destination chain (ABI encoded)
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_caller`: The address initiating the broadcast (C3CallerDApp source implementation)
+- `_to`: Array of target addresses on destination networks (C3CallerDApp destination implementations)
+- `_toChainIDs`: Array of destination chain IDs
+- `_data`: The calldata to execute on each destination network (ABI encoded)
 
-### `_execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message)`
-Internal function to execute cross-chain messages.
+### _execute
+```solidity
+function _execute(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal
+```
+
+Internal function to execute cross-chain messages on the destination network.
 
 **Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_txSender` (address): The transaction sender address (should be the MPC network)
-- `_message` (C3EvmMessage): The cross-chain message to execute
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_txSender`: The transaction sender address (should be the MPC network)
+- `_message`: The cross-chain message to execute
 
-**Notes:**
-- Calls `_c3Fallback` if the call fails
+**Dev:** If the call fails, emits a `LogFallbackCall` event which routes to _c3Fallback
 
-### `_c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message)`
+### _c3Fallback
+```solidity
+function _c3Fallback(uint256 _dappID, address _txSender, C3EvmMessage calldata _message) internal
+```
+
 Internal function to handle fallback calls.
 
 **Parameters:**
-- `_dappID` (uint256): The ID of the C3CallerDApp implementation
-- `_txSender` (address): The transaction sender address
-- `_message` (C3EvmMessage): The cross-chain calldata that failed to execute
+- `_dappID`: The DApp identifier of the C3CallerDApp implementation
+- `_txSender`: The transaction sender address
+- `_message`: The cross-chain calldata that reverted during `execute`
 
 ## Events
 
-### `LogC3Call`
-Emitted when a cross-chain call is initiated.
-
+### LogC3Call
 ```solidity
 event LogC3Call(
     uint256 indexed dappID,
@@ -217,25 +212,15 @@ event LogC3Call(
     string to,
     bytes data,
     bytes extra
-);
+)
 ```
 
-### `LogFallbackCall`
-Emitted when a fallback call is initiated.
-
+### LogFallbackCall
 ```solidity
-event LogFallbackCall(
-    uint256 indexed dappID,
-    bytes32 indexed uuid,
-    string to,
-    bytes data,
-    bytes reasons
-);
+event LogFallbackCall(uint256 indexed dappID, bytes32 indexed uuid, string to, bytes data, bytes reasons)
 ```
 
-### `LogExecCall`
-Emitted when a cross-chain message is executed.
-
+### LogExecCall
 ```solidity
 event LogExecCall(
     uint256 indexed dappID,
@@ -246,12 +231,10 @@ event LogExecCall(
     bytes data,
     bool success,
     bytes reason
-);
+)
 ```
 
-### `LogExecFallback`
-Emitted when a fallback call is executed.
-
+### LogExecFallback
 ```solidity
 event LogExecFallback(
     uint256 indexed dappID,
@@ -261,65 +244,49 @@ event LogExecFallback(
     string sourceTx,
     bytes data,
     bytes reason
-);
+)
 ```
 
 ## Errors
 
-### `C3Caller_OnlyAuthorized`
-Thrown when an unauthorized address attempts to perform an operation.
-
+### C3Caller_OnlyAuthorized
 ```solidity
-error C3Caller_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
+error C3Caller_OnlyAuthorized(C3ErrorParam, C3ErrorParam)
 ```
 
-### `C3Caller_InvalidLength`
-Thrown when a parameter has an invalid length.
-
+### C3Caller_InvalidLength
 ```solidity
-error C3Caller_InvalidLength(C3ErrorParam);
+error C3Caller_InvalidLength(C3ErrorParam)
 ```
 
-### `C3Caller_InvalidAccountLength`
-Thrown when an account parameter has an invalid length.
-
+### C3Caller_InvalidAccountLength
 ```solidity
-error C3Caller_InvalidAccountLength(C3ErrorParam);
+error C3Caller_InvalidAccountLength(C3ErrorParam)
 ```
 
-### `C3Caller_LengthMismatch`
-Thrown when two arrays have mismatched lengths.
-
+### C3Caller_LengthMismatch
 ```solidity
-error C3Caller_LengthMismatch(C3ErrorParam, C3ErrorParam);
+error C3Caller_LengthMismatch(C3ErrorParam, C3ErrorParam)
 ```
 
-### `C3Caller_InvalidDAppID`
-Thrown when the DApp ID doesn't match the expected value.
-
+### C3Caller_InvalidDAppID
 ```solidity
-error C3Caller_InvalidDAppID(uint256, uint256);
+error C3Caller_InvalidDAppID(uint256, uint256)
 ```
 
-### `C3Caller_UUIDAlreadyCompleted`
-Thrown when attempting to execute a UUID that has already been completed.
-
+### C3Caller_UUIDAlreadyCompleted
 ```solidity
-error C3Caller_UUIDAlreadyCompleted(bytes32);
+error C3Caller_UUIDAlreadyCompleted(bytes32)
 ```
 
-### `C3Caller_IsZero`
-Thrown when a required parameter is zero.
-
+### C3Caller_IsZero
 ```solidity
-error C3Caller_IsZero(C3ErrorParam);
+error C3Caller_IsZero(C3ErrorParam)
 ```
 
-## Data Structures
+## Structs
 
-### `C3Context`
-Represents the current execution context for cross-chain operations.
-
+### C3Context
 ```solidity
 struct C3Context {
     bytes32 swapID;
@@ -328,14 +295,7 @@ struct C3Context {
 }
 ```
 
-**Fields:**
-- `swapID` (bytes32): The UUID of the current cross-chain operation
-- `fromChainID` (string): The source chain ID
-- `sourceTx` (string): The source transaction hash
-
-### `C3EvmMessage`
-Represents a cross-chain message to be executed.
-
+### C3EvmMessage
 ```solidity
 struct C3EvmMessage {
     bytes32 uuid;
@@ -347,69 +307,10 @@ struct C3EvmMessage {
 }
 ```
 
-**Fields:**
-- `uuid` (bytes32): Unique identifier for the cross-chain operation
-- `to` (address): Target contract address on the destination chain
-- `fromChainID` (string): Source chain ID
-- `sourceTx` (string): Source transaction hash
-- `fallbackTo` (string): Fallback address for failed operations
-- `data` (bytes): Calldata to execute on the destination chain
+## Author
 
-## Usage Examples
+@potti ContinuumDAO
 
-### Initiating a Cross-Chain Call
-```solidity
-// Basic cross-chain call
-c3call(
-    dappID,
-    "0x1234567890123456789012345678901234567890",
-    "1", // Ethereum mainnet
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2)
-);
+## Notice
 
-// Cross-chain call with extra data
-c3call(
-    dappID,
-    "0x1234567890123456789012345678901234567890",
-    "137", // Polygon
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2),
-    abi.encode(extraParam1, extraParam2)
-);
-```
-
-### Broadcasting to Multiple Chains
-```solidity
-string[] memory targets = new string[](2);
-targets[0] = "0x1234567890123456789012345678901234567890";
-targets[1] = "0x0987654321098765432109876543210987654321";
-
-string[] memory chainIDs = new string[](2);
-chainIDs[0] = "1";   // Ethereum mainnet
-chainIDs[1] = "137"; // Polygon
-
-c3broadcast(
-    dappID,
-    targets,
-    chainIDs,
-    abi.encodeWithSelector(SomeFunction.selector, param1, param2)
-);
-```
-
-## Security Considerations
-
-1. **Access Control**: Only authorized operators can execute cross-chain messages and fallback calls
-2. **Pausability**: The contract can be paused in emergency situations
-3. **UUID Management**: Prevents replay attacks by tracking completed operations
-4. **Sender Validation**: Validates that cross-chain messages come from authorized sources
-5. **DApp ID Validation**: Ensures messages are executed on the correct DApp implementation
-
-## Dependencies
-
-- `@openzeppelin/contracts/access/Ownable.sol`
-- `@openzeppelin/contracts/utils/Pausable.sol`
-- `@openzeppelin/contracts/utils/Address.sol`
-- `IC3Caller.sol`
-- `IC3CallerDApp.sol`
-- `C3GovClient.sol`
-- `IC3UUIDKeeper.sol`
-- `C3CallerUtils.sol`
+This contract is the primary entry point for cross-chain operations

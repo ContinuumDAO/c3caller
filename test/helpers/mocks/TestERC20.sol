@@ -2,30 +2,30 @@
 
 pragma solidity 0.8.27;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import { C3ErrorParam } from "./C3CallerUtils.sol";
-import { ITestERC20 } from "./ITestERC20.sol";
+import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
+import {ITestERC20} from "./ITestERC20.sol";
 
 /**
  * @title TestERC20
  * @dev Test ERC20 token contract for C3 protocol testing purposes.
  * This contract extends the standard ERC20 implementation with additional
  * functionality for testing cross-chain operations and fee mechanisms.
- * 
+ *
  * Features:
  * - Standard ERC20 functionality
  * - Configurable decimals
  * - Admin-controlled minting and burning
  * - Public minting for testing
- * 
+ *
  * @notice This contract is intended for testing purposes only
  * @author @potti ContinuumDAO
  */
 contract TestERC20 is ITestERC20, ERC20 {
     /// @notice The number of decimals for the token
     uint8 public _decimals;
-    
+
     /// @notice The admin address with special privileges
     address public admin;
 

@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { IC3GovClient } from "./gov/IC3GovClient.sol";
-import { C3ErrorParam } from "./utils/C3CallerUtils.sol";
+import {IC3GovClient} from "./gov/IC3GovClient.sol";
+import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
 
 interface IC3Caller is IC3GovClient {
     event LogC3Call(
@@ -62,9 +62,11 @@ interface IC3Caller is IC3GovClient {
         bytes data;
     }
 
-    function isExecutor(address _sender) external returns (bool);
-    function isCaller(address _sender) external returns (bool);
-    function c3caller() external view returns (address);
+    // FIXIT: redundant
+    // function isExecutor(address _sender) external returns (bool);
+    // function isCaller(address _sender) external returns (bool);
+    // function c3caller() external view returns (address);
+
     function context() external view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx);
 
     function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data) external;

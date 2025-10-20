@@ -6,13 +6,11 @@ import {C3GovernDApp} from "../../../src/gov/C3GovernDApp.sol";
 
 contract MockC3GovernDApp is C3GovernDApp {
     bool public shouldRevert;
+    uint256 failCount = 0;
 
-    constructor(
-        address _gov,
-        address _c3callerProxy,
-        address _txSender,
-        uint256 _dappID
-    ) C3GovernDApp(_gov, _c3callerProxy, _txSender, _dappID) {
+    constructor(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
+        C3GovernDApp(_gov, _c3callerProxy, _txSender, _dappID)
+    {
         shouldRevert = false;
     }
 
@@ -20,7 +18,13 @@ contract MockC3GovernDApp is C3GovernDApp {
         shouldRevert = _shouldRevert;
     }
 
-    function _c3Fallback(bytes4 /*_selector*/, bytes calldata /*_data*/, bytes calldata /*_reason*/)
+    function _c3Fallback(
+        bytes4,
+        /*_selector*/
+        bytes calldata,
+        /*_data*/
+        bytes calldata /*_reason*/
+    )
         internal
         override
         returns (bool)
@@ -28,6 +32,7 @@ contract MockC3GovernDApp is C3GovernDApp {
         if (shouldRevert) {
             revert("MockC3GovernDApp: intentional revert");
         }
+        failCount++;
         return true;
     }
-} 
+}

@@ -9,10 +9,8 @@ import {Deployer} from "./Deployer.sol";
 
 contract Helpers is Test, Accounts, Deployer {
     function setUp() public virtual {
-        (admin, gov, treasury, user1, user2, mpc1, mpc2) = abi.decode(
-            abi.encode(_getAccounts()),
-            (address, address, address, address, address, address, address)
-        );
+        (admin, gov, treasury, user1, user2, mpc1, mpc2) =
+            abi.decode(abi.encode(_getAccounts()), (address, address, address, address, address, address, address));
 
         (ctm, usdc) = _deployFeeTokens();
 

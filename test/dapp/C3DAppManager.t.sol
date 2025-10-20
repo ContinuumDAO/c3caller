@@ -62,10 +62,10 @@ contract C3DAppManagerTest is Helpers {
         super.setUp();
         vm.prank(gov);
         dappManager = new C3DAppManager();
-        
+
         // Deploy malicious token
         maliciousToken = new MaliciousToken(dappManager);
-        
+
         // Setup dapp config
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(maliciousToken), "test.com", "test@test.com");
@@ -92,9 +92,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.pause();
@@ -103,7 +101,7 @@ contract C3DAppManagerTest is Helpers {
     function test_Unpause_Success() public {
         vm.prank(gov);
         dappManager.pause();
-        
+
         vm.prank(gov);
         dappManager.unpause();
         assertFalse(dappManager.paused());
@@ -112,13 +110,11 @@ contract C3DAppManagerTest is Helpers {
     function test_Unpause_OnlyGov() public {
         vm.prank(gov);
         dappManager.pause();
-        
+
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.unpause();
@@ -129,12 +125,12 @@ contract C3DAppManagerTest is Helpers {
     function test_SetBlacklists_Success() public {
         vm.prank(gov);
         dappManager.setBlacklists(1, true);
-        
+
         assertTrue(dappManager.appBlacklist(1));
-        
+
         vm.prank(gov);
         dappManager.setBlacklists(1, false);
-        
+
         assertFalse(dappManager.appBlacklist(1));
     }
 
@@ -142,9 +138,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.setBlacklists(1, true);
@@ -155,7 +149,7 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppConfig_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
         assertEq(config.id, 1);
         assertEq(config.appAdmin, user1);
@@ -167,9 +161,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
@@ -177,44 +169,29 @@ contract C3DAppManagerTest is Helpers {
 
     function test_SetDAppConfig_ZeroFeeToken() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.FeePerByte
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
         dappManager.setDAppConfig(1, user1, address(0), "test.com", "test@test.com");
     }
 
     function test_SetDAppConfig_EmptyAppDomain() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.AppDomain
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.AppDomain));
         dappManager.setDAppConfig(1, user1, address(usdc), "", "test@test.com");
     }
 
     function test_SetDAppConfig_EmptyEmail() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.Email
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Email));
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "");
     }
 
     function test_SetDAppConfigDiscount_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.setDAppConfigDiscount(1, 10);
-        
+
         IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
         assertEq(config.discount, 10);
     }
@@ -222,13 +199,11 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppConfigDiscount_OnlyGovOrAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.setDAppConfigDiscount(1, 10);
@@ -236,25 +211,18 @@ contract C3DAppManagerTest is Helpers {
 
     function test_SetDAppConfigDiscount_ZeroDAppID() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.DAppID
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
         dappManager.setDAppConfigDiscount(0, 10);
     }
 
     function test_SetDAppConfigDiscount_ZeroDiscount() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_LengthMismatch.selector,
-                C3ErrorParam.DAppID,
-                C3ErrorParam.Token
+                IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.DAppID, C3ErrorParam.Token
             )
         );
         dappManager.setDAppConfigDiscount(1, 0);
@@ -265,14 +233,14 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppAddr_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         string[] memory addresses = new string[](2);
         addresses[0] = "addr1";
         addresses[1] = "addr2";
-        
+
         vm.prank(gov);
         dappManager.setDAppAddr(1, addresses);
-        
+
         assertEq(dappManager.c3DAppAddr("addr1"), 1);
         assertEq(dappManager.c3DAppAddr("addr2"), 1);
     }
@@ -280,16 +248,14 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         string[] memory addresses = new string[](1);
         addresses[0] = "addr1";
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.setDAppAddr(1, addresses);
@@ -298,13 +264,13 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppAddr_ByAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         string[] memory addresses = new string[](1);
         addresses[0] = "addr1";
-        
+
         vm.prank(user1);
         dappManager.setDAppAddr(1, addresses);
-        
+
         assertEq(dappManager.c3DAppAddr("addr1"), 1);
     }
 
@@ -313,10 +279,10 @@ contract C3DAppManagerTest is Helpers {
     function test_AddMpcAddr_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
-        
+
         assertEq(dappManager.getMpcPubkey(1, mpcAddr1), pubKey1);
         string[] memory addrs = dappManager.getMpcAddrs(1);
         assertEq(addrs.length, 1);
@@ -326,13 +292,11 @@ contract C3DAppManagerTest is Helpers {
     function test_AddMpcAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
@@ -343,53 +307,36 @@ contract C3DAppManagerTest is Helpers {
         dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
     }
 
     function test_AddMpcAddr_EmptyAddr() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.addMpcAddr(1, "", "pubkey1");
     }
 
     function test_AddMpcAddr_EmptyPubkey() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.addMpcAddr(1, mpcAddr1, "");
     }
 
     function test_AddMpcAddr_LengthMismatch() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_LengthMismatch.selector,
-                C3ErrorParam.Address,
-                C3ErrorParam.PubKey
+                IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.Address, C3ErrorParam.PubKey
             )
         );
         dappManager.addMpcAddr(1, mpcAddr1, "pubkey123");
@@ -398,15 +345,15 @@ contract C3DAppManagerTest is Helpers {
     function test_DelMpcAddr_Success() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
-        
+
         vm.prank(gov);
         dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
-        
+
         assertEq(dappManager.getMpcPubkey(1, mpcAddr1), "");
         string[] memory addrs = dappManager.getMpcAddrs(1);
         assertEq(addrs.length, 1);
@@ -416,16 +363,14 @@ contract C3DAppManagerTest is Helpers {
     function test_DelMpcAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
@@ -435,12 +380,7 @@ contract C3DAppManagerTest is Helpers {
         vm.startPrank(gov);
         dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
         vm.stopPrank();
     }
@@ -448,28 +388,18 @@ contract C3DAppManagerTest is Helpers {
     function test_DelMpcAddr_EmptyAddr() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.delMpcAddr(1, "", pubKey1);
     }
 
     function test_DelMpcAddr_EmptyPubkey() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZeroAddress.selector,
-                C3ErrorParam.Admin
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
         dappManager.delMpcAddr(1, mpcAddr1, "");
     }
 
@@ -478,7 +408,7 @@ contract C3DAppManagerTest is Helpers {
     function test_SetFeeConfig_Success() public {
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
-        
+
         assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
         assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
     }
@@ -487,9 +417,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
@@ -497,12 +425,7 @@ contract C3DAppManagerTest is Helpers {
 
     function test_SetFeeConfig_ZeroFee() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.FeePerByte
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
         dappManager.setFeeConfig(address(usdc), "ethereum", 0);
     }
 
@@ -510,36 +433,31 @@ contract C3DAppManagerTest is Helpers {
 
     function test_Deposit_Success() public {
         uint256 amount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
     }
 
     function test_Deposit_ZeroAmount() public {
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.FeePerByte
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
         dappManager.deposit(1, address(usdc), 0);
     }
 
     function test_Deposit_MultipleDeposits() public {
         uint256 amount1 = 1000;
         uint256 amount2 = 500;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount1 + amount2);
         dappManager.deposit(1, address(usdc), amount1);
         dappManager.deposit(1, address(usdc), amount2);
         vm.stopPrank();
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount1 + amount2);
     }
 
@@ -548,32 +466,30 @@ contract C3DAppManagerTest is Helpers {
     function test_Withdraw_Success() public {
         uint256 depositAmount = 1000;
         uint256 withdrawAmount = 500;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(gov);
         dappManager.withdraw(1, address(usdc), withdrawAmount);
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - withdrawAmount);
     }
 
     function test_Withdraw_OnlyGovOrAdmin() public {
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.withdraw(1, address(usdc), 500);
@@ -582,45 +498,37 @@ contract C3DAppManagerTest is Helpers {
     function test_Withdraw_ByAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user2);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(user1);
         dappManager.withdraw(1, address(usdc), 500);
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
     }
 
     function test_Withdraw_ZeroAmount() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.FeePerByte
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
         dappManager.withdraw(1, address(usdc), 0);
     }
 
     function test_Withdraw_InsufficientBalance() public {
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(gov);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_InsufficientBalance.selector,
-                address(usdc)
-            )
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, address(usdc))
         );
         dappManager.withdraw(1, address(usdc), 1500);
     }
@@ -630,32 +538,30 @@ contract C3DAppManagerTest is Helpers {
     function test_Charging_Success() public {
         uint256 depositAmount = 1000;
         uint256 chargeAmount = 500;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(gov);
         dappManager.charging(1, address(usdc), chargeAmount);
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - chargeAmount);
     }
 
     function test_Charging_OnlyGovOrAdmin() public {
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.GovOrAdmin
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
         dappManager.charging(1, address(usdc), 500);
@@ -664,45 +570,37 @@ contract C3DAppManagerTest is Helpers {
     function test_Charging_ByAdmin() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user2);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(user1);
         dappManager.charging(1, address(usdc), 500);
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
     }
 
     function test_Charging_ZeroAmount() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_IsZero.selector,
-                C3ErrorParam.FeePerByte
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
         dappManager.charging(1, address(usdc), 0);
     }
 
     function test_Charging_InsufficientBalance() public {
         uint256 depositAmount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
-        
+
         vm.prank(gov);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_InsufficientBalance.selector,
-                address(usdc)
-            )
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, address(usdc))
         );
         dappManager.charging(1, address(usdc), 1500);
     }
@@ -720,7 +618,7 @@ contract C3DAppManagerTest is Helpers {
     function test_GetDAppConfig_WithData() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
         assertEq(config.id, 1);
         assertEq(config.appAdmin, user1);
@@ -736,12 +634,12 @@ contract C3DAppManagerTest is Helpers {
     function test_GetMpcAddrs_WithData() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
-        
+
         string[] memory addrs = dappManager.getMpcAddrs(1);
         assertEq(addrs.length, 2);
         assertEq(addrs[0], mpcAddr1);
@@ -755,10 +653,10 @@ contract C3DAppManagerTest is Helpers {
     function test_GetMpcPubkey_WithData() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
-        
+
         assertEq(dappManager.getMpcPubkey(1, mpcAddr1), pubKey1);
     }
 
@@ -769,7 +667,7 @@ contract C3DAppManagerTest is Helpers {
     function test_GetFeeCurrency_WithData() public {
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
-        
+
         assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
     }
 
@@ -780,7 +678,7 @@ contract C3DAppManagerTest is Helpers {
     function test_GetSpeChainFee_WithData() public {
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
-        
+
         assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
     }
 
@@ -790,12 +688,12 @@ contract C3DAppManagerTest is Helpers {
 
     function test_GetDAppStakePool_WithData() public {
         uint256 amount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
     }
 
@@ -804,7 +702,7 @@ contract C3DAppManagerTest is Helpers {
     function test_SetFee_Success() public {
         vm.prank(gov);
         dappManager.setFee(address(usdc), 100);
-        
+
         assertEq(dappManager.getFee(address(usdc)), 100);
     }
 
@@ -812,9 +710,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.setFee(address(usdc), 100);
@@ -827,7 +723,7 @@ contract C3DAppManagerTest is Helpers {
     function test_GetFee_WithData() public {
         vm.prank(gov);
         dappManager.setFee(address(usdc), 100);
-        
+
         assertEq(dappManager.getFee(address(usdc)), 100);
     }
 
@@ -836,7 +732,7 @@ contract C3DAppManagerTest is Helpers {
     function test_SetDAppID_Success() public {
         vm.prank(gov);
         dappManager.setDAppID(123);
-        
+
         assertEq(dappManager.dappID(), 123);
     }
 
@@ -844,9 +740,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         dappManager.setDAppID(123);
@@ -858,14 +752,14 @@ contract C3DAppManagerTest is Helpers {
         // Setup multiple dapps
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "dapp1.com", "dapp1@test.com");
-        
+
         vm.prank(gov);
         dappManager.setDAppConfig(2, user2, address(ctm), "dapp2.com", "dapp2@test.com");
-        
+
         // Verify they don't interfere
         IC3DAppManager.DAppConfig memory config1 = dappManager.getDAppConfig(1);
         IC3DAppManager.DAppConfig memory config2 = dappManager.getDAppConfig(2);
-        
+
         assertEq(config1.appAdmin, user1);
         assertEq(config1.feeToken, address(usdc));
         assertEq(config2.appAdmin, user2);
@@ -875,10 +769,10 @@ contract C3DAppManagerTest is Helpers {
     function test_MultipleTokens() public {
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
-        
+
         vm.prank(gov);
         dappManager.setFeeConfig(address(ctm), "ethereum", 200);
-        
+
         assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
         assertEq(dappManager.getFeeCurrency(address(ctm)), 200);
     }
@@ -886,10 +780,10 @@ contract C3DAppManagerTest is Helpers {
     function test_MultipleChains() public {
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 100);
-        
+
         vm.prank(gov);
         dappManager.setFeeConfig(address(usdc), "polygon", 150);
-        
+
         assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
         assertEq(dappManager.getSpeChainFee("polygon", address(usdc)), 150);
     }
@@ -899,7 +793,7 @@ contract C3DAppManagerTest is Helpers {
     function test_MultipleMpcAddresses() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         // Add multiple MPC addresses
         // for (uint256 i = 0; i < 10; i++) {
         //     vm.prank(gov);
@@ -910,14 +804,14 @@ contract C3DAppManagerTest is Helpers {
         dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
         dappManager.addMpcAddr(1, mpcAddr3, pubKey3);
         vm.stopPrank();
-        
+
         string[] memory addrs = dappManager.getMpcAddrs(1);
         assertEq(addrs.length, 3);
-        
+
         // Remove some addresses
         vm.prank(gov);
         dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
-        
+
         addrs = dappManager.getMpcAddrs(1);
         assertEq(addrs.length, 2);
     }
@@ -925,32 +819,32 @@ contract C3DAppManagerTest is Helpers {
     function test_MultipleDepositsAndWithdrawals() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         uint256 totalDeposited = 0;
-        
+
         // Multiple deposits
         for (uint256 i = 0; i < 5; i++) {
             uint256 amount = 100 * (i + 1);
             totalDeposited += amount;
-            
+
             vm.startPrank(user1);
             usdc.approve(address(dappManager), amount);
             dappManager.deposit(1, address(usdc), amount);
             vm.stopPrank();
         }
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), totalDeposited);
-        
+
         // Multiple withdrawals
         uint256 totalWithdrawn = 0;
         for (uint256 i = 0; i < 3; i++) {
             uint256 amount = 50 * (i + 1);
             totalWithdrawn += amount;
-            
+
             vm.prank(gov);
             dappManager.withdraw(1, address(usdc), amount);
         }
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), totalDeposited - totalWithdrawn);
     }
 
@@ -961,7 +855,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
         uint256 gasUsed = gasBefore - gasleft();
-        
+
         console.log("Gas used for setDAppConfig:", gasUsed);
     }
 
@@ -969,62 +863,62 @@ contract C3DAppManagerTest is Helpers {
         uint256 amount = 1000;
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
-        
+
         uint256 gasBefore = gasleft();
         dappManager.deposit(1, address(usdc), amount);
         uint256 gasUsed = gasBefore - gasleft();
         vm.stopPrank();
-        
+
         console.log("Gas used for deposit:", gasUsed);
     }
 
     function test_Gas_Withdraw() public {
         uint256 amount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
-        
+
         uint256 gasBefore = gasleft();
         vm.prank(gov);
         dappManager.withdraw(1, address(usdc), 500);
         uint256 gasUsed = gasBefore - gasleft();
-        
+
         console.log("Gas used for withdraw:", gasUsed);
     }
 
     function test_Gas_AddMpcAddr() public {
         vm.prank(gov);
         dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-        
+
         uint256 gasBefore = gasleft();
         vm.prank(gov);
         dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
         uint256 gasUsed = gasBefore - gasleft();
-        
+
         console.log("Gas used for addMpcAddr:", gasUsed);
     }
 
     function test_ReentrancyVulnerability_Withdraw() public {
         // This test demonstrates the reentrancy vulnerability
         // In a real scenario, this could allow double withdrawals
-        
+
         // Setup initial balance
         uint256 initialBalance = 1000;
         vm.startPrank(user1);
         maliciousToken.approve(address(dappManager), initialBalance);
         dappManager.deposit(1, address(maliciousToken), initialBalance);
         vm.stopPrank();
-        
+
         // Enable reentering on malicious token
         maliciousToken.setReentering(true);
-        
+
         // This should trigger a reentrancy attack
         // The malicious token will try to call withdraw again during the transfer
         vm.prank(user1);
         dappManager.withdraw(1, address(maliciousToken), 100);
-        
+
         // In a vulnerable implementation, this could result in multiple withdrawals
         // The test demonstrates the potential for reentrancy
         console.log("Reentrancy vulnerability test completed");
@@ -1033,16 +927,16 @@ contract C3DAppManagerTest is Helpers {
     function test_ReentrancySafety_Deposit() public {
         // This test shows that deposit is safer due to CEI pattern
         uint256 amount = 1000;
-        
+
         // Setup malicious token to try reentering during deposit
         maliciousToken.setReentering(true);
-        
+
         // This should not cause issues because deposit follows CEI pattern
         vm.startPrank(user1);
         maliciousToken.approve(address(dappManager), amount);
         dappManager.deposit(1, address(maliciousToken), amount);
         vm.stopPrank();
-        
+
         // Verify the deposit worked correctly
         assertEq(dappManager.getDAppStakePool(1, address(maliciousToken)), amount);
     }
@@ -1050,16 +944,16 @@ contract C3DAppManagerTest is Helpers {
     function test_ReentrancyWithRealToken() public {
         // Test with a real ERC20 token to ensure normal operation
         uint256 amount = 1000;
-        
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
-        
+
         // Normal withdraw should work
         vm.prank(gov);
         dappManager.withdraw(1, address(usdc), 500);
-        
+
         assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
     }
 }

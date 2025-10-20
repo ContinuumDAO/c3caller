@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { C3ErrorParam } from "../utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3GovClient {
     event ChangeGov(address indexed oldGov, address indexed newGov, uint256 timestamp);

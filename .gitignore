@@ -12,7 +12,7 @@ test-hardhat/
 /broadcast/**/dry-run/
 
 # Build
-flattened/
+build/
 
 # Dotenv file
 .env
@@ -23,3 +23,6 @@ flattened/
 
 # NodeJS
 node_modules/
+
+# User
+checklist.md

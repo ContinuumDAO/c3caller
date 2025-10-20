@@ -6,7 +6,9 @@ import {Governor} from "@openzeppelin/contracts/governance/Governor.sol";
 import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 import {GovernorCountingSimple} from "@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol";
 import {GovernorVotes} from "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
-import {GovernorVotesQuorumFraction} from "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
+import {
+    GovernorVotesQuorumFraction
+} from "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 /**
@@ -14,7 +16,7 @@ import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
  * @dev A simple Governor implementation for testing purposes that extends OpenZeppelin's Governor
  * with basic configuration and only the required overrides to make it compile.
  */
-contract TestGovernor is 
+contract TestGovernor is
     Governor,
     GovernorSettings,
     GovernorCountingSimple,
@@ -49,14 +51,24 @@ contract TestGovernor is
     /**
      * @dev Required override for GovernorCountingSimple
      */
-    function _quorumReached(uint256 proposalId) internal view override(Governor, GovernorCountingSimple) returns (bool) {
+    function _quorumReached(uint256 proposalId)
+        internal
+        view
+        override(Governor, GovernorCountingSimple)
+        returns (bool)
+    {
         return quorum(proposalSnapshot(proposalId)) <= 1000; // Mock quorum check
     }
 
     /**
      * @dev Required override for GovernorCountingSimple
      */
-    function _voteSucceeded(uint256 proposalId) internal view override(Governor, GovernorCountingSimple) returns (bool) {
+    function _voteSucceeded(uint256 /*proposalId*/)
+        internal
+        pure
+        override(Governor, GovernorCountingSimple)
+        returns (bool)
+    {
         return true; // Mock: always succeeds
     }
 
@@ -64,12 +76,20 @@ contract TestGovernor is
      * @dev Required override for GovernorCountingSimple
      */
     function _countVote(
-        uint256 proposalId,
-        address account,
-        uint8 support,
+        uint256,
+        /*proposalId*/
+        address,
+        /*account*/
+        uint8,
+        /*support*/
         uint256 weight,
-        bytes memory params
-    ) internal override(Governor, GovernorCountingSimple) returns (uint256) {
+        bytes memory /*params*/
+    )
+        internal
+        pure
+        override(Governor, GovernorCountingSimple)
+        returns (uint256)
+    {
         // Basic vote counting implementation - just return the weight
         return weight;
     }
@@ -80,4 +100,4 @@ contract TestGovernor is
     function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
         return super.proposalThreshold();
     }
-} 
+}
