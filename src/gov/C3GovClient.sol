@@ -83,8 +83,9 @@ contract C3GovClient is IC3GovClient {
      * @dev Anyone can call this function to finalize the governance change
      */
     function applyGov() external {
-        if (pendingGov == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
+        // ISSUE: #1
+        if (msg.sender != pendingGov) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.PendingGov);
         }
         emit ApplyGov(gov, pendingGov, block.timestamp);
         gov = pendingGov;

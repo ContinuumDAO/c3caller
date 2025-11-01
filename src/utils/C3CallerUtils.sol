@@ -27,7 +27,8 @@ enum C3ErrorParam {
     GovOrOperator,
     GovOrC3Caller,
     Operator,
-    Gov
+    Gov,
+    PendingGov
 }
 
 /**
