@@ -147,8 +147,9 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
      */
     function applyGov() external {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
-        if ($.pendingGov == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.Gov);
+        // ISSUE: #1
+        if (msg.sender != $.pendingGov) {
+            revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.PendingGov);
         }
         emit ApplyGov($.gov, $.pendingGov, block.timestamp);
         $.gov = $.pendingGov;

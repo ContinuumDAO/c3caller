@@ -458,6 +458,10 @@ contract C3DAppManagerUpgradeable is
 
         dappStakePool[_dappID][_token] -= _bill;
 
+        // ISSUE: #2
+        fees[_token] += _bill;
+        IERC20(_token).safeTransfer(gov, _bill);
+
         emit Charging(_dappID, _token, _bill, _bill, dappStakePool[_dappID][_token]);
     }
 
@@ -573,9 +577,9 @@ contract C3DAppManagerUpgradeable is
      * @param _fee The fee amount
      * @dev Only the governance address can call this function
      */
-    function setFee(address _token, uint256 _fee) external onlyGov {
-        fees[_token] = _fee;
-    }
+    // function setFee(address _token, uint256 _fee) external onlyGov {
+    //     fees[_token] = _fee;
+    // }
 
     /**
      * @notice Set the DApp ID for this manager (governance only)
