@@ -111,7 +111,12 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
         if (_dappID != dappID_) {
             revert C3CallerDApp_InvalidDAppID(dappID_, _dappID);
         }
-        return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        // ISSUE: #4
+        if (_data.length < 4) {
+            return _c3Fallback(bytes4(0), _data, _reason);
+        } else {
+            return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
+        }
     }
 
     /**
