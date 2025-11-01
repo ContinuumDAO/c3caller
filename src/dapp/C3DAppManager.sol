@@ -438,6 +438,10 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
 
         dappStakePool[_dappID][_token] -= _bill;
 
+        // ISSUE: #2
+        fees[_token] += _bill;
+        IERC20(_token).safeTransfer(gov, _bill);
+
         emit Charging(_dappID, _token, _bill, _bill, dappStakePool[_dappID][_token]);
     }
 
@@ -539,7 +543,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     }
 
     /**
-     * @notice Get accumulated fees for a token
+     * @notice Get accumulated historic fees paid by DApps to this contract
      * @param _token The fee token address
      * @return The accumulated fees
      */
@@ -553,9 +557,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _fee The fee amount
      * @dev Only the governance address can call this function
      */
-    function setFee(address _token, uint256 _fee) external onlyGov {
-        fees[_token] = _fee;
-    }
+    // function setFee(address _token, uint256 _fee) external onlyGov {
+    //     fees[_token] = _fee;
+    // }
 
     /**
      * @notice Set the DApp ID for this manager (governance only)
