@@ -418,21 +418,26 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @notice Charge fees from a DApp's staking pool
      * @param _dappID The DApp ID
      * @param _token The token address
-     * @param _bill The amount to charge
+     * @param _size The size of the cumulative cross-chain messages to charge for
+     * @param _chain The target network to charge for
      * @dev Reverts if DApp ID is zero, bill is zero, or insufficient balance
      * @dev Only governance or DApp admin can call this function
      */
-    function charging(uint256 _dappID, address _token, uint256 _bill)
+    function charging(uint256 _dappID, address _token, uint256 _size, string memory _chain)
         external
         onlyGovOrAdmin(_dappID)
         nonZeroDAppID(_dappID)
         whenNotPaused
     {
-        if (_bill == 0) {
+        // ISSUE: #3
+        uint256 feePerByte = speChainFees[_token][_chain];
+        uint256 bill = feePerByte * _size;
+
+        if (bill == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
 
-        if (dappStakePool[_dappID][_token] < _bill) {
+        if (dappStakePool[_dappID][_token] < bill) {
             revert C3DAppManager_InsufficientBalance(_token);
         }
 

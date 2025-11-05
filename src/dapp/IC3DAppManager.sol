@@ -84,7 +84,7 @@ interface IC3DAppManager {
     function setFeeConfig(address _token, string memory _chain, uint256 _callPerByteFee) external;
     function deposit(uint256 _dappID, address _token, uint256 _amount) external;
     function withdraw(uint256 _dappID, address _token, uint256 _amount) external;
-    function charging(uint256 _dappID, address _token, uint256 _bill) external;
+    function charging(uint256 _dappID, address _token, uint256 _size, string memory _chain) external;
     function getDAppConfig(uint256 _dappID) external view returns (DAppConfig memory);
     function getDAppStatus(uint256 _dappID) external view returns (DAppStatus);
     function getMpcAddrs(uint256 _dappID) external view returns (string[] memory);
