@@ -51,6 +51,7 @@ interface IC3DAppManager {
     error C3DAppManager_MpcAddressExists(string _addr);
     error C3DAppManager_MpcAddressNotFound(string _addr);
     error C3DAppManager_ZeroDAppID();
+    error C3DAppManager_Blacklisted(uint256 _dappID);
 
     // Public functions
     function pause() external;

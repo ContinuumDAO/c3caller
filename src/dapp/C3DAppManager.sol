@@ -374,6 +374,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         nonZeroDAppID(_dappID)
         onlyActiveDApp(_dappID)
     {
+        if (appBlacklist[_dappID]) {
+            revert C3DAppManager_Blacklisted(_dappID);
+        }
         if (_amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
