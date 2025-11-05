@@ -71,7 +71,7 @@ contract C3GovClientTest is Helpers {
 
     function test_ApplyGov_NoPendingGov() public {
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_IsZeroAddress.selector, C3ErrorParam.Gov));
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.PendingGov));
         govClient.applyGov();
     }
 
@@ -81,21 +81,22 @@ contract C3GovClientTest is Helpers {
         govClient.changeGov(address(0));
 
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_IsZeroAddress.selector, C3ErrorParam.Gov));
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.PendingGov));
         govClient.applyGov();
     }
 
-    function test_ApplyGov_AnyoneCanApply() public {
+    function test_ApplyGov_NotAnyoneCanApply() public {
         // First change gov
         vm.prank(gov);
         govClient.changeGov(user1);
 
         // Anyone can apply the change
         vm.prank(user2);
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.PendingGov));
         govClient.applyGov();
 
-        assertEq(govClient.gov(), user1);
-        assertEq(govClient.pendingGov(), address(0));
+        assertEq(govClient.gov(), gov);
+        assertEq(govClient.pendingGov(), user1);
     }
 
     // ============ OPERATOR TESTS ============

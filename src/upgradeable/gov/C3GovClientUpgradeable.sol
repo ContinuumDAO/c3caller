@@ -151,9 +151,11 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable {
         if (msg.sender != $.pendingGov) {
             revert C3GovClient_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.PendingGov);
         }
-        emit ApplyGov($.gov, $.pendingGov, block.timestamp);
+        address oldGov = $.gov;
+        address newGov = $.pendingGov;
         $.gov = $.pendingGov;
         $.pendingGov = address(0);
+        emit ApplyGov(oldGov, newGov, block.timestamp);
     }
 
     /**
