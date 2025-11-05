@@ -9,7 +9,7 @@ interface IC3Caller is IC3GovClient {
     event LogC3Call(
         uint256 indexed dappID,
         bytes32 indexed uuid,
-        address caller,
+        address indexed caller,
         string toChainID,
         string to,
         bytes data,
