@@ -450,7 +450,7 @@ contract C3DAppManagerUpgradeable is
         whenNotPaused
     {
         // ISSUE: #3
-        uint256 feePerByte = speChainFees[_token][_chain];
+        uint256 feePerByte = speChainFees[_chain][_token];
         uint256 bill = feePerByte * _size;
 
         if (bill == 0) {
@@ -465,7 +465,7 @@ contract C3DAppManagerUpgradeable is
 
         // ISSUE: #2
         fees[_token] += bill;
-        IERC20(_token).safeTransfer(gov, bill);
+        IERC20(_token).safeTransfer(gov(), bill);
 
         emit Charging(_dappID, _token, bill, bill, dappStakePool[_dappID][_token]);
     }

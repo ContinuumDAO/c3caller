@@ -95,7 +95,7 @@ interface IC3DAppManager {
     function getSpeChainFee(string memory _chain, address _token) external view returns (uint256);
     function getDAppStakePool(uint256 _dappID, address _token) external view returns (uint256);
     function getFee(address _token) external view returns (uint256);
-    function setFee(address _token, uint256 _fee) external;
+    // function setFee(address _token, uint256 _fee) external;
     function setDAppID(uint256 _dappID) external;
     function setDAppConfigDiscount(uint256 _dappID, uint256 _discount) external;
 }

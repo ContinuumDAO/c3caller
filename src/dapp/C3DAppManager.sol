@@ -430,7 +430,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         whenNotPaused
     {
         // ISSUE: #3
-        uint256 feePerByte = speChainFees[_token][_chain];
+        uint256 feePerByte = speChainFees[_chain][_token];
         uint256 bill = feePerByte * _size;
 
         if (bill == 0) {
@@ -441,13 +441,13 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
             revert C3DAppManager_InsufficientBalance(_token);
         }
 
-        dappStakePool[_dappID][_token] -= _bill;
+        dappStakePool[_dappID][_token] -= bill;
 
         // ISSUE: #2
-        fees[_token] += _bill;
-        IERC20(_token).safeTransfer(gov, _bill);
+        fees[_token] += bill;
+        IERC20(_token).safeTransfer(gov, bill);
 
-        emit Charging(_dappID, _token, _bill, _bill, dappStakePool[_dappID][_token]);
+        emit Charging(_dappID, _token, bill, bill, dappStakePool[_dappID][_token]);
     }
 
     /**
