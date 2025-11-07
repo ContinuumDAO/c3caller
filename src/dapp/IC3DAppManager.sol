@@ -43,7 +43,7 @@ interface IC3DAppManager {
 
     event Deposit(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
     event Withdraw(uint256 _dappID, address _token, uint256 _amount, uint256 _left);
-    event Charging(uint256 _dappID, address _token, uint256 _bill, uint256 _discount,  uint256 _left);
+    event Charging(uint256 _dappID, address _token, uint256 _bill, uint256 _discount, uint256 _left);
 
     error C3DAppManager_IsZero(C3ErrorParam);
     error C3DAppManager_IsZeroAddress(C3ErrorParam);
@@ -78,16 +78,21 @@ interface IC3DAppManager {
     function mpcPubkey(uint256 _dappID, string memory _addr) external view returns (string memory);
     function mpcAddrs(uint256 _dappID, uint256 _index) external view returns (string memory);
     function mpcMembership(uint256 _dappID, string memory _addr) external view returns (bool);
-    function dappConfig(uint256 _dappID) external view returns (address, address, string memory, string memory, uint256, uint256);
+    function dappConfig(uint256 _dappID)
+        external
+        view
+        returns (address, address, string memory, string memory, uint256, uint256);
 
     // External functions
     function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external;
-    function setDAppConfig(
+    function setDAppConfig(address _feeToken, string memory _appDomain, string memory _email) external returns (uint256);
+    function updateDAppConfig(
+        uint256 _dappID,
         address _feeToken,
+        address _appAdmin,
         string memory _appDomain,
         string memory _email
-    ) external returns (uint256);
-    function updateDAppConfig(uint256 _dappID, address _feeToken, address _appAdmin, string memory _appDomain, string memory _email) external;
+    ) external;
     function setDAppAddr(uint256 _dappID, string[] memory _addresses) external;
     function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external;
     function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey) external;
@@ -95,7 +100,8 @@ interface IC3DAppManager {
     function setFeeMinimumDeposit(address _token, uint256 _minimumDeposit) external;
     function deposit(uint256 _dappID, address _token, uint256 _amount) external;
     function withdraw(uint256 _dappID, address _token) external;
-    function charging(uint256 _dappID, address _token, uint256 _sizeBytes, uint256 _sizeGas, string memory _chain) external;
+    function charging(uint256 _dappID, address _token, uint256 _sizeBytes, uint256 _sizeGas, string memory _chain)
+        external;
     function getMpcCount(uint256 _dappID) external view returns (uint256);
     function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external;
 }

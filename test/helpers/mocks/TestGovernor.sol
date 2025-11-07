@@ -63,7 +63,9 @@ contract TestGovernor is
     /**
      * @dev Required override for GovernorCountingSimple
      */
-    function _voteSucceeded(uint256 /*proposalId*/)
+    function _voteSucceeded(
+        uint256 /*proposalId*/
+    )
         internal
         pure
         override(Governor, GovernorCountingSimple)

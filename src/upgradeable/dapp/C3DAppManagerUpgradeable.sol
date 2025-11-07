@@ -219,11 +219,11 @@ contract C3DAppManagerUpgradeable is
      * @param _domain The DApp domain
      * @param _email The DApp email
      */
-    function setDAppConfig(
-        address _feeToken,
-        string memory _domain,
-        string memory _email
-    ) external whenNotPaused() returns (uint256) {
+    function setDAppConfig(address _feeToken, string memory _domain, string memory _email)
+        external
+        whenNotPaused
+        returns (uint256)
+    {
         uint256 _dappID = ++dappID;
         _setDAppConfig(_dappID, _feeToken, msg.sender, _domain, _email);
         emit SetDAppConfig(_dappID, msg.sender, _feeToken, _domain, _email);
@@ -239,7 +239,13 @@ contract C3DAppManagerUpgradeable is
      * @param _email The new email
      * @dev Reverts if caller is not governance or DApp admin, or if the configuration has changed in the past 30 days.
      */
-    function updateDAppConfig(uint256 _dappID, address _feeToken, address _dappAdmin, string memory _domain, string memory _email) external onlyGovOrAdmin(_dappID) {
+    function updateDAppConfig(
+        uint256 _dappID,
+        address _feeToken,
+        address _dappAdmin,
+        string memory _domain,
+        string memory _email
+    ) external onlyGovOrAdmin(_dappID) {
         if (block.timestamp < dappConfig[_dappID].lastUpdated + 30 days && msg.sender != gov()) {
             revert C3DAppManager_RecentlyUpdated(_dappID);
         }
@@ -256,7 +262,13 @@ contract C3DAppManagerUpgradeable is
      * @param _email The email to set
      * @dev Reverts if fee token is not supported or domain/email is empty
      */
-    function _setDAppConfig(uint256 _dappID, address _feeToken, address _dappAdmin, string memory _domain, string memory _email) internal {
+    function _setDAppConfig(
+        uint256 _dappID,
+        address _feeToken,
+        address _dappAdmin,
+        string memory _domain,
+        string memory _email
+    ) internal {
         if (!feeCurrencies[_feeToken]) {
             revert C3DAppManager_InvalidFeeToken(_feeToken);
         }
@@ -267,7 +279,14 @@ contract C3DAppManagerUpgradeable is
             revert C3DAppManager_IsZero(C3ErrorParam.Email);
         }
 
-        dappConfig[_dappID] = DAppConfig({dappAdmin: _dappAdmin, feeToken: _feeToken, domain: _domain, email: _email, discount: 0, lastUpdated: block.timestamp});
+        dappConfig[_dappID] = DAppConfig({
+            dappAdmin: _dappAdmin,
+            feeToken: _feeToken,
+            domain: _domain,
+            email: _email,
+            discount: 0,
+            lastUpdated: block.timestamp
+        });
     }
 
     /**
@@ -383,7 +402,10 @@ contract C3DAppManagerUpgradeable is
      * @dev Reverts if the fee or minimum deposit is zero
      * @dev Only the governance address can call this function
      */
-    function setFeeConfig(address _token, string memory _chain, uint256 _perByteFee, uint256 _perGasFee) external onlyGov {
+    function setFeeConfig(address _token, string memory _chain, uint256 _perByteFee, uint256 _perGasFee)
+        external
+        onlyGov
+    {
         if (_perByteFee == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
         }
@@ -459,12 +481,7 @@ contract C3DAppManagerUpgradeable is
      * @dev Reverts if DApp ID is zero, amount is zero, or insufficient balance
      * @dev Only governance can call this function
      */
-    function withdraw(uint256 _dappID, address _token)
-        external
-        onlyGov()
-        nonZeroDAppID(_dappID)
-        whenNotPaused
-    {
+    function withdraw(uint256 _dappID, address _token) external onlyGov nonZeroDAppID(_dappID) whenNotPaused {
         uint256 amount = dappStakePool[_dappID][_token];
         if (amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.Fee);
@@ -489,7 +506,7 @@ contract C3DAppManagerUpgradeable is
      */
     function charging(uint256 _dappID, address _token, uint256 _sizeBytes, uint256 _sizeGas, string memory _chain)
         external
-        onlyGov()
+        onlyGov
         nonZeroDAppID(_dappID)
         whenNotPaused
     {
@@ -551,11 +568,7 @@ contract C3DAppManagerUpgradeable is
      * @dev Reverts if DApp ID is zero, discount is zero, or DApp is not active
      * @dev Only governance or DApp admin can call this function
      */
-    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount)
-        external
-        onlyGov()
-        nonZeroDAppID(_dappID)
-    {
+    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external onlyGov nonZeroDAppID(_dappID) {
         if (_discount > 10_000) {
             revert C3DAppManager_DiscountAboveMax();
         }

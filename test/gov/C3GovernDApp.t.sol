@@ -374,9 +374,7 @@ contract C3GovernDAppTest is Helpers {
 
         vm.prank(gov);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3Caller.C3Caller_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.ChainID
-            )
+            abi.encodeWithSelector(IC3Caller.C3Caller_LengthMismatch.selector, C3ErrorParam.To, C3ErrorParam.ChainID)
         );
         governDApp.doGovBroadcast(targets, toChainIDs, data);
     }

@@ -25,7 +25,13 @@ contract MaliciousToken is IERC20 {
         balanceOf[address(this)] = 1000000;
     }
 
-    function transfer(address to, uint256 /*amount*/) external returns (bool) {
+    function transfer(
+        address to,
+        uint256 /*amount*/
+    )
+        external
+        returns (bool)
+    {
         if (reentering && to == address(dappManager)) {
             // Try to reenter the withdraw function
             dappManager.withdraw(1, address(this));
@@ -33,7 +39,17 @@ contract MaliciousToken is IERC20 {
         return true;
     }
 
-    function transferFrom(address /*from*/, address /*to*/, uint256 /*amount*/) external pure returns (bool) {
+    function transferFrom(
+        address,
+        /*from*/
+        address,
+        /*to*/
+        uint256 /*amount*/
+    )
+        external
+        pure
+        returns (bool)
+    {
         return true;
     }
 
@@ -223,11 +239,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(uint8(status), uint8(suspended));
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended));
         dappManager.deposit(dappID, address(usdc), 10);
     }
 
@@ -289,7 +301,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(gov);
         dappManager.setDAppFeeDiscount(dappID, 10);
 
-        (,,,,uint256 discount,) = dappManager.dappConfig(dappID);
+        (,,,, uint256 discount,) = dappManager.dappConfig(dappID);
         assertEq(discount, 10);
     }
 
@@ -337,7 +349,8 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
 
-        (address dappAdmin, address feeToken, string memory domain, string memory email, , uint256 lastUpdated) = dappManager.dappConfig(dappID);
+        (address dappAdmin, address feeToken, string memory domain, string memory email,, uint256 lastUpdated) =
+            dappManager.dappConfig(dappID);
         assertEq(dappAdmin, user2);
         assertEq(feeToken, address(ctm));
         assertEq(domain, "test2.com");
@@ -357,9 +370,7 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_RecentlyUpdated.selector, dappID)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_RecentlyUpdated.selector, dappID));
         dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
     }
 
@@ -381,14 +392,11 @@ contract C3DAppManagerTest is Helpers {
 
         skip(30 days);
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)));
         dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
 
-        (address dappAdmin, address feeToken, string memory domain, string memory email, , uint256 lastUpdated) = dappManager.dappConfig(dappID);
+        (address dappAdmin, address feeToken, string memory domain, string memory email,, uint256 lastUpdated) =
+            dappManager.dappConfig(dappID);
         IC3DAppManager.DAppStatus status = dappManager.dappStatus(dappID);
         assertEq(dappAdmin, user1);
         assertEq(feeToken, address(usdc));
@@ -497,7 +505,9 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address)
+        );
         dappManager.addMpcAddr(dappID, "", "pubkey1");
     }
 
@@ -509,7 +519,11 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.Address, C3ErrorParam.PubKey));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.Address, C3ErrorParam.PubKey
+            )
+        );
         dappManager.addMpcAddr(dappID, mpcAddr1, "");
     }
 
@@ -577,7 +591,9 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address)
+        );
         dappManager.delMpcAddr(dappID, "", pubKey1);
     }
 
@@ -589,7 +605,9 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.PubKey));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.PubKey)
+        );
         dappManager.delMpcAddr(dappID, mpcAddr1, "");
     }
 
@@ -742,7 +760,9 @@ contract C3DAppManagerTest is Helpers {
 
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, depositAmount, minimumDeposit)
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, depositAmount, minimumDeposit
+            )
         );
         dappManager.deposit(1, address(usdc), depositAmount);
     }

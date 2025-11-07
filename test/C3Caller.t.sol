@@ -546,7 +546,15 @@ contract C3CallerTest is Helpers {
 
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(dappID, uuid, user1, toChainID, to, complexData, "" /*empty extra data*/);
+        emit IC3Caller.LogC3Call(
+            dappID,
+            uuid,
+            user1,
+            toChainID,
+            to,
+            complexData,
+            "" /*empty extra data*/
+        );
         c3caller.c3call(dappID, to, toChainID, complexData);
     }
 
@@ -575,7 +583,15 @@ contract C3CallerTest is Helpers {
 
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(dappID, uuid, user2, toChainID, to, data, "" /*empty extra data*/);
+        emit IC3Caller.LogC3Call(
+            dappID,
+            uuid,
+            user2,
+            toChainID,
+            to,
+            data,
+            "" /*empty extra data*/
+        );
         c3caller.c3call(dappID, to, toChainID, data);
     }
 
@@ -592,7 +608,15 @@ contract C3CallerTest is Helpers {
 
         vm.prank(mpc1);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(dappID, uuid, mpc1, toChainID, to, maxData, "" /*empty extra data*/);
+        emit IC3Caller.LogC3Call(
+            dappID,
+            uuid,
+            mpc1,
+            toChainID,
+            to,
+            maxData,
+            "" /*empty extra data*/
+        );
         c3caller.c3call(dappID, to, toChainID, maxData);
     }
 
