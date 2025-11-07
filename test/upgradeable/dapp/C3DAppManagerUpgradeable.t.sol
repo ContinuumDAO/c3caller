@@ -29,7 +29,7 @@ contract MaliciousTokenUpgradeable is IERC20 {
     function transfer(address to, uint256) external returns (bool) {
         if (reentering && to == address(dappManager)) {
             // Try to reenter the withdraw function
-            dappManager.withdraw(1, address(this), 100);
+            dappManager.withdraw(1, address(this));
         }
         return true;
     }
@@ -52,6 +52,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     C3DAppManagerUpgradeable public dappManager;
     string public mpcAddr1 = "0x1234567890123456789012345678901234567890";
     string public pubKey1 = "0x0987654321098765432109876543210987654321";
+    uint256 maliciousDAppID;
 
     MaliciousTokenUpgradeable public maliciousToken;
 
@@ -69,8 +70,13 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         // Deploy malicious token
         maliciousToken = new MaliciousTokenUpgradeable(dappManager);
 
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(maliciousToken), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(maliciousToken), 100);
+        vm.stopPrank();
+
         // Setup dapp config
-        dappManager.setDAppConfig(1, user1, address(maliciousToken), "test.com", "test@test.com");
+        maliciousDAppID = dappManager.setDAppConfig(address(maliciousToken), "test.com", "test@test.com");
 
         vm.stopPrank();
     }
@@ -81,7 +87,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         console.log("Expected gov address:", gov);
         console.log("Actual gov address:", dappManager.gov());
         assertEq(dappManager.gov(), gov);
-        assertEq(dappManager.dappID(), 0);
+        assertEq(dappManager.dappID(), 1);
     }
 
     // ============ REENTRANCY TESTS ============
@@ -94,15 +100,15 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 initialBalance = 1000;
         vm.startPrank(user1);
         maliciousToken.approve(address(dappManager), initialBalance);
-        dappManager.deposit(1, address(maliciousToken), initialBalance);
+        dappManager.deposit(maliciousDAppID, address(maliciousToken), initialBalance);
         vm.stopPrank();
 
         // Enable reentering on malicious token
         maliciousToken.setReentering(true);
 
         // This should be blocked by the reentrancy guard
-        vm.prank(user1);
-        dappManager.withdraw(1, address(maliciousToken), 100);
+        vm.prank(gov);
+        dappManager.withdraw(maliciousDAppID, address(maliciousToken));
 
         // The reentrancy should be prevented
         console.log("Reentrancy protection test completed");
@@ -122,7 +128,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.stopPrank();
 
         // Verify the deposit worked correctly
-        assertEq(dappManager.getDAppStakePool(1, address(maliciousToken)), amount);
+        assertEq(dappManager.dappStakePool(1, address(maliciousToken)), amount);
     }
 
     function test_ReentrancyWithRealToken() public {
@@ -136,9 +142,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
 
         // Normal withdraw should work
         vm.prank(gov);
-        dappManager.withdraw(1, address(usdc), 500);
+        dappManager.withdraw(1, address(usdc));
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), 0);
     }
 
     // ============ BASIC FUNCTIONALITY TESTS ============
@@ -151,12 +157,11 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), amount);
     }
 
     function test_Withdraw_Success() public {
         uint256 depositAmount = 1000;
-        uint256 withdrawAmount = 500;
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
@@ -164,19 +169,23 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.stopPrank();
 
         vm.prank(gov);
-        dappManager.withdraw(1, address(usdc), withdrawAmount);
+        dappManager.withdraw(1, address(usdc));
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - withdrawAmount);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), 0);
     }
 
     function test_SetDAppConfig_Success() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
-        assertEq(config.id, 1);
-        assertEq(config.appAdmin, user1);
-        assertEq(config.feeToken, address(usdc));
-        assertEq(config.discount, 0);
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        (address dappAdmin, address feeToken,,, uint256 discount,) = dappManager.dappConfig(dappID);
+        assertEq(dappAdmin, user1);
+        assertEq(feeToken, address(usdc));
+        assertEq(discount, 0);
     }
 }

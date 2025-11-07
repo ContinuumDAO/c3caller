@@ -12,7 +12,9 @@ enum C3ErrorParam {
     ChainID,
     Calldata,
     DAppID,
+    Fee,
     FeePerByte,
+    FeePerGas,
     AppDomain,
     Email,
     Address,
@@ -28,7 +30,8 @@ enum C3ErrorParam {
     GovOrC3Caller,
     Operator,
     Gov,
-    PendingGov
+    PendingGov,
+    MinimumDeposit
 }
 
 /**

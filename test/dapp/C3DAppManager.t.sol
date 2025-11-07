@@ -28,7 +28,7 @@ contract MaliciousToken is IERC20 {
     function transfer(address to, uint256 /*amount*/) external returns (bool) {
         if (reentering && to == address(dappManager)) {
             // Try to reenter the withdraw function
-            dappManager.withdraw(1, address(this), 100);
+            dappManager.withdraw(1, address(this));
         }
         return true;
     }
@@ -55,6 +55,7 @@ contract C3DAppManagerTest is Helpers {
     string public pubKey2 = "0x0987654321098765432109876543210987654322";
     string public mpcAddr3 = "0x1234567890123456789012345678901234567892";
     string public pubKey3 = "0x0987654321098765432109876543210987654323";
+    uint256 maliciousDAppID;
 
     MaliciousToken public maliciousToken;
 
@@ -67,8 +68,10 @@ contract C3DAppManagerTest is Helpers {
         maliciousToken = new MaliciousToken(dappManager);
 
         // Setup dapp config
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(maliciousToken), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(maliciousToken), "ethereum", 1, 1);
+        maliciousDAppID = dappManager.setDAppConfig(address(maliciousToken), "test.com", "test@test.com");
+        vm.stopPrank();
     }
 
     // ============ CONSTRUCTOR TESTS ============
@@ -77,7 +80,7 @@ contract C3DAppManagerTest is Helpers {
         console.log("Expected gov address:", gov);
         console.log("Actual gov address:", dappManager.gov());
         assertEq(dappManager.gov(), gov);
-        assertEq(dappManager.dappID(), 0);
+        assertEq(dappManager.dappID(), 1);
     }
 
     // ============ PAUSE/UNPAUSE TESTS ============
@@ -144,97 +147,246 @@ contract C3DAppManagerTest is Helpers {
         dappManager.setBlacklists(1, true);
     }
 
+    function test_RemoveDAppConfig_BlacklistedAfterFeeTokenRemoval() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(gov);
+        dappManager.removeFeeConfig(address(usdc));
+
+        bool isBlackListed = dappManager.isDAppBlacklisted(dappID);
+        assertTrue(isBlackListed);
+
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_Blacklisted.selector, dappID
+            )
+        );
+        dappManager.deposit(dappID, address(usdc), 10);
+    }
+
+    function test_SetBlacklists_DepositFails() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(gov);
+        dappManager.setBlacklists(dappID, true);
+
+        assertTrue(dappManager.appBlacklist(dappID));
+
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_Blacklisted.selector, dappID
+            )
+        );
+        dappManager.deposit(dappID, address(usdc), 10);
+    }
+
     // ============ DAPP CONFIG TESTS ============
 
     function test_SetDAppConfig_Success() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
-        assertEq(config.id, 1);
-        assertEq(config.appAdmin, user1);
-        assertEq(config.feeToken, address(usdc));
-        assertEq(config.discount, 0);
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        (address dappAdmin, address feeToken,,, uint256 discount,) = dappManager.dappConfig(dappID);
+        assertEq(dappAdmin, user1);
+        assertEq(feeToken, address(usdc));
+        assertEq(discount, 0);
     }
 
-    function test_SetDAppConfig_OnlyGov() public {
+    function test_SetDAppConfig_ZeroFeeToken() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
         vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(0)));
+        dappManager.setDAppConfig(address(0), "test.com", "test@test.com");
+    }
+
+    function test_SetDAppConfig_EmptyAppDomain() public {
+        vm.prank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.AppDomain));
+        dappManager.setDAppConfig(address(usdc), "", "test@test.com");
+    }
+
+    function test_SetDAppConfig_EmptyEmail() public {
+        vm.prank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Email));
+        dappManager.setDAppConfig(address(usdc), "test.com", "");
+    }
+
+    function test_SetDAppConfigDiscount_Success() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(gov);
+        dappManager.setDAppFeeDiscount(dappID, 10);
+
+        (,,,,uint256 discount,) = dappManager.dappConfig(dappID);
+        assertEq(discount, 10);
+    }
+
+    function test_SetDAppConfigDiscount_OnlyGov() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-    }
-
-    function test_SetDAppConfig_ZeroFeeToken() public {
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
-        dappManager.setDAppConfig(1, user1, address(0), "test.com", "test@test.com");
-    }
-
-    function test_SetDAppConfig_EmptyAppDomain() public {
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.AppDomain));
-        dappManager.setDAppConfig(1, user1, address(usdc), "", "test@test.com");
-    }
-
-    function test_SetDAppConfig_EmptyEmail() public {
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Email));
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "");
-    }
-
-    function test_SetDAppConfigDiscount_Success() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-
-        vm.prank(gov);
-        dappManager.setDAppConfigDiscount(1, 10);
-
-        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
-        assertEq(config.discount, 10);
-    }
-
-    function test_SetDAppConfigDiscount_OnlyGovOrAdmin() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-
-        vm.prank(user2);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
-            )
-        );
-        dappManager.setDAppConfigDiscount(1, 10);
+        dappManager.setDAppFeeDiscount(dappID, 10);
     }
 
     function test_SetDAppConfigDiscount_ZeroDAppID() public {
         vm.prank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
-        dappManager.setDAppConfigDiscount(0, 10);
+        dappManager.setDAppFeeDiscount(0, 10);
+    }
+
+    // ============ UPDATE DAPP CONFIG TESTS ============
+
+    function test_UpdateDAppConfig_Success() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        skip(30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
+
+        (address dappAdmin, address feeToken, string memory domain, string memory email, , uint256 lastUpdated) = dappManager.dappConfig(dappID);
+        assertEq(dappAdmin, user2);
+        assertEq(feeToken, address(ctm));
+        assertEq(domain, "test2.com");
+        assertEq(email, "test2@test.com");
+        assertEq(lastUpdated, block.timestamp);
+    }
+
+    function test_UpdateDAppConfig_BeforeCooldownFails() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_RecentlyUpdated.selector, dappID)
+        );
+        dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
+    }
+
+    function test_UpdateDAppConfig_DeprecatedFeeToken() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        uint256 initialTs = block.timestamp;
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        vm.prank(gov);
+        dappManager.removeFeeConfig(address(ctm));
+
+        skip(30 days);
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)
+            )
+        );
+        dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
+
+        (address dappAdmin, address feeToken, string memory domain, string memory email, , uint256 lastUpdated) = dappManager.dappConfig(dappID);
+        bool isBlackListed = dappManager.isDAppBlacklisted(dappID);
+        assertEq(dappAdmin, user1);
+        assertEq(feeToken, address(usdc));
+        assertEq(domain, "test.com");
+        assertEq(email, "test@test.com");
+        assertEq(lastUpdated, initialTs);
+        assertEq(isBlackListed, false);
     }
 
     // ============ DAPP ADDRESS TESTS ============
 
     function test_SetDAppAddr_Success() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         string[] memory addresses = new string[](2);
         addresses[0] = "addr1";
         addresses[1] = "addr2";
 
         vm.prank(gov);
-        dappManager.setDAppAddr(1, addresses);
+        dappManager.setDAppAddr(dappID, addresses);
 
-        assertEq(dappManager.c3DAppAddr("addr1"), 1);
-        assertEq(dappManager.c3DAppAddr("addr2"), 1);
+        assertEq(dappManager.c3DAppAddr("addr1"), dappID);
+        assertEq(dappManager.c3DAppAddr("addr2"), dappID);
     }
 
     function test_SetDAppAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         string[] memory addresses = new string[](1);
         addresses[0] = "addr1";
@@ -245,40 +397,51 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
-        dappManager.setDAppAddr(1, addresses);
+        dappManager.setDAppAddr(dappID, addresses);
     }
 
     function test_SetDAppAddr_ByAdmin() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         string[] memory addresses = new string[](1);
         addresses[0] = "addr1";
 
         vm.prank(user1);
-        dappManager.setDAppAddr(1, addresses);
+        dappManager.setDAppAddr(dappID, addresses);
 
-        assertEq(dappManager.c3DAppAddr("addr1"), 1);
+        assertEq(dappManager.c3DAppAddr("addr1"), dappID);
     }
 
     // ============ MPC ADDRESS TESTS ============
 
     function test_AddMpcAddr_Success() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
 
-        assertEq(dappManager.getMpcPubkey(1, mpcAddr1), pubKey1);
-        string[] memory addrs = dappManager.getMpcAddrs(1);
+        assertEq(dappManager.mpcPubkey(dappID, mpcAddr1), pubKey1);
+        string[] memory addrs = dappManager.getAllMpcAddrs(dappID);
         assertEq(addrs.length, 1);
         assertEq(addrs[0], mpcAddr1);
     }
 
     function test_AddMpcAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(user2);
         vm.expectRevert(
@@ -286,39 +449,39 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
-    }
-
-    function test_AddMpcAddr_ZeroAppAdmin() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
-
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
     }
 
     function test_AddMpcAddr_EmptyAddr() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address));
-        dappManager.addMpcAddr(1, "", "pubkey1");
+        dappManager.addMpcAddr(dappID, "", "pubkey1");
     }
 
     function test_AddMpcAddr_EmptyPubkey() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.Address, C3ErrorParam.PubKey));
-        dappManager.addMpcAddr(1, mpcAddr1, "");
+        dappManager.addMpcAddr(dappID, mpcAddr1, "");
     }
 
     function test_AddMpcAddr_LengthMismatch() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
         vm.expectRevert(
@@ -326,33 +489,39 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_LengthMismatch.selector, C3ErrorParam.Address, C3ErrorParam.PubKey
             )
         );
-        dappManager.addMpcAddr(1, mpcAddr1, "pubkey123");
+        dappManager.addMpcAddr(dappID, mpcAddr1, "pubkey123");
     }
 
     function test_DelMpcAddr_Success() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
+        dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
 
         vm.prank(gov);
-        dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
 
-        assertEq(dappManager.getMpcPubkey(1, mpcAddr1), "");
-        string[] memory addrs = dappManager.getMpcAddrs(1);
+        assertEq(dappManager.mpcPubkey(dappID, mpcAddr1), "");
+        string[] memory addrs = dappManager.getAllMpcAddrs(dappID);
         assertEq(addrs.length, 1);
         assertEq(addrs[0], mpcAddr2);
     }
 
     function test_DelMpcAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
 
         vm.prank(user2);
         vm.expectRevert(
@@ -360,44 +529,47 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
-        dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
-    }
-
-    function test_DelMpcAddr_ZeroAppAdmin() public {
-        vm.startPrank(gov);
-        dappManager.setDAppConfig(1, address(0), address(usdc), "test.com", "test@test.com");
-
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Admin));
-        dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
-        vm.stopPrank();
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
     }
 
     function test_DelMpcAddr_EmptyAddr() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.Address));
-        dappManager.delMpcAddr(1, "", pubKey1);
+        dappManager.delMpcAddr(dappID, "", pubKey1);
     }
 
     function test_DelMpcAddr_EmptyPubkey() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZeroAddress.selector, C3ErrorParam.PubKey));
-        dappManager.delMpcAddr(1, mpcAddr1, "");
+        dappManager.delMpcAddr(dappID, mpcAddr1, "");
     }
 
     // ============ FEE CONFIG TESTS ============
 
     function test_SetFeeConfig_Success() public {
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
-        assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
+        (uint256 perByte, uint256 perGas) = dappManager.specificChainFee("ethereum", address(usdc));
+        uint256 minimumDeposit = dappManager.feeMinimumDeposit(address(usdc));
+
+        assertEq(perByte, 1);
+        assertEq(perGas, 1);
+        assertEq(minimumDeposit, 100);
     }
 
     function test_SetFeeConfig_OnlyGov() public {
@@ -407,13 +579,80 @@ contract C3DAppManagerTest is Helpers {
                 IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
     }
 
-    function test_SetFeeConfig_ZeroFee() public {
+    function test_SetFeeConfig_ZeroFeePerByte() public {
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
-        dappManager.setFeeConfig(address(usdc), "ethereum", 0);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 0, 1);
+    }
+
+    function test_SetFeeConfig_ZeroFeePerGas() public {
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerGas));
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 0);
+    }
+
+    // ============ DISCOUNT TESTS ============
+
+    function test_Discount_ZeroDiscount() public {
+        uint256 feePerByte = 100;
+        uint256 feePerGas = 1 gwei;
+        uint256 sizeByte = 4;
+        uint256 sizeGas = 21000;
+        uint256 totalExpectedBill = (feePerByte * sizeByte) + (feePerGas * sizeGas);
+
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(ctm), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(ctm), "test.com", "test@test.com");
+        ctm.approve(address(dappManager), 1 ether);
+        dappManager.deposit(dappID, address(ctm), 1 ether);
+        vm.stopPrank();
+
+        vm.prank(gov);
+        dappManager.setDAppFeeDiscount(dappID, 0);
+
+        uint256 govInitialBalance = ctm.balanceOf(gov);
+
+        vm.prank(gov);
+        dappManager.charging(dappID, address(ctm), sizeByte, sizeGas, "ethereum");
+
+        uint256 govFinalBalance = ctm.balanceOf(gov);
+        assertEq(govFinalBalance, govInitialBalance + totalExpectedBill);
+    }
+
+    function test_Discount_FullDiscount() public {
+        uint256 feePerByte = 100;
+        uint256 feePerGas = 1 gwei;
+        uint256 sizeByte = 4;
+        uint256 sizeGas = 21000;
+
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(ctm), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(ctm), "test.com", "test@test.com");
+        ctm.approve(address(dappManager), 1 ether);
+        dappManager.deposit(dappID, address(ctm), 1 ether);
+        vm.stopPrank();
+
+        vm.prank(gov);
+        dappManager.setDAppFeeDiscount(dappID, 10000);
+
+        uint256 govInitialBalance = ctm.balanceOf(gov);
+
+        vm.prank(gov);
+        dappManager.charging(dappID, address(ctm), sizeByte, sizeGas, "ethereum");
+
+        uint256 govFinalBalance = ctm.balanceOf(gov);
+        assertEq(govFinalBalance, govInitialBalance);
     }
 
     // ============ DEPOSIT TESTS ============
@@ -426,12 +665,17 @@ contract C3DAppManagerTest is Helpers {
         dappManager.deposit(1, address(usdc), amount);
         vm.stopPrank();
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), amount);
     }
 
     function test_Deposit_ZeroAmount() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 1);
+        vm.stopPrank();
+
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, 0, 1));
         dappManager.deposit(1, address(usdc), 0);
     }
 
@@ -445,30 +689,71 @@ contract C3DAppManagerTest is Helpers {
         dappManager.deposit(1, address(usdc), amount2);
         vm.stopPrank();
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount1 + amount2);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), amount1 + amount2);
+    }
+
+    function test_Deposit_BelowMinimum() public {
+        uint256 depositAmount = 999;
+        uint256 feePerByte = 1;
+        uint256 feePerGas = 2;
+        uint256 minimumDeposit = 1000;
+
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, depositAmount, minimumDeposit)
+        );
+        dappManager.deposit(1, address(usdc), depositAmount);
     }
 
     // ============ WITHDRAW TESTS ============
 
     function test_Withdraw_Success() public {
-        uint256 depositAmount = 1000;
-        uint256 withdrawAmount = 500;
+        uint256 feePerByte = 1;
+        uint256 feePerGas = 2;
+        uint256 minimumDeposit = 1000;
 
-        vm.startPrank(user1);
-        usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
         vm.stopPrank();
 
-        vm.prank(gov);
-        dappManager.withdraw(1, address(usdc), withdrawAmount);
+        vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - withdrawAmount);
-    }
-
-    function test_Withdraw_OnlyGovOrAdmin() public {
         uint256 depositAmount = 1000;
 
+        usdc.approve(address(dappManager), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
+        vm.stopPrank();
+
+        uint256 user1InitialBalance = usdc.balanceOf(user1);
+
+        vm.prank(gov);
+        dappManager.withdraw(dappID, address(usdc));
+
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), 0);
+        assertEq(usdc.balanceOf(user1), user1InitialBalance + 1000);
+    }
+
+    function test_Withdraw_OnlyGov() public {
+        uint256 depositAmount = 1000;
+        uint256 feePerByte = 1;
+        uint256 feePerGas = 1;
+        uint256 minimumDeposit = 100;
+
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
+
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         usdc.approve(address(dappManager), depositAmount);
         dappManager.deposit(1, address(usdc), depositAmount);
         vm.stopPrank();
@@ -476,48 +761,28 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
-        dappManager.withdraw(1, address(usdc), 500);
-    }
-
-    function test_Withdraw_ByAdmin() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-
-        uint256 depositAmount = 1000;
-
-        vm.startPrank(user2);
-        usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
-        vm.stopPrank();
-
-        vm.prank(user1);
-        dappManager.withdraw(1, address(usdc), 500);
-
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
+        dappManager.withdraw(dappID, address(usdc));
     }
 
     function test_Withdraw_ZeroAmount() public {
-        vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
-        dappManager.withdraw(1, address(usdc), 0);
-    }
+        uint256 feePerByte = 1;
+        uint256 feePerGas = 2;
+        uint256 minimumDeposit = 1000;
 
-    function test_Withdraw_InsufficientBalance() public {
-        uint256 depositAmount = 1000;
-
-        vm.startPrank(user1);
-        usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
         vm.stopPrank();
 
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, address(usdc))
-        );
-        dappManager.withdraw(1, address(usdc), 1500);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Fee));
+        dappManager.withdraw(dappID, address(usdc));
     }
 
     // ============ CHARGING TESTS ============
@@ -525,195 +790,229 @@ contract C3DAppManagerTest is Helpers {
     function test_Charging_Success() public {
         uint256 depositAmount = 1000;
         uint256 feePerByte = 1;
-        uint256 size = 16;
+        uint256 feePerGas = 2;
+        uint256 minimumDeposit = 999;
+        uint256 sizeBytes = 16;
+        uint256 sizeGas = 32;
         string memory chain = "ethereum";
-        uint256 chargeAmount = size * feePerByte;
+        uint256 chargeAmount = (sizeBytes * feePerByte) + (sizeGas * feePerGas);
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), chain, feePerByte);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), chain, feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
 
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
         vm.stopPrank();
 
         vm.prank(gov);
-        dappManager.charging(1, address(usdc), size, chain);
+        dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - chargeAmount);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), depositAmount - chargeAmount);
     }
 
-    function test_Charging_OnlyGovOrAdmin() public {
+    function test_Charging_OnlyGov() public {
         uint256 depositAmount = 1000;
         uint256 feePerByte = 500;
-        uint256 size = 16;
+        uint256 feePerGas = 100;
+        uint256 minimumDeposit = 999;
+        uint256 sizeBytes = 16;
+        uint256 sizeGas = 32;
         string memory chain = "ethereum";
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), chain, feePerByte);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), chain, feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
 
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
         vm.stopPrank();
 
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
-        dappManager.charging(1, address(usdc), size, chain);
-    }
-
-    function test_Charging_ByAdmin() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-
-        uint256 feePerByte = 1;
-        uint256 size = 16;
-        string memory chain = "ethereum";
-
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), chain, feePerByte);
-
-        uint256 depositAmount = 1000;
-
-        vm.startPrank(user2);
-        usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
-        vm.stopPrank();
-
-        vm.prank(user1);
-        dappManager.charging(1, address(usdc), size, chain);
-
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), depositAmount - (size * feePerByte));
+        dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
     }
 
     function test_Charging_ZeroAmount() public {
         uint256 feePerByte = 1;
-        uint256 size = 0;
+        uint256 feePerGas = 2;
+        uint256 minimumDeposit = 999;
+        uint256 sizeByte = 0;
+        uint256 sizeGas = 0;
         string memory chain = "ethereum";
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), chain, feePerByte);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), chain, feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.FeePerByte));
-        dappManager.charging(1, address(usdc), size, chain);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Fee));
+        dappManager.charging(dappID, address(usdc), sizeByte, sizeGas, chain);
     }
 
     function test_Charging_InsufficientBalance() public {
         uint256 depositAmount = 1000;
         uint256 feePerByte = 500;
-        uint256 size = 16;
+        uint256 feePerGas = 100;
+        uint256 minimumDeposit = 999;
+        uint256 sizeByte = 16;
+        uint256 sizeGas = 16;
         string memory chain = "ethereum";
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), chain, feePerByte);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), chain, feePerByte, feePerGas);
+        dappManager.setFeeMinimumDeposit(address(usdc), minimumDeposit);
+        vm.stopPrank();
 
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
         vm.stopPrank();
 
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, address(usdc))
         );
-        dappManager.charging(1, address(usdc), size, chain);
+        dappManager.charging(dappID, address(usdc), sizeByte, sizeGas, chain);
     }
 
     // ============ VIEW FUNCTION TESTS ============
 
     function test_GetDAppConfig_Empty() public view {
-        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(2);
-        assertEq(config.id, 0);
-        assertEq(config.appAdmin, address(0));
-        assertEq(config.feeToken, address(0));
-        assertEq(config.discount, 0);
+        (address dappAdmin, address feeToken,,, uint256 discount,) = dappManager.dappConfig(2);
+        assertEq(dappAdmin, address(0));
+        assertEq(feeToken, address(0));
+        assertEq(discount, 0);
     }
 
     function test_GetDAppConfig_WithData() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        IC3DAppManager.DAppConfig memory config = dappManager.getDAppConfig(1);
-        assertEq(config.id, 1);
-        assertEq(config.appAdmin, user1);
-        assertEq(config.feeToken, address(usdc));
-        assertEq(config.discount, 0);
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        (address dappAdmin, address feeToken,,, uint256 discount,) = dappManager.dappConfig(dappID);
+        assertEq(dappAdmin, user1);
+        assertEq(feeToken, address(usdc));
+        assertEq(discount, 0);
     }
 
     function test_GetMpcAddrs_Empty() public view {
-        string[] memory addrs = dappManager.getMpcAddrs(1);
+        string[] memory addrs = dappManager.getAllMpcAddrs(1);
         assertEq(addrs.length, 0);
     }
 
     function test_GetMpcAddrs_WithData() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
+        dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
 
-        string[] memory addrs = dappManager.getMpcAddrs(1);
+        string[] memory addrs = dappManager.getAllMpcAddrs(dappID);
         assertEq(addrs.length, 2);
         assertEq(addrs[0], mpcAddr1);
         assertEq(addrs[1], mpcAddr2);
     }
 
     function test_GetMpcPubkey_Empty() public view {
-        assertEq(dappManager.getMpcPubkey(1, mpcAddr1), "");
+        assertEq(dappManager.mpcPubkey(1, mpcAddr1), "");
     }
 
     function test_GetMpcPubkey_WithData() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
 
-        assertEq(dappManager.getMpcPubkey(1, mpcAddr1), pubKey1);
+        assertEq(dappManager.mpcPubkey(dappID, mpcAddr1), pubKey1);
     }
 
     function test_GetFeeCurrency_Empty() public view {
-        assertEq(dappManager.getFeeCurrency(address(usdc)), 0);
+        assertEq(dappManager.feeCurrencies(address(usdc)), false);
     }
 
     function test_GetFeeCurrency_WithData() public {
         vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
 
-        assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
+        assertEq(dappManager.feeCurrencies(address(usdc)), true);
     }
 
     function test_GetSpeChainFee_Empty() public view {
-        assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 0);
+        (uint256 perByte, uint256 perGas) = dappManager.specificChainFee("ethereum", address(usdc));
+        assertEq(perByte, 0);
+        assertEq(perGas, 0);
     }
 
     function test_GetSpeChainFee_WithData() public {
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
+        (uint256 perByte, uint256 perGas) = dappManager.specificChainFee("ethereum", address(usdc));
+        uint256 minimumDeposit = dappManager.feeMinimumDeposit(address(usdc));
+
+        assertEq(perByte, 1);
+        assertEq(perGas, 1);
+        assertEq(minimumDeposit, 100);
     }
 
     function test_GetDAppStakePool_Empty() public view {
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), 0);
+        assertEq(dappManager.dappStakePool(1, address(usdc)), 0);
     }
 
     function test_GetDAppStakePool_WithData() public {
         uint256 amount = 1000;
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
-        dappManager.deposit(1, address(usdc), amount);
+        dappManager.deposit(dappID, address(usdc), amount);
         vm.stopPrank();
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), amount);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), amount);
     }
 
     // ============ FEE MANAGEMENT TESTS ============
@@ -736,7 +1035,7 @@ contract C3DAppManagerTest is Helpers {
     // }
 
     function test_GetFee_Empty() public view {
-        assertEq(dappManager.getFee(address(usdc)), 0);
+        assertEq(dappManager.cumulativeFees(address(usdc)), 0);
     }
 
     // function test_GetFee_WithData() public {
@@ -746,98 +1045,97 @@ contract C3DAppManagerTest is Helpers {
     //     assertEq(dappManager.getFee(address(usdc)), 100);
     // }
 
-    // ============ DAPP ID TESTS ============
-
-    function test_SetDAppID_Success() public {
-        vm.prank(gov);
-        dappManager.setDAppID(123);
-
-        assertEq(dappManager.dappID(), 123);
-    }
-
-    function test_SetDAppID_OnlyGov() public {
-        vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
-            )
-        );
-        dappManager.setDAppID(123);
-    }
-
     // ============ EDGE CASES ============
 
     function test_MultipleDApps() public {
         // Setup multiple dapps
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "dapp1.com", "dapp1@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
 
-        vm.prank(gov);
-        dappManager.setDAppConfig(2, user2, address(ctm), "dapp2.com", "dapp2@test.com");
+        vm.prank(user1);
+        uint256 dappID1 = dappManager.setDAppConfig(address(usdc), "dapp1.com", "dapp1@test.com");
+        vm.prank(user2);
+        uint256 dappID2 = dappManager.setDAppConfig(address(ctm), "dapp2.com", "dapp2@test.com");
 
         // Verify they don't interfere
-        IC3DAppManager.DAppConfig memory config1 = dappManager.getDAppConfig(1);
-        IC3DAppManager.DAppConfig memory config2 = dappManager.getDAppConfig(2);
+        (address dappAdmin1, address feeToken1,,,,) = dappManager.dappConfig(dappID1);
+        (address dappAdmin2, address feeToken2,,,,) = dappManager.dappConfig(dappID2);
 
-        assertEq(config1.appAdmin, user1);
-        assertEq(config1.feeToken, address(usdc));
-        assertEq(config2.appAdmin, user2);
-        assertEq(config2.feeToken, address(ctm));
+        assertEq(dappAdmin1, user1);
+        assertEq(feeToken1, address(usdc));
+        assertEq(dappAdmin2, user2);
+        assertEq(feeToken2, address(ctm));
     }
 
     function test_MultipleTokens() public {
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        vm.stopPrank();
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(ctm), "ethereum", 200);
-
-        assertEq(dappManager.getFeeCurrency(address(usdc)), 100);
-        assertEq(dappManager.getFeeCurrency(address(ctm)), 200);
+        assertEq(dappManager.feeCurrencies(address(usdc)), true);
+        assertEq(dappManager.feeCurrencies(address(ctm)), true);
     }
 
     function test_MultipleChains() public {
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 100);
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 2);
+        dappManager.setFeeConfig(address(usdc), "polygon", 3, 4);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
-        vm.prank(gov);
-        dappManager.setFeeConfig(address(usdc), "polygon", 150);
+        (uint256 perByteEth, uint256 perGasEth) = dappManager.specificChainFee("ethereum", address(usdc));
+        (uint256 perBytePoly, uint256 perGasPoly) = dappManager.specificChainFee("polygon", address(usdc));
+        uint256 minimumDeposit = dappManager.feeMinimumDeposit(address(usdc));
 
-        assertEq(dappManager.getSpeChainFee("ethereum", address(usdc)), 100);
-        assertEq(dappManager.getSpeChainFee("polygon", address(usdc)), 150);
+        assertEq(perByteEth, 1);
+        assertEq(perGasEth, 2);
+        assertEq(perBytePoly, 3);
+        assertEq(perGasPoly, 4);
+        assertEq(minimumDeposit, 100);
     }
 
     // ============ STRESS TESTS ============
 
     function test_MultipleMpcAddresses() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
-
-        // Add multiple MPC addresses
-        // for (uint256 i = 0; i < 10; i++) {
-        //     vm.prank(gov);
-        //     dappManager.addMpcAddr(1, string(abi.encodePacked("mpc", i)), string(abi.encodePacked("pubkey", i)));
-        // }
         vm.startPrank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
-        dappManager.addMpcAddr(1, mpcAddr2, pubKey2);
-        dappManager.addMpcAddr(1, mpcAddr3, pubKey3);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
         vm.stopPrank();
 
-        string[] memory addrs = dappManager.getMpcAddrs(1);
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        // Add multiple MPC addresses
+        vm.startPrank(gov);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
+        dappManager.addMpcAddr(dappID, mpcAddr3, pubKey3);
+        vm.stopPrank();
+
+        string[] memory addrs = dappManager.getAllMpcAddrs(dappID);
         assertEq(addrs.length, 3);
 
         // Remove some addresses
         vm.prank(gov);
-        dappManager.delMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
 
-        addrs = dappManager.getMpcAddrs(1);
+        addrs = dappManager.getAllMpcAddrs(dappID);
         assertEq(addrs.length, 2);
     }
 
     function test_MultipleDepositsAndWithdrawals() public {
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         uint256 totalDeposited = 0;
 
@@ -848,31 +1146,29 @@ contract C3DAppManagerTest is Helpers {
 
             vm.startPrank(user1);
             usdc.approve(address(dappManager), amount);
-            dappManager.deposit(1, address(usdc), amount);
+            dappManager.deposit(dappID, address(usdc), amount);
             vm.stopPrank();
         }
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), totalDeposited);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), totalDeposited);
 
-        // Multiple withdrawals
-        uint256 totalWithdrawn = 0;
-        for (uint256 i = 0; i < 3; i++) {
-            uint256 amount = 50 * (i + 1);
-            totalWithdrawn += amount;
+        // Withdraw all
+        vm.prank(gov);
+        dappManager.withdraw(dappID, address(usdc));
 
-            vm.prank(gov);
-            dappManager.withdraw(1, address(usdc), amount);
-        }
-
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), totalDeposited - totalWithdrawn);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), 0);
     }
 
     // ============ GAS OPTIMIZATION TESTS ============
 
     function test_Gas_SetDAppConfig() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
         uint256 gasBefore = gasleft();
-        vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        vm.startPrank(user1);
+        dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
         uint256 gasUsed = gasBefore - gasleft();
 
         console.log("Gas used for setDAppConfig:", gasUsed);
@@ -880,11 +1176,17 @@ contract C3DAppManagerTest is Helpers {
 
     function test_Gas_Deposit() public {
         uint256 amount = 1000;
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
         usdc.approve(address(dappManager), amount);
 
         uint256 gasBefore = gasleft();
-        dappManager.deposit(1, address(usdc), amount);
+        dappManager.deposit(dappID, address(usdc), amount);
         uint256 gasUsed = gasBefore - gasleft();
         vm.stopPrank();
 
@@ -893,15 +1195,20 @@ contract C3DAppManagerTest is Helpers {
 
     function test_Gas_Withdraw() public {
         uint256 amount = 1000;
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
         vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
         usdc.approve(address(dappManager), amount);
-        dappManager.deposit(1, address(usdc), amount);
+        dappManager.deposit(dappID, address(usdc), amount);
         vm.stopPrank();
 
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        dappManager.withdraw(1, address(usdc), 500);
+        dappManager.withdraw(dappID, address(usdc));
         uint256 gasUsed = gasBefore - gasleft();
 
         console.log("Gas used for withdraw:", gasUsed);
@@ -909,11 +1216,14 @@ contract C3DAppManagerTest is Helpers {
 
     function test_Gas_AddMpcAddr() public {
         vm.prank(gov);
-        dappManager.setDAppConfig(1, user1, address(usdc), "test.com", "test@test.com");
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         uint256 gasBefore = gasleft();
         vm.prank(gov);
-        dappManager.addMpcAddr(1, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
         uint256 gasUsed = gasBefore - gasleft();
 
         console.log("Gas used for addMpcAddr:", gasUsed);
@@ -922,12 +1232,16 @@ contract C3DAppManagerTest is Helpers {
     function test_ReentrancyVulnerability_Withdraw() public {
         // This test demonstrates the reentrancy vulnerability
         // In a real scenario, this could allow double withdrawals
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
 
         // Setup initial balance
         uint256 initialBalance = 1000;
         vm.startPrank(user1);
         maliciousToken.approve(address(dappManager), initialBalance);
-        dappManager.deposit(1, address(maliciousToken), initialBalance);
+        dappManager.deposit(maliciousDAppID, address(maliciousToken), initialBalance);
         vm.stopPrank();
 
         // Enable reentering on malicious token
@@ -935,8 +1249,8 @@ contract C3DAppManagerTest is Helpers {
 
         // This should trigger a reentrancy attack
         // The malicious token will try to call withdraw again during the transfer
-        vm.prank(user1);
-        dappManager.withdraw(1, address(maliciousToken), 100);
+        vm.prank(gov);
+        dappManager.withdraw(maliciousDAppID, address(maliciousToken));
 
         // In a vulnerable implementation, this could result in multiple withdrawals
         // The test demonstrates the potential for reentrancy
@@ -946,6 +1260,10 @@ contract C3DAppManagerTest is Helpers {
     function test_ReentrancySafety_Deposit() public {
         // This test shows that deposit is safer due to CEI pattern
         uint256 amount = 1000;
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(maliciousToken), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(maliciousToken), 100);
+        vm.stopPrank();
 
         // Setup malicious token to try reentering during deposit
         maliciousToken.setReentering(true);
@@ -953,26 +1271,33 @@ contract C3DAppManagerTest is Helpers {
         // This should not cause issues because deposit follows CEI pattern
         vm.startPrank(user1);
         maliciousToken.approve(address(dappManager), amount);
-        dappManager.deposit(1, address(maliciousToken), amount);
+        dappManager.deposit(maliciousDAppID, address(maliciousToken), amount);
         vm.stopPrank();
 
         // Verify the deposit worked correctly
-        assertEq(dappManager.getDAppStakePool(1, address(maliciousToken)), amount);
+        assertEq(dappManager.dappStakePool(maliciousDAppID, address(maliciousToken)), amount);
     }
 
     function test_ReentrancyWithRealToken() public {
         // Test with a real ERC20 token to ensure normal operation
         uint256 amount = 1000;
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
-        dappManager.deposit(1, address(usdc), amount);
+        dappManager.deposit(dappID, address(usdc), amount);
         vm.stopPrank();
 
         // Normal withdraw should work
         vm.prank(gov);
-        dappManager.withdraw(1, address(usdc), 500);
+        dappManager.withdraw(dappID, address(usdc));
 
-        assertEq(dappManager.getDAppStakePool(1, address(usdc)), 500);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), 0);
     }
 }
