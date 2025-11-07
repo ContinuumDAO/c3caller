@@ -31,7 +31,6 @@ import {C3GovClientUpgradeable} from "../gov/C3GovClientUpgradeable.sol";
  * @dev This contract is the central management hub for upgradeable C3 DApps
  * @author @potti ContinuumDAO
  */
-
 contract C3DAppManagerUpgradeable is
     IC3DAppManagerUpgradeable,
     C3GovClientUpgradeable,
@@ -50,11 +49,11 @@ contract C3DAppManagerUpgradeable is
     /// @notice Mapping of DApp address string to DApp ID
     mapping(string => uint256) public c3DAppAddr;
 
-    /// @notice Mapping of DApp ID to blacklist status
-    mapping(uint256 => bool) public appBlacklist;
-
     /// @notice Mapping of DApp ID to DApp status (Active, Suspended, Deprecated)
-    mapping(uint256 => DAppStatus) public dappStatus;
+    mapping(uint256 => DAppStatus) internal _dappStatus;
+
+    /// @notice Mapping of DApp ID to reason why it was made inactive
+    mapping(uint256 => string) public statusReason;
 
     /// @notice Mapping of fee token address to its validity status
     mapping(address => bool) public feeCurrencies;
@@ -110,19 +109,17 @@ contract C3DAppManagerUpgradeable is
     }
 
     /**
-     * @notice Modifier to check DApp status (Active, Suspended, Deprecated)
+     * @notice Modifier to check DApp status (Active, Suspended, Dormant, Deprecated)
      * @param _dappID The DApp ID
-     * @dev Reverts if DApp is suspended or deprecated
+     * @dev Reverts if DApp is suspended, dormant or deprecated
      */
     modifier onlyActiveDApp(uint256 _dappID) {
-        DAppStatus status = dappStatus[_dappID];
-        if (status == DAppStatus.Suspended) {
-            revert C3DAppManager_DAppSuspended(_dappID);
+        DAppStatus status = _parseDAppStatus(_dappID);
+        if (status == DAppStatus.Active) {
+            _;
+        } else {
+            revert C3DAppManager_InactiveDApp(_dappID, status);
         }
-        if (status == DAppStatus.Deprecated) {
-            revert C3DAppManager_DAppDeprecated(_dappID);
-        }
-        _;
     }
 
     /**
@@ -131,8 +128,8 @@ contract C3DAppManagerUpgradeable is
      * @dev Reverts if DApp ID is deprecated
      */
     modifier notDeprecated(uint256 _dappID) {
-        if (dappStatus[_dappID] == DAppStatus.Deprecated) {
-            revert C3DAppManager_DAppDeprecated(_dappID);
+        if (_dappStatus[_dappID] == DAppStatus.Deprecated) {
+            revert C3DAppManager_InactiveDApp(_dappID, DAppStatus.Deprecated);
         }
         _;
     }
@@ -166,17 +163,6 @@ contract C3DAppManagerUpgradeable is
     }
 
     /**
-     * @notice Set blacklist status for a DApp (governance only)
-     * @param _dappID The DApp ID
-     * @param _flag The blacklist flag (true or false)
-     * @dev Reverts if DApp ID is zero. Only the governance address can call this function
-     */
-    function setBlacklists(uint256 _dappID, bool _flag) external onlyGov nonZeroDAppID(_dappID) {
-        appBlacklist[_dappID] = _flag;
-        emit SetBlacklists(_dappID, _flag);
-    }
-
-    /**
      * @notice Set DApp status (Active, Suspended, Deprecated)
      * @param _dappID The DApp ID
      * @param _status The new status
@@ -189,14 +175,15 @@ contract C3DAppManagerUpgradeable is
         onlyGov
         nonZeroDAppID(_dappID)
     {
-        DAppStatus oldStatus = dappStatus[_dappID];
+        DAppStatus oldStatus = _dappStatus[_dappID];
 
         // Validate status transition
         if (!_isValidStatusTransition(oldStatus, _status)) {
             revert C3DAppManager_InvalidStatusTransition(oldStatus, _status);
         }
 
-        dappStatus[_dappID] = _status;
+        _dappStatus[_dappID] = _status;
+        statusReason[_dappID] = _reason;
         emit DAppStatusChanged(_dappID, oldStatus, _status, _reason);
     }
 
@@ -236,7 +223,7 @@ contract C3DAppManagerUpgradeable is
         address _feeToken,
         string memory _domain,
         string memory _email
-    ) external returns (uint256) {
+    ) external whenNotPaused() returns (uint256) {
         uint256 _dappID = ++dappID;
         _setDAppConfig(_dappID, _feeToken, msg.sender, _domain, _email);
         emit SetDAppConfig(_dappID, msg.sender, _feeToken, _domain, _email);
@@ -453,11 +440,6 @@ contract C3DAppManagerUpgradeable is
         nonZeroDAppID(_dappID)
         onlyActiveDApp(_dappID)
     {
-        // check if a DApp is blacklisted or its fee token has expired
-        if (isDAppBlacklisted(_dappID)) {
-            revert C3DAppManager_Blacklisted(_dappID);
-        }
-
         uint256 minimum = feeMinimumDeposit[_token];
         if (_amount < minimum) {
             revert C3DAppManager_BelowMinimumDeposit(_amount, minimum);
@@ -524,7 +506,6 @@ contract C3DAppManagerUpgradeable is
 
         // NOTE: if the gross bill << 10_000, then discount is forfeited due to integer division (as it would have been negligible anyway)
         uint256 discount = bill * dappConfig[_dappID].discount / 10_000;
-        // uint256 netBill = bill - discount;
 
         dappStakePool[_dappID][_token] -= (bill - discount);
         cumulativeFees[_token] += (bill - discount);
@@ -554,6 +535,16 @@ contract C3DAppManagerUpgradeable is
     }
 
     /**
+     * @notice Check DApp status
+     * @param _dappID The dapp ID in question
+     * @return Active, Dormant, Suspended or Deprecated
+     * @dev Calling _parseDAppStatus to check for dormant status
+     */
+    function dappStatus(uint256 _dappID) external view returns (DAppStatus) {
+        return _parseDAppStatus(_dappID);
+    }
+
+    /**
      * @notice Set DApp configuration discount
      * @param _dappID The DApp ID
      * @param _discount The discount coefficient between 0 (no discount) and 10k (100% discount)
@@ -564,7 +555,6 @@ contract C3DAppManagerUpgradeable is
         external
         onlyGov()
         nonZeroDAppID(_dappID)
-        onlyActiveDApp(_dappID)
     {
         if (_discount > 10_000) {
             revert C3DAppManager_DiscountAboveMax();
@@ -573,12 +563,18 @@ contract C3DAppManagerUpgradeable is
     }
 
     /**
-     * @notice Check if a DApp is blacklisted or has an expired fee token
-     * @param _dappID The DApp ID to check
-     * @return True if the DApp has been explicitly blacklisted OR has a fee token that is no longer valid
+     * @notice Check the status of the DApp (Active, Suspended, Dormant, Deprecated)
+     * @param _dappID The DApp ID in question
+     * @return Dormant if the fee token is no longer supported, otherwise current status
      */
-    function isDAppBlacklisted(uint256 _dappID) public view returns (bool) {
-        return appBlacklist[_dappID] || !feeCurrencies[dappConfig[_dappID].feeToken];
+    function _parseDAppStatus(uint256 _dappID) internal view returns (DAppStatus) {
+        DAppStatus status = _dappStatus[_dappID];
+        if (status == DAppStatus.Active) {
+            if (!feeCurrencies[dappConfig[_dappID].feeToken]) {
+                return DAppStatus.Dormant;
+            }
+        }
+        return status;
     }
 
     /**

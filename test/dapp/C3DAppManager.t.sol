@@ -123,31 +123,91 @@ contract C3DAppManagerTest is Helpers {
         dappManager.unpause();
     }
 
-    // ============ BLACKLIST TESTS ============
+    // ============ DAPP STATUS TESTS ============
 
-    function test_SetBlacklists_Success() public {
+    function test_SetDAppStatus_AllCases() public {
+        IC3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
+        IC3DAppManager.DAppStatus dormant = IC3DAppManager.DAppStatus.Dormant;
+        IC3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
+        IC3DAppManager.DAppStatus deprecated = IC3DAppManager.DAppStatus.Deprecated;
+
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
+        // DApp is active by default
+        IC3DAppManager.DAppStatus currentStatus = dappManager.dappStatus(dappID);
+        assertEq(uint8(currentStatus), uint8(active));
+        assertEq(dappManager.statusReason(dappID), "");
+
+        // Make fee token deprecated, validate new one
+        vm.startPrank(gov);
+        dappManager.removeFeeConfig(address(usdc));
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(ctm), 100);
+        vm.stopPrank();
+
+        bool usdcValid = dappManager.feeCurrencies(address(usdc));
+        assertFalse(usdcValid);
+
+        // DApp is using deprecated fee token, dormant
+        currentStatus = dappManager.dappStatus(dappID);
+        assertEq(uint8(currentStatus), uint8(dormant));
+        assertEq(dappManager.statusReason(dappID), "");
+
+        // DApp upgrades their fee token to validated one, active
+        vm.warp(block.timestamp + 30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, address(ctm), user1, "newdomain.com", "newtest@test.com");
+        currentStatus = dappManager.dappStatus(dappID);
+        assertEq(uint8(currentStatus), uint8(active));
+        assertEq(dappManager.statusReason(dappID), "");
+
+        // DApp status set to suspended
         vm.prank(gov);
-        dappManager.setBlacklists(1, true);
+        dappManager.setDAppStatus(dappID, suspended, "bad dapp");
+        currentStatus = dappManager.dappStatus(dappID);
+        assertEq(uint8(currentStatus), uint8(suspended));
+        assertEq(dappManager.statusReason(dappID), "bad dapp");
 
-        assertTrue(dappManager.appBlacklist(1));
-
+        // DApp status set to deprecated
         vm.prank(gov);
-        dappManager.setBlacklists(1, false);
+        dappManager.setDAppStatus(dappID, deprecated, "dead dapp");
+        currentStatus = dappManager.dappStatus(dappID);
+        assertEq(uint8(currentStatus), uint8(deprecated));
+        assertEq(dappManager.statusReason(dappID), "dead dapp");
 
-        assertFalse(dappManager.appBlacklist(1));
+        // DApp status cannot be changed once deprecated
+        vm.prank(gov);
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidStatusTransition.selector, deprecated, active)
+        );
+        dappManager.setDAppStatus(dappID, active, "reuse dapp");
     }
 
-    function test_SetBlacklists_OnlyGov() public {
+    function test_SetDAppStatus_OnlyGov() public {
+        vm.startPrank(gov);
+        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
+        vm.stopPrank();
+
+        vm.prank(user1);
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
-        dappManager.setBlacklists(1, true);
+        dappManager.setDAppStatus(dappID, IC3DAppManager.DAppStatus.Suspended, "suspend dapp illegaly");
     }
 
-    function test_RemoveDAppConfig_BlacklistedAfterFeeTokenRemoval() public {
+    function test_SetDAppStatus_SuspendedDepositFails() public {
         vm.startPrank(gov);
         dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
         dappManager.setFeeMinimumDeposit(address(usdc), 100);
@@ -157,38 +217,15 @@ contract C3DAppManagerTest is Helpers {
         uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
 
         vm.prank(gov);
-        dappManager.removeFeeConfig(address(usdc));
-
-        bool isBlackListed = dappManager.isDAppBlacklisted(dappID);
-        assertTrue(isBlackListed);
-
-        vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_Blacklisted.selector, dappID
-            )
-        );
-        dappManager.deposit(dappID, address(usdc), 10);
-    }
-
-    function test_SetBlacklists_DepositFails() public {
-        vm.startPrank(gov);
-        dappManager.setFeeConfig(address(usdc), "ethereum", 1, 1);
-        dappManager.setFeeMinimumDeposit(address(usdc), 100);
-        vm.stopPrank();
-
-        vm.prank(user1);
-        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
-
-        vm.prank(gov);
-        dappManager.setBlacklists(dappID, true);
-
-        assertTrue(dappManager.appBlacklist(dappID));
+        dappManager.setDAppStatus(dappID, IC3DAppManager.DAppStatus.Suspended, "suspended dapp");
+        IC3DAppManager.DAppStatus status = dappManager.dappStatus(dappID);
+        IC3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
+        assertEq(uint8(status), uint8(suspended));
 
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_Blacklisted.selector, dappID
+                IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended
             )
         );
         dappManager.deposit(dappID, address(usdc), 10);
@@ -352,13 +389,13 @@ contract C3DAppManagerTest is Helpers {
         dappManager.updateDAppConfig(dappID, address(ctm), user2, "test2.com", "test2@test.com");
 
         (address dappAdmin, address feeToken, string memory domain, string memory email, , uint256 lastUpdated) = dappManager.dappConfig(dappID);
-        bool isBlackListed = dappManager.isDAppBlacklisted(dappID);
+        IC3DAppManager.DAppStatus status = dappManager.dappStatus(dappID);
         assertEq(dappAdmin, user1);
         assertEq(feeToken, address(usdc));
         assertEq(domain, "test.com");
         assertEq(email, "test@test.com");
         assertEq(lastUpdated, initialTs);
-        assertEq(isBlackListed, false);
+        assertEq(uint8(status), uint8(0));
     }
 
     // ============ DAPP ADDRESS TESTS ============
@@ -1015,35 +1052,13 @@ contract C3DAppManagerTest is Helpers {
         assertEq(dappManager.dappStakePool(dappID, address(usdc)), amount);
     }
 
-    // ============ FEE MANAGEMENT TESTS ============
+    // ============ CUMULATIVE FEES TESTS ============
 
-    // function test_SetFee_Success() public {
-    //     vm.prank(gov);
-    //     dappManager.setFee(address(usdc), 100);
-
-    //     assertEq(dappManager.getFee(address(usdc)), 100);
-    // }
-
-    // function test_SetFee_OnlyGov() public {
-    //     vm.prank(user1);
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
-    //         )
-    //     );
-    //     dappManager.setFee(address(usdc), 100);
-    // }
-
-    function test_GetFee_Empty() public view {
+    function test_CumulativeFees_Empty() public view {
         assertEq(dappManager.cumulativeFees(address(usdc)), 0);
     }
 
-    // function test_GetFee_WithData() public {
-    //     vm.prank(gov);
-    //     dappManager.setFee(address(usdc), 100);
-
-    //     assertEq(dappManager.getFee(address(usdc)), 100);
-    // }
+    function test_CumulativeFees_Success() public {}
 
     // ============ EDGE CASES ============
 

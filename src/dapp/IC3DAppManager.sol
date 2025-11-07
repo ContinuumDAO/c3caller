@@ -7,6 +7,7 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 interface IC3DAppManager {
     enum DAppStatus {
         Active, // DApp is active and operational
+        Dormant, // DApp's fee token is deprecated and DApp has not updated it
         Suspended, // DApp is temporarily suspended
         Deprecated // DApp is permanently deprecated and cannot be reused
     }
@@ -51,18 +52,15 @@ interface IC3DAppManager {
     error C3DAppManager_LengthMismatch(C3ErrorParam, C3ErrorParam);
     error C3DAppManager_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3DAppManager_InsufficientBalance(address _token);
-    error C3DAppManager_DAppDeprecated(uint256 _dappID);
-    error C3DAppManager_DAppSuspended(uint256 _dappID);
     error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
     error C3DAppManager_MpcAddressExists(string _addr);
     error C3DAppManager_MpcAddressNotFound(string _addr);
     error C3DAppManager_ZeroDAppID();
-    error C3DAppManager_Blacklisted(uint256 _dappID);
     error C3DAppManager_BelowMinimumDeposit(uint256 _amount, uint256 _minimum);
     error C3DAppManager_InvalidFeeToken(address _token);
     error C3DAppManager_RecentlyUpdated(uint256 _dappID);
     error C3DAppManager_DiscountAboveMax();
-    error C3DAppManager_DeadlineExpired();
+    error C3DAppManager_InactiveDApp(uint256 _dappID, DAppStatus);
 
     // Public functions
     function pause() external;
@@ -71,8 +69,8 @@ interface IC3DAppManager {
 
     // Public variables
     function c3DAppAddr(string memory _addr) external view returns (uint256);
-    function appBlacklist(uint256 _dappID) external view returns (bool);
     function dappStatus(uint256 _dappID) external view returns (DAppStatus);
+    function statusReason(uint256 _dappID) external view returns (string memory);
     function feeCurrencies(address _token) external view returns (bool);
     function dappStakePool(uint256 _dappID, address _token) external view returns (uint256);
     function specificChainFee(string memory _chain, address _token) external view returns (uint256, uint256);
@@ -83,7 +81,6 @@ interface IC3DAppManager {
     function dappConfig(uint256 _dappID) external view returns (address, address, string memory, string memory, uint256, uint256);
 
     // External functions
-    function setBlacklists(uint256 _dappID, bool _flag) external;
     function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external;
     function setDAppConfig(
         address _feeToken,
