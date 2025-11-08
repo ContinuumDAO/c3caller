@@ -40,6 +40,9 @@ contract C3DAppManagerUpgradeable is
     using Strings for *;
     using SafeERC20 for IERC20;
 
+    /// @notice Maximum size of the JSON metadata for each DApp
+    uint256 public constant METADATA_LIMIT = 512;
+
     /// @notice The DApp ID for the DApp manager
     uint256 public dappID;
 
@@ -61,8 +64,8 @@ contract C3DAppManagerUpgradeable is
     /// @notice Mapping of DApp ID and token address to staking pool balance
     mapping(uint256 => mapping(address => uint256)) public dappStakePool;
 
-    /// @notice Mapping of chain ID string and token address to fee configuration (per calldata byte and per gas unit)
-    mapping(string => mapping(address => FeeConfig)) public specificChainFee;
+    /// @notice Mapping of token address and chain ID string to fee configuration (per calldata byte and per gas unit)
+    mapping(address => mapping(string => FeeConfig)) public specificChainFee;
 
     /// @notice Mapping of token address to accumulated fees
     mapping(address => uint256) public cumulativeFees;
@@ -78,6 +81,12 @@ contract C3DAppManagerUpgradeable is
 
     /// @notice Mapping of fee token to minimum deposit amount
     mapping(address => uint256) public feeMinimumDeposit;
+
+    /// @notice Mapping of admin address to index to DApp ID
+    mapping(address => mapping(uint256 => uint256)) public adminToDAppIDList;
+
+    /// @notice Mapping of admin address to number of DApp IDs being managed
+    mapping(address => uint256) public adminToDAppIDCount;
 
     /**
      * @notice Initializer for the upgradeable C3DAppManager contract, with the deployer as governance
@@ -102,7 +111,7 @@ contract C3DAppManagerUpgradeable is
      * @dev Reverts if the caller is neither governance address nor DApp admin
      */
     modifier onlyGovOrAdmin(uint256 _dappID) {
-        if (msg.sender != gov() && msg.sender != dappConfig[_dappID].dappAdmin) {
+        if (msg.sender != gov() && msg.sender != dappConfig[_dappID].admin) {
             revert C3DAppManager_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin);
         }
         _;
@@ -113,7 +122,7 @@ contract C3DAppManagerUpgradeable is
      * @param _dappID The DApp ID
      * @dev Reverts if DApp is suspended, dormant or deprecated
      */
-    modifier onlyActiveDApp(uint256 _dappID) {
+    modifier onlyActive(uint256 _dappID) {
         DAppStatus status = _parseDAppStatus(_dappID);
         if (status == DAppStatus.Active) {
             _;
@@ -127,11 +136,14 @@ contract C3DAppManagerUpgradeable is
      * @param _dappID The DApp ID
      * @dev Reverts if DApp ID is deprecated
      */
-    modifier notDeprecated(uint256 _dappID) {
-        if (_dappStatus[_dappID] == DAppStatus.Deprecated) {
+    modifier onlyActiveOrDormant(uint256 _dappID) {
+        if (_dappStatus[_dappID] == DAppStatus.Active) {
+            _;
+        } else if (_dappStatus[_dappID] == DAppStatus.Suspended) {
+            revert C3DAppManager_InactiveDApp(_dappID, DAppStatus.Suspended);
+        } else {
             revert C3DAppManager_InactiveDApp(_dappID, DAppStatus.Deprecated);
         }
-        _;
     }
 
     /**
@@ -216,76 +228,71 @@ contract C3DAppManagerUpgradeable is
     /**
      * @notice Register and configure a new DApp. This is how new C3Caller DApps can be registered
      * @param _feeToken The fee token address
-     * @param _domain The DApp domain
-     * @param _email The DApp email
+     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      */
-    function setDAppConfig(address _feeToken, string memory _domain, string memory _email)
+    function setDAppConfig(address _feeToken, string memory _metadata)
         external
         whenNotPaused
         returns (uint256)
     {
         uint256 _dappID = ++dappID;
-        _setDAppConfig(_dappID, _feeToken, msg.sender, _domain, _email);
-        emit SetDAppConfig(_dappID, msg.sender, _feeToken, _domain, _email);
+        _setDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
+        emit SetDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
         return _dappID;
     }
 
     /**
      * @notice Update an existing DApp configuration
      * @param _dappID The DApp ID to update
+     * @param _admin The new dapp admin
      * @param _feeToken The new fee token address
-     * @param _dappAdmin The new dapp admin
-     * @param _domain The new DApp domain
-     * @param _email The new email
+     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      * @dev Reverts if caller is not governance or DApp admin, or if the configuration has changed in the past 30 days.
      */
     function updateDAppConfig(
         uint256 _dappID,
+        address _admin,
         address _feeToken,
-        address _dappAdmin,
-        string memory _domain,
-        string memory _email
-    ) external onlyGovOrAdmin(_dappID) {
+        string memory _metadata
+    ) external onlyGovOrAdmin(_dappID) onlyActiveOrDormant(_dappID) whenNotPaused() {
         if (block.timestamp < dappConfig[_dappID].lastUpdated + 30 days && msg.sender != gov()) {
             revert C3DAppManager_RecentlyUpdated(_dappID);
         }
-        _setDAppConfig(_dappID, _feeToken, _dappAdmin, _domain, _email);
-        emit SetDAppConfig(_dappID, _dappAdmin, _feeToken, _domain, _email);
+        _setDAppConfig(_dappID, _admin, _feeToken, _metadata);
+        emit SetDAppConfig(_dappID, _admin, _feeToken, _metadata);
     }
 
     /**
      * @notice Internal handler to set configuration for a new or old DApp ID
      * @param _dappID The ID of the DApp to configure
      * @param _feeToken The fee token to set
-     * @param _dappAdmin The app admin to set
-     * @param _domain The app domain to set
-     * @param _email The email to set
+     * @param _admin The app admin to set
+     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      * @dev Reverts if fee token is not supported or domain/email is empty
      */
     function _setDAppConfig(
         uint256 _dappID,
+        address _admin,
         address _feeToken,
-        address _dappAdmin,
-        string memory _domain,
-        string memory _email
+        string memory _metadata
     ) internal {
         if (!feeCurrencies[_feeToken]) {
             revert C3DAppManager_InvalidFeeToken(_feeToken);
         }
-        if (bytes(_domain).length == 0) {
-            revert C3DAppManager_IsZero(C3ErrorParam.AppDomain);
+        uint256 metadataLength = bytes(_metadata).length;
+        if (metadataLength == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.Metadata);
         }
-        if (bytes(_email).length == 0) {
-            revert C3DAppManager_IsZero(C3ErrorParam.Email);
+        if (metadataLength > METADATA_LIMIT) {
+            revert C3DAppManager_MetadataTooLong(metadataLength, METADATA_LIMIT);
         }
 
         dappConfig[_dappID] = DAppConfig({
-            dappAdmin: _dappAdmin,
+            admin: _admin,
             feeToken: _feeToken,
-            domain: _domain,
-            email: _email,
-            discount: 0,
-            lastUpdated: block.timestamp
+            discount: dappConfig[_dappID].discount,
+            lastUpdated: msg.sender == gov() ? dappConfig[_dappID].lastUpdated : block.timestamp,
+            metadata: _metadata
         });
     }
 
@@ -300,8 +307,7 @@ contract C3DAppManagerUpgradeable is
     function setDAppAddr(uint256 _dappID, string[] memory _addresses)
         external
         onlyGovOrAdmin(_dappID)
-        nonZeroDAppID(_dappID)
-        onlyActiveDApp(_dappID)
+        onlyActive(_dappID)
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
             c3DAppAddr[_addresses[i]] = _dappID;
@@ -322,9 +328,9 @@ contract C3DAppManagerUpgradeable is
         external
         onlyGovOrAdmin(_dappID)
         nonZeroDAppID(_dappID)
-        onlyActiveDApp(_dappID)
+        onlyActive(_dappID)
     {
-        if (dappConfig[_dappID].dappAdmin == address(0)) {
+        if (dappConfig[_dappID].admin == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
         if (bytes(_addr).length == 0) {
@@ -359,9 +365,9 @@ contract C3DAppManagerUpgradeable is
         external
         onlyGovOrAdmin(_dappID)
         nonZeroDAppID(_dappID)
-        onlyActiveDApp(_dappID)
+        onlyActive(_dappID)
     {
-        if (dappConfig[_dappID].dappAdmin == address(0)) {
+        if (dappConfig[_dappID].admin == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
         }
         if (bytes(_addr).length == 0) {
@@ -414,8 +420,8 @@ contract C3DAppManagerUpgradeable is
         }
 
         feeCurrencies[_token] = true;
-        specificChainFee[_chain][_token].perByte = _perByteFee;
-        specificChainFee[_chain][_token].perGas = _perGasFee;
+        specificChainFee[_token][_chain].perByte = _perByteFee;
+        specificChainFee[_token][_chain].perGas = _perGasFee;
 
         emit SetFeeConfig(_token, _chain, _perByteFee, _perGasFee);
     }
@@ -460,7 +466,7 @@ contract C3DAppManagerUpgradeable is
         external
         whenNotPaused
         nonZeroDAppID(_dappID)
-        onlyActiveDApp(_dappID)
+        onlyActive(_dappID)
     {
         uint256 minimum = feeMinimumDeposit[_token];
         if (_amount < minimum) {
@@ -489,7 +495,7 @@ contract C3DAppManagerUpgradeable is
 
         dappStakePool[_dappID][_token] -= amount;
 
-        IERC20(_token).safeTransfer(dappConfig[_dappID].dappAdmin, amount);
+        IERC20(_token).safeTransfer(dappConfig[_dappID].admin, amount);
 
         emit Withdraw(_dappID, _token, amount, dappStakePool[_dappID][_token]);
     }
@@ -510,7 +516,7 @@ contract C3DAppManagerUpgradeable is
         nonZeroDAppID(_dappID)
         whenNotPaused
     {
-        FeeConfig memory feeConfig = specificChainFee[_chain][_token];
+        FeeConfig memory feeConfig = specificChainFee[_token][_chain];
         uint256 bill = (feeConfig.perByte * _sizeBytes) + (feeConfig.perGas * _sizeGas);
 
         if (bill == 0) {

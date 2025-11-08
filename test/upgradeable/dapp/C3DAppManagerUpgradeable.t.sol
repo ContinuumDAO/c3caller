@@ -55,6 +55,15 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     string public pubKey1 = "0x0987654321098765432109876543210987654321";
     uint256 maliciousDAppID;
 
+    string c3pingMetadata =
+        "{'version':1,'name':'C3Ping','description':'Ping other networks with C3Caller','email':'admin@c3ping.com','url':'c3ping.com'}";
+    string assetXMetadata =
+        "{'version':1,'name':'CTMRWA1X','description':'AssetX: Cross-chain transfers','email':'admin@assetx.com','url':'assetx.org'}";
+    string c3governorMetadata =
+        "{'version':1,'name':'C3Governor','description':'Cross-chain governance','email':'admin@c3gov.com','url':'c3gov.com'}";
+    string maliciousMetadata =
+        "{'version':1,'name':'MaliciousDApp','description':'Steal your money','email':'admin@malice.com','url':'malice.com'}";
+
     MaliciousTokenUpgradeable public maliciousToken;
 
     function setUp() public override {
@@ -77,7 +86,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.stopPrank();
 
         // Setup dapp config
-        maliciousDAppID = dappManager.setDAppConfig(address(maliciousToken), "test.com", "test@test.com");
+        maliciousDAppID = dappManager.setDAppConfig(address(maliciousToken), maliciousMetadata);
 
         vm.stopPrank();
     }
@@ -182,11 +191,14 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.stopPrank();
 
         vm.prank(user1);
-        uint256 dappID = dappManager.setDAppConfig(address(usdc), "test.com", "test@test.com");
+        uint256 dappID = dappManager.setDAppConfig(address(usdc), c3pingMetadata);
 
-        (address dappAdmin, address feeToken,,, uint256 discount,) = dappManager.dappConfig(dappID);
+        (address dappAdmin, address feeToken, uint256 discount, uint256 lastUpdated, string memory metadata) =
+            dappManager.dappConfig(dappID);
         assertEq(dappAdmin, user1);
         assertEq(feeToken, address(usdc));
         assertEq(discount, 0);
+        assertEq(lastUpdated, block.timestamp);
+        assertEq(metadata, c3pingMetadata);
     }
 }

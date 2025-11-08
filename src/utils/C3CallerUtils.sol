@@ -31,7 +31,8 @@ enum C3ErrorParam {
     Operator,
     Gov,
     PendingGov,
-    MinimumDeposit
+    MinimumDeposit,
+    Metadata
 }
 
 /**
