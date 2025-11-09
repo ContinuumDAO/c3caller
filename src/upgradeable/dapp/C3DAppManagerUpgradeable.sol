@@ -37,11 +37,13 @@ contract C3DAppManagerUpgradeable is
     PausableUpgradeable,
     UUPSUpgradeable
 {
-    using Strings for *;
     using SafeERC20 for IERC20;
 
     /// @notice Maximum size of the JSON metadata for each DApp
     uint256 public constant METADATA_LIMIT = 512;
+
+    /// @notice Denominator used to calculate fee discount
+    uint256 public constant DISCOUNT_DENOMINATOR = 10_000;
 
     /// @notice The DApp ID for the DApp manager
     uint256 public dappID;
@@ -124,26 +126,23 @@ contract C3DAppManagerUpgradeable is
      */
     modifier onlyActive(uint256 _dappID) {
         DAppStatus status = _parseDAppStatus(_dappID);
-        if (status == DAppStatus.Active) {
-            _;
-        } else {
+        if (status != DAppStatus.Active) {
             revert C3DAppManager_InactiveDApp(_dappID, status);
         }
+        _;
     }
 
     /**
      * @notice Modifier to prevent registration of deprecated DApp IDs
      * @param _dappID The DApp ID
-     * @dev Reverts if DApp ID is deprecated
+     * @dev Reverts if DApp ID is deprecated (_dappStatus can never be Dormant)
      */
     modifier onlyActiveOrDormant(uint256 _dappID) {
-        if (_dappStatus[_dappID] == DAppStatus.Active) {
-            _;
-        } else if (_dappStatus[_dappID] == DAppStatus.Suspended) {
-            revert C3DAppManager_InactiveDApp(_dappID, DAppStatus.Suspended);
-        } else {
-            revert C3DAppManager_InactiveDApp(_dappID, DAppStatus.Deprecated);
+        DAppStatus status = _parseDAppStatus(_dappID);
+        if (status != DAppStatus.Active && status != DAppStatus.Dormant) {
+            revert C3DAppManager_InactiveDApp(_dappID, status);
         }
+        _;
     }
 
     /**
@@ -207,22 +206,16 @@ contract C3DAppManagerUpgradeable is
      * @dev Deprecated DApps cannot undergo status change - deprecation is permanent
      */
     function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool) {
-        // Active can transition to Suspended or Deprecated
         if (_from == DAppStatus.Active) {
+            // Active can transition to Suspended or Deprecated
             return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
-        }
-
-        // Suspended can transition to Active or Deprecated
-        if (_from == DAppStatus.Suspended) {
+        } else if (_from == DAppStatus.Suspended) {
+            // Suspended can transition to Active or Deprecated
             return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
-        }
-
-        // Deprecated cannot transition to any other status (permanent)
-        if (_from == DAppStatus.Deprecated) {
+        } else {
+            // Deprecated cannot transition to any other status (permanent)
             return false;
         }
-
-        return false;
     }
 
     /**
@@ -230,13 +223,10 @@ contract C3DAppManagerUpgradeable is
      * @param _feeToken The fee token address
      * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      */
-    function setDAppConfig(address _feeToken, string memory _metadata)
-        external
-        whenNotPaused
-        returns (uint256)
-    {
+    function setDAppConfig(address _feeToken, string memory _metadata) external whenNotPaused returns (uint256) {
         uint256 _dappID = ++dappID;
         _setDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
+
         emit SetDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
         return _dappID;
     }
@@ -249,16 +239,17 @@ contract C3DAppManagerUpgradeable is
      * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      * @dev Reverts if caller is not governance or DApp admin, or if the configuration has changed in the past 30 days.
      */
-    function updateDAppConfig(
-        uint256 _dappID,
-        address _admin,
-        address _feeToken,
-        string memory _metadata
-    ) external onlyGovOrAdmin(_dappID) onlyActiveOrDormant(_dappID) whenNotPaused() {
+    function updateDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata)
+        external
+        onlyGovOrAdmin(_dappID)
+        onlyActiveOrDormant(_dappID)
+        whenNotPaused
+    {
         if (block.timestamp < dappConfig[_dappID].lastUpdated + 30 days && msg.sender != gov()) {
             revert C3DAppManager_RecentlyUpdated(_dappID);
         }
         _setDAppConfig(_dappID, _admin, _feeToken, _metadata);
+
         emit SetDAppConfig(_dappID, _admin, _feeToken, _metadata);
     }
 
@@ -270,12 +261,7 @@ contract C3DAppManagerUpgradeable is
      * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
      * @dev Reverts if fee token is not supported or domain/email is empty
      */
-    function _setDAppConfig(
-        uint256 _dappID,
-        address _admin,
-        address _feeToken,
-        string memory _metadata
-    ) internal {
+    function _setDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata) internal {
         if (!feeCurrencies[_feeToken]) {
             revert C3DAppManager_InvalidFeeToken(_feeToken);
         }
@@ -320,19 +306,15 @@ contract C3DAppManagerUpgradeable is
      * @param _dappID The DApp ID
      * @param _addr The MPC address (EVM 20-byte address)
      * @param _pubkey The MPC public key (32-byte MPC node public key)
-     * @dev Reverts if DApp ID is zero, DApp admin is zero, addresses are empty, lengths don't match, DApp is not
-     * active, or address already exists
+     * @dev Reverts if DApp admin is zero, addresses are empty, lengths don't match, DApp is not active,
+     * or address already exists
      * @dev Only governance or DApp admin can call this function
      */
     function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)
         external
         onlyGovOrAdmin(_dappID)
-        nonZeroDAppID(_dappID)
         onlyActive(_dappID)
     {
-        if (dappConfig[_dappID].admin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
-        }
         if (bytes(_addr).length == 0) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
@@ -364,12 +346,8 @@ contract C3DAppManagerUpgradeable is
     function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)
         external
         onlyGovOrAdmin(_dappID)
-        nonZeroDAppID(_dappID)
         onlyActive(_dappID)
     {
-        if (dappConfig[_dappID].admin == address(0)) {
-            revert C3DAppManager_IsZeroAddress(C3ErrorParam.Admin);
-        }
         if (bytes(_addr).length == 0) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
@@ -440,7 +418,7 @@ contract C3DAppManagerUpgradeable is
             revert C3DAppManager_InvalidFeeToken(_feeToken);
         }
         feeMinimumDeposit[_feeToken] = _feeMinimumDeposit;
-        emit SetMinimumFeeDeposit(_feeToken, _feeMinimumDeposit);
+        emit SetFeeMinimumDeposit(_feeToken, _feeMinimumDeposit);
     }
 
     /**
@@ -464,18 +442,18 @@ contract C3DAppManagerUpgradeable is
      */
     function deposit(uint256 _dappID, address _token, uint256 _amount)
         external
-        whenNotPaused
         nonZeroDAppID(_dappID)
         onlyActive(_dappID)
+        whenNotPaused
     {
         uint256 minimum = feeMinimumDeposit[_token];
         if (_amount < minimum) {
             revert C3DAppManager_BelowMinimumDeposit(_amount, minimum);
         }
 
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-
         dappStakePool[_dappID][_token] += _amount;
+
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
 
         emit Deposit(_dappID, _token, _amount, dappStakePool[_dappID][_token]);
     }
@@ -493,11 +471,11 @@ contract C3DAppManagerUpgradeable is
             revert C3DAppManager_IsZero(C3ErrorParam.Fee);
         }
 
-        dappStakePool[_dappID][_token] -= amount;
+        dappStakePool[_dappID][_token] = 0;
 
         IERC20(_token).safeTransfer(dappConfig[_dappID].admin, amount);
 
-        emit Withdraw(_dappID, _token, amount, dappStakePool[_dappID][_token]);
+        emit Withdraw(_dappID, _token, amount);
     }
 
     /**
@@ -528,13 +506,28 @@ contract C3DAppManagerUpgradeable is
         }
 
         // NOTE: if the gross bill << 10_000, then discount is forfeited due to integer division (as it would have been negligible anyway)
-        uint256 discount = bill * dappConfig[_dappID].discount / 10_000;
+        uint256 discount = bill * dappConfig[_dappID].discount / DISCOUNT_DENOMINATOR;
 
         dappStakePool[_dappID][_token] -= (bill - discount);
         cumulativeFees[_token] += (bill - discount);
         IERC20(_token).safeTransfer(gov(), (bill - discount));
 
         emit Charging(_dappID, _token, bill, discount, dappStakePool[_dappID][_token]);
+    }
+
+    /**
+     * @notice Set DApp configuration discount
+     * @param _dappID The DApp ID
+     * @param _discount The discount coefficient between 0 (no discount) and 10k (100% discount)
+     * @dev Reverts if DApp ID is zero, discount is zero, or DApp is not active
+     * @dev Only governance or DApp admin can call this function
+     */
+    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external onlyGov nonZeroDAppID(_dappID) {
+        if (_discount > DISCOUNT_DENOMINATOR) {
+            revert C3DAppManager_DiscountAboveMax(_discount, DISCOUNT_DENOMINATOR);
+        }
+        dappConfig[_dappID].discount = _discount;
+        emit SetDAppFeeDiscount(_dappID, _discount);
     }
 
     /**
@@ -563,22 +556,8 @@ contract C3DAppManagerUpgradeable is
      * @return Active, Dormant, Suspended or Deprecated
      * @dev Calling _parseDAppStatus to check for dormant status
      */
-    function dappStatus(uint256 _dappID) external view returns (DAppStatus) {
+    function dappStatus(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (DAppStatus) {
         return _parseDAppStatus(_dappID);
-    }
-
-    /**
-     * @notice Set DApp configuration discount
-     * @param _dappID The DApp ID
-     * @param _discount The discount coefficient between 0 (no discount) and 10k (100% discount)
-     * @dev Reverts if DApp ID is zero, discount is zero, or DApp is not active
-     * @dev Only governance or DApp admin can call this function
-     */
-    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external onlyGov nonZeroDAppID(_dappID) {
-        if (_discount > 10_000) {
-            revert C3DAppManager_DiscountAboveMax();
-        }
-        dappConfig[_dappID].discount = _discount;
     }
 
     /**
@@ -588,12 +567,11 @@ contract C3DAppManagerUpgradeable is
      */
     function _parseDAppStatus(uint256 _dappID) internal view returns (DAppStatus) {
         DAppStatus status = _dappStatus[_dappID];
-        if (status == DAppStatus.Active) {
-            if (!feeCurrencies[dappConfig[_dappID].feeToken]) {
-                return DAppStatus.Dormant;
-            }
+        if (status == DAppStatus.Active && !feeCurrencies[dappConfig[_dappID].feeToken]) {
+            return DAppStatus.Dormant;
+        } else {
+            return status;
         }
-        return status;
     }
 
     /**

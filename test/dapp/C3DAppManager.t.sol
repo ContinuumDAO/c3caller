@@ -186,7 +186,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(dappManager.statusReason(dappID), "");
 
         // DApp upgrades their fee token to validated one, active
-        vm.warp(block.timestamp + 30 days);
+        skip(30 days);
         vm.prank(user1);
         dappManager.updateDAppConfig(dappID, user1, address(ctm), c3pingMetadata);
         currentStatus = dappManager.dappStatus(dappID);
@@ -215,11 +215,9 @@ contract C3DAppManagerTest is Helpers {
         dappManager.setDAppStatus(dappID, active, "reuse dapp");
     }
 
-    function test_SetDAppStatus_NonZeroDAppID() public {
+    function test_SetDAppStatus_ZeroDAppID() public {
         vm.prank(gov);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
         dappManager.setDAppStatus(0, IC3DAppManager.DAppStatus.Suspended, "suspend dapp zero");
     }
 
@@ -246,7 +244,8 @@ contract C3DAppManagerTest is Helpers {
     }
 
     function test_SetDAppStatus_InvalidStatusTransition() public {
-        uint256 dappIDNew = dappManager.setDAppConfig(address(usdc), c3pingMetadata);
+        uint256 dappID2 = dappManager.setDAppConfig(address(usdc), c3pingMetadata);
+        uint256 dappID3 = dappManager.setDAppConfig(address(usdc), assetXMetadata);
 
         IC3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
         IC3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
@@ -254,7 +253,15 @@ contract C3DAppManagerTest is Helpers {
         IC3DAppManager.DAppStatus deprecated = IC3DAppManager.DAppStatus.Deprecated;
 
         vm.startPrank(gov);
+        // active -> active (invalid)
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidStatusTransition.selector, active, active)
+        );
+        dappManager.setDAppStatus(dappID, active, "active dapp");
+
         // active -> suspended (valid)
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.DAppStatusChanged(dappID, active, suspended, "suspend dapp");
         dappManager.setDAppStatus(dappID, suspended, "suspend dapp");
 
         // suspended -> dormant (invalid)
@@ -263,7 +270,15 @@ contract C3DAppManagerTest is Helpers {
         );
         dappManager.setDAppStatus(dappID, dormant, "dormant dapp");
 
+        // suspended -> suspended (invalid)
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidStatusTransition.selector, suspended, suspended)
+        );
+        dappManager.setDAppStatus(dappID, suspended, "suspended dapp");
+
         // suspended -> active (valid)
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.DAppStatusChanged(dappID, suspended, active, "active dapp");
         dappManager.setDAppStatus(dappID, active, "active dapp");
 
         // active -> dormant (invalid)
@@ -273,6 +288,8 @@ contract C3DAppManagerTest is Helpers {
         dappManager.setDAppStatus(dappID, dormant, "dormant dapp");
 
         // active -> deprecated (valid)
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.DAppStatusChanged(dappID, active, deprecated, "deprecated dapp");
         dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
 
         // deprecated -> active (invalid)
@@ -293,11 +310,28 @@ contract C3DAppManagerTest is Helpers {
         );
         dappManager.setDAppStatus(dappID, dormant, "dormant dapp");
 
+        // deprecated -> deprecated (invalid)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_InvalidStatusTransition.selector, deprecated, deprecated
+            )
+        );
+        dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
+
         // suspended -> deprecated (valid)
-        dappManager.setDAppStatus(dappIDNew, suspended, "suspended dapp");
-        dappManager.setDAppStatus(dappIDNew, deprecated, "deprecated dapp");
+        dappManager.setDAppStatus(dappID2, suspended, "suspended dapp");
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.DAppStatusChanged(dappID2, suspended, deprecated, "deprecated dapp");
+        dappManager.setDAppStatus(dappID2, deprecated, "deprecated dapp");
+
+        dappManager.removeFeeConfig(address(usdc));
 
         vm.stopPrank();
+    }
+
+    function test_DAppStatus_ZeroDAppID() public {
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.dappStatus(0);
     }
 
     // ============ SET DAPP CONFIG TESTS ============
@@ -307,6 +341,11 @@ contract C3DAppManagerTest is Helpers {
         assertEq(dappAdmin, user1);
         assertEq(feeToken, address(usdc));
         assertEq(discount, 0);
+        uint256 nextDAppID = dappManager.dappID() + 1;
+        vm.prank(user1);
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.SetDAppConfig(nextDAppID, user1, address(usdc), c3pingMetadata);
+        dappManager.setDAppConfig(address(usdc), c3pingMetadata);
     }
 
     function test_SetDAppConfig_ZeroFeeToken() public {
@@ -317,17 +356,13 @@ contract C3DAppManagerTest is Helpers {
 
     function test_SetDAppConfig_InvalidFeeToken() public {
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm))
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)));
         dappManager.setDAppConfig(address(ctm), c3pingMetadata);
     }
 
     function test_SetDAppConfig_MetadataEmpty() public {
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Metadata)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Metadata));
         dappManager.setDAppConfig(address(usdc), "");
     }
 
@@ -340,7 +375,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         uint256 dappIDValid = dappManager.setDAppConfig(address(usdc), string512Characters);
 
-        (,,,,string memory metadata) = dappManager.dappConfig(dappIDValid);
+        (,,,, string memory metadata) = dappManager.dappConfig(dappIDValid);
         uint256 validLength = bytes(metadata).length;
         assertEq(validLength, bytes(string512Characters).length);
 
@@ -360,9 +395,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(gov);
         dappManager.pause();
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(Pausable.EnforcedPause.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
         dappManager.setDAppConfig(address(usdc), c3pingMetadata);
     }
 
@@ -371,6 +404,8 @@ contract C3DAppManagerTest is Helpers {
     function test_UpdateDAppConfig_Success() public {
         skip(30 days);
         vm.prank(user1);
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.SetDAppConfig(dappID, user2, address(usdc), c3pingMetadata);
         dappManager.updateDAppConfig(dappID, user2, address(usdc), c3pingMetadata);
 
         (address dappAdmin, address feeToken, uint256 discount, uint256 lastUpdated, string memory metadata) =
@@ -392,18 +427,14 @@ contract C3DAppManagerTest is Helpers {
     function test_UpdateDAppConfig_InvalidFeeToken() public {
         skip(30 days);
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm))
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)));
         dappManager.updateDAppConfig(dappID, user1, address(ctm), c3pingMetadata);
     }
 
     function test_UpdateDAppConfig_MetadataEmpty() public {
         skip(30 days);
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Metadata)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.Metadata));
         dappManager.updateDAppConfig(dappID, user1, address(usdc), "");
     }
 
@@ -417,7 +448,7 @@ contract C3DAppManagerTest is Helpers {
         vm.prank(user1);
         dappManager.updateDAppConfig(dappID, user1, address(usdc), string512Characters);
 
-        (,,,,string memory metadata) = dappManager.dappConfig(dappID);
+        (,,,, string memory metadata) = dappManager.dappConfig(dappID);
         uint256 validLength = bytes(metadata).length;
         assertEq(validLength, bytes(string512Characters).length);
 
@@ -434,7 +465,7 @@ contract C3DAppManagerTest is Helpers {
         dappManager.updateDAppConfig(dappID, user1, address(usdc), tooLongMetadata);
         vm.stopPrank();
 
-        (,,,,metadata) = dappManager.dappConfig(dappID);
+        (,,,, metadata) = dappManager.dappConfig(dappID);
         uint256 sameLength = bytes(metadata).length;
         assertEq(sameLength, bytes(string512Characters).length);
     }
@@ -480,7 +511,9 @@ contract C3DAppManagerTest is Helpers {
         // non-admin (invalid)
         vm.prank(user2);
         vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin)
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
+            )
         );
         dappManager.updateDAppConfig(dappID, user1, address(usdc), c3pingMetadata);
     }
@@ -498,7 +531,9 @@ contract C3DAppManagerTest is Helpers {
         skip(30 days);
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, IC3DAppManager.DAppStatus.Suspended)
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, IC3DAppManager.DAppStatus.Suspended
+            )
         );
         dappManager.updateDAppConfig(dappID, user1, address(usdc), c3pingMetadata);
 
@@ -523,7 +558,9 @@ contract C3DAppManagerTest is Helpers {
         skip(30 days);
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, IC3DAppManager.DAppStatus.Deprecated)
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, IC3DAppManager.DAppStatus.Deprecated
+            )
         );
         dappManager.updateDAppConfig(dappID, user2, address(ctm), c3pingMetadata);
     }
@@ -548,9 +585,7 @@ contract C3DAppManagerTest is Helpers {
         dappManager.pause();
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(Pausable.EnforcedPause.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
         dappManager.updateDAppConfig(dappID, user2, address(usdc), c3pingMetadata);
     }
 
@@ -562,6 +597,8 @@ contract C3DAppManagerTest is Helpers {
         addresses[1] = "addr2";
 
         vm.prank(gov);
+        vm.expectEmit(true, true, true, true);
+        emit IC3DAppManager.SetDAppAddr(dappID, addresses);
         dappManager.setDAppAddr(dappID, addresses);
 
         assertEq(dappManager.c3DAppAddr("addr1"), dappID);
@@ -573,6 +610,9 @@ contract C3DAppManagerTest is Helpers {
         addresses[0] = "addr1";
 
         vm.prank(gov);
+        dappManager.setDAppAddr(dappID, addresses);
+
+        vm.prank(user1);
         dappManager.setDAppAddr(dappID, addresses);
 
         vm.prank(user2);
@@ -594,7 +634,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(dappManager.c3DAppAddr("addr1"), dappID);
     }
 
-    function test_SetDAppAddr_OnlyActiveDApp() public {
+    function test_SetDAppAddr_InactiveDApp() public {
         string[] memory addresses = new string[](1);
         addresses[0] = "addr1";
         C3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
@@ -615,9 +655,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(uint8(dappManager.dappStatus(dappID)), uint8(suspended));
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended));
         dappManager.setDAppAddr(dappID, addresses);
 
         vm.startPrank(gov);
@@ -630,10 +668,12 @@ contract C3DAppManagerTest is Helpers {
         assertEq(uint8(dappManager.dappStatus(dappID)), uint8(dormant));
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, dormant)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, dormant));
         dappManager.setDAppAddr(dappID, addresses);
+
+        skip(30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, user1, address(ctm), assetXMetadata);
 
         vm.prank(gov);
         dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
@@ -642,9 +682,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(uint8(dappManager.dappStatus(dappID)), uint8(deprecated));
 
         vm.prank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, deprecated)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, deprecated));
         dappManager.setDAppAddr(dappID, addresses);
     }
 
@@ -652,6 +690,8 @@ contract C3DAppManagerTest is Helpers {
 
     function test_AddMpcAddr_Success() public {
         vm.prank(gov);
+        vm.expectEmit(true, false, false, false);
+        emit IC3DAppManager.AddMpcAddr(dappID, mpcAddr1, pubKey1);
         dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
 
         assertEq(dappManager.mpcPubkey(dappID, mpcAddr1), pubKey1);
@@ -661,12 +701,68 @@ contract C3DAppManagerTest is Helpers {
     }
 
     function test_AddMpcAddr_OnlyGovOrAdmin() public {
+        vm.prank(gov);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.prank(user1);
+        dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
+
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+    }
+
+    function test_AddMpcAddr_InactiveDApp() public {
+        C3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
+        C3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
+        C3DAppManager.DAppStatus dormant = IC3DAppManager.DAppStatus.Dormant;
+        C3DAppManager.DAppStatus deprecated = IC3DAppManager.DAppStatus.Deprecated;
+
+        // active dapp (valid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(active));
+
+        vm.prank(user1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, suspended, "suspended dapp");
+
+        // suspended dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(suspended));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended));
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.startPrank(gov);
+        dappManager.setDAppStatus(dappID, active, "active dapp");
+        dappManager.removeFeeConfig(address(usdc));
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        vm.stopPrank();
+
+        // dormant dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(dormant));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, dormant));
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        skip(30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, user1, address(ctm), assetXMetadata);
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
+
+        // deprecated dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(deprecated));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, deprecated));
         dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
     }
 
@@ -698,6 +794,13 @@ contract C3DAppManagerTest is Helpers {
         dappManager.addMpcAddr(dappID, mpcAddr1, "pubkey123");
     }
 
+    function test_AddMpcAddr_MpcAddressExists() public {
+        vm.startPrank(user1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_MpcAddressExists.selector, mpcAddr1));
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+    }
+
     function test_DelMpcAddr_Success() public {
         vm.prank(gov);
         dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
@@ -705,6 +808,8 @@ contract C3DAppManagerTest is Helpers {
         dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
 
         vm.prank(gov);
+        vm.expectEmit(true, false, false, true);
+        emit IC3DAppManager.DelMpcAddr(dappID, mpcAddr1, pubKey1);
         dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
 
         assertEq(dappManager.mpcPubkey(dappID, mpcAddr1), "");
@@ -716,6 +821,13 @@ contract C3DAppManagerTest is Helpers {
     function test_DelMpcAddr_OnlyGovOrAdmin() public {
         vm.prank(gov);
         dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        vm.prank(gov);
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.prank(user1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        vm.prank(user1);
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
 
         vm.prank(user2);
         vm.expectRevert(
@@ -723,6 +835,58 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
             )
         );
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+    }
+
+    function test_DelMpcAddr_InactiveDApp() public {
+        C3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
+        C3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
+        C3DAppManager.DAppStatus dormant = IC3DAppManager.DAppStatus.Dormant;
+        C3DAppManager.DAppStatus deprecated = IC3DAppManager.DAppStatus.Deprecated;
+
+        // active dapp (valid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(active));
+
+        vm.prank(user1);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        vm.prank(user1);
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, suspended, "suspended dapp");
+
+        // suspended dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(suspended));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended));
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        vm.startPrank(gov);
+        dappManager.setDAppStatus(dappID, active, "active dapp");
+        dappManager.removeFeeConfig(address(usdc));
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        vm.stopPrank();
+
+        // dormant dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(dormant));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, dormant));
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+
+        skip(30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, user1, address(ctm), assetXMetadata);
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
+
+        // deprecated dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(deprecated));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, deprecated));
         dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
     }
 
@@ -742,15 +906,38 @@ contract C3DAppManagerTest is Helpers {
         dappManager.delMpcAddr(dappID, mpcAddr1, "");
     }
 
-    // ============ FEE CONFIG TESTS ============
+    function test_DelMpcAddr_MpcAddrDoesNotExist() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_MpcAddressNotFound.selector, mpcAddr1));
+        dappManager.delMpcAddr(dappID, mpcAddr1, pubKey1);
+    }
+
+    function test_DelMpcAddr_SwapAndPop() public {
+        vm.startPrank(gov);
+        dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
+        dappManager.addMpcAddr(dappID, mpcAddr2, pubKey2);
+        dappManager.addMpcAddr(dappID, mpcAddr3, pubKey3);
+        dappManager.delMpcAddr(dappID, mpcAddr2, pubKey2);
+        vm.stopPrank();
+        bool is1MpcMember = dappManager.mpcMembership(dappID, mpcAddr1);
+        bool is2MpcMember = dappManager.mpcMembership(dappID, mpcAddr2);
+        bool is3MpcMember = dappManager.mpcMembership(dappID, mpcAddr3);
+        assertTrue(is1MpcMember);
+        assertFalse(is2MpcMember);
+        assertTrue(is3MpcMember);
+    }
+
+    // ============ SET FEE CONFIG TESTS ============
 
     function test_SetFeeConfig_Success() public {
-        (uint256 perByte, uint256 perGas) = dappManager.specificChainFee(address(usdc), "ethereum");
-        uint256 minimumDeposit = dappManager.feeMinimumDeposit(address(usdc));
+        vm.prank(gov);
+        vm.expectEmit(true, true, false, true);
+        emit IC3DAppManager.SetFeeConfig(address(ctm), "ethereum", 1, 1);
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        (uint256 perByte, uint256 perGas) = dappManager.specificChainFee(address(ctm), "ethereum");
 
         assertEq(perByte, 1);
         assertEq(perGas, 1);
-        assertEq(minimumDeposit, 100);
     }
 
     function test_SetFeeConfig_OnlyGov() public {
@@ -779,19 +966,39 @@ contract C3DAppManagerTest is Helpers {
 
     function test_SetFeeMinimumDeposit_Success() public {
         vm.prank(gov);
+        vm.expectEmit(true, false, false, true);
+        emit IC3DAppManager.SetFeeMinimumDeposit(address(usdc), 1000 ether);
         dappManager.setFeeMinimumDeposit(address(usdc), 1000 ether);
 
         uint256 minimumDeposit = dappManager.feeMinimumDeposit(address(usdc));
         assertEq(minimumDeposit, 1000 ether);
     }
 
-    function test_SetFeeMinimumDeposit_ZeroAmount() public {
+    function test_SetFeeMinimumDeposit_OnlyGov() public {
         vm.prank(gov);
-        dappManager.setFeeMinimumDeposit(address(usdc), 1);
+        dappManager.setFeeMinimumDeposit(address(usdc), 100);
 
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, 0, 1));
-        dappManager.deposit(1, address(usdc), 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
+            )
+        );
+        dappManager.setFeeMinimumDeposit(address(usdc), 50);
+    }
+
+    function test_SetFeeMinimumDeposit_ZeroMinimum() public {
+        vm.prank(gov);
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.MinimumDeposit)
+        );
+        dappManager.setFeeMinimumDeposit(address(usdc), 0);
+    }
+
+    function test_SetFeeMinimumDeposit_InvalidFeeToken() public {
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(ctm)));
+        dappManager.setFeeMinimumDeposit(address(ctm), 1000 ether);
     }
 
     // ============ REMOVE FEE CONFIG ============
@@ -801,6 +1008,8 @@ contract C3DAppManagerTest is Helpers {
         assertTrue(usdcIsCurrentBefore);
         (uint256 feePerByteBefore, uint256 feePerGasBefore) = dappManager.specificChainFee(address(usdc), "ethereum");
         vm.prank(gov);
+        vm.expectEmit(true, false, false, false);
+        emit IC3DAppManager.DeleteFeeConfig(address(usdc));
         dappManager.removeFeeConfig(address(usdc));
         (uint256 feePerByteAfter, uint256 feePerGasAfter) = dappManager.specificChainFee(address(usdc), "ethereum");
         bool usdcIsCurrentAfter = dappManager.feeCurrencies(address(usdc));
@@ -809,17 +1018,38 @@ contract C3DAppManagerTest is Helpers {
         assertFalse(usdcIsCurrentAfter);
     }
 
+    function test_RemoveFeeConfig_OnlyGov() public {
+        vm.prank(gov);
+        dappManager.removeFeeConfig(address(usdc));
+
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
+            )
+        );
+        dappManager.removeFeeConfig(address(usdc));
+    }
+
     // ============ DEPOSIT TESTS ============
 
     function test_Deposit_Success() public {
         uint256 amount = 1000;
 
+        uint256 senderBalanceBefore = usdc.balanceOf(user1);
+
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount);
-        dappManager.deposit(1, address(usdc), amount);
+        uint256 dappStakePool = dappManager.dappStakePool(dappID, address(usdc));
+        vm.expectEmit(true, true, false, true);
+        emit IC3DAppManager.Deposit(dappID, address(usdc), amount, dappStakePool + amount);
+        dappManager.deposit(dappID, address(usdc), amount);
         vm.stopPrank();
 
-        assertEq(dappManager.dappStakePool(1, address(usdc)), amount);
+        uint256 senderBalanceAfter = usdc.balanceOf(user1);
+
+        assertEq(senderBalanceAfter, senderBalanceBefore - amount);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), amount);
     }
 
     function test_Deposit_MultipleDeposits() public {
@@ -828,11 +1058,80 @@ contract C3DAppManagerTest is Helpers {
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), amount1 + amount2);
-        dappManager.deposit(1, address(usdc), amount1);
-        dappManager.deposit(1, address(usdc), amount2);
+        dappManager.deposit(dappID, address(usdc), amount1);
+        dappManager.deposit(dappID, address(usdc), amount2);
         vm.stopPrank();
 
-        assertEq(dappManager.dappStakePool(1, address(usdc)), amount1 + amount2);
+        assertEq(dappManager.dappStakePool(dappID, address(usdc)), amount1 + amount2);
+    }
+
+    function test_Deposit_Paused() public {
+        vm.prank(gov);
+        dappManager.pause();
+        vm.startPrank(user1);
+        usdc.approve(address(dappManager), 1 ether);
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
+        dappManager.deposit(dappID, address(usdc), 1 ether);
+        vm.stopPrank();
+    }
+
+    function test_Deposit_ZeroDAppID() public {
+        vm.startPrank(user1);
+        usdc.approve(address(dappManager), 1 ether);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.deposit(0, address(usdc), 1 ether);
+    }
+
+    function test_Deposit_InactiveDApp() public {
+        C3DAppManager.DAppStatus active = IC3DAppManager.DAppStatus.Active;
+        C3DAppManager.DAppStatus suspended = IC3DAppManager.DAppStatus.Suspended;
+        C3DAppManager.DAppStatus dormant = IC3DAppManager.DAppStatus.Dormant;
+        C3DAppManager.DAppStatus deprecated = IC3DAppManager.DAppStatus.Deprecated;
+
+        // active dapp (valid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(active));
+
+        vm.startPrank(user1);
+        usdc.approve(address(dappManager), 400);
+        dappManager.deposit(dappID, address(usdc), 400);
+        vm.stopPrank();
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, suspended, "suspended dapp");
+
+        // suspended dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(suspended));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, suspended));
+        dappManager.deposit(dappID, address(usdc), 100);
+
+        vm.startPrank(gov);
+        dappManager.setDAppStatus(dappID, active, "active dapp");
+        dappManager.removeFeeConfig(address(usdc));
+        dappManager.setFeeConfig(address(ctm), "ethereum", 1, 1);
+        vm.stopPrank();
+
+        // dormant dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(dormant));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, dormant));
+        dappManager.deposit(dappID, address(usdc), 100);
+
+        skip(30 days);
+        vm.prank(user1);
+        dappManager.updateDAppConfig(dappID, user1, address(ctm), assetXMetadata);
+
+        vm.prank(gov);
+        dappManager.setDAppStatus(dappID, deprecated, "deprecated dapp");
+
+        // deprecated dapp (invalid)
+        assertEq(uint8(dappManager.dappStatus(dappID)), uint8(deprecated));
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, dappID, deprecated));
+        dappManager.deposit(dappID, address(usdc), 100);
     }
 
     function test_Deposit_BelowMinimum() public {
@@ -852,7 +1151,7 @@ contract C3DAppManagerTest is Helpers {
                 IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, depositAmount, minimumDeposit
             )
         );
-        dappManager.deposit(1, address(usdc), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
     }
 
     // ============ WITHDRAW TESTS ============
@@ -862,6 +1161,7 @@ contract C3DAppManagerTest is Helpers {
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
+        emit IC3DAppManager.Withdraw(dappID, address(usdc), depositAmount);
         dappManager.deposit(dappID, address(usdc), depositAmount);
         vm.stopPrank();
 
@@ -871,7 +1171,7 @@ contract C3DAppManagerTest is Helpers {
         dappManager.withdraw(dappID, address(usdc));
 
         assertEq(dappManager.dappStakePool(dappID, address(usdc)), 0);
-        assertEq(usdc.balanceOf(user1), user1InitialBalance + 1000);
+        assertEq(usdc.balanceOf(user1), user1InitialBalance + depositAmount);
     }
 
     function test_Withdraw_OnlyGov() public {
@@ -884,7 +1184,7 @@ contract C3DAppManagerTest is Helpers {
 
         vm.startPrank(user1);
         usdc.approve(address(dappManager), depositAmount);
-        dappManager.deposit(1, address(usdc), depositAmount);
+        dappManager.deposit(dappID, address(usdc), depositAmount);
         vm.stopPrank();
 
         vm.prank(user2);
@@ -893,6 +1193,22 @@ contract C3DAppManagerTest is Helpers {
                 IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
+        dappManager.withdraw(dappID, address(usdc));
+
+        vm.prank(gov);
+        dappManager.withdraw(dappID, address(usdc));
+    }
+
+    function test_Withdraw_ZeroDAppID() public {
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.withdraw(0, address(usdc));
+    }
+
+    function test_Withdraw_Paused() public {
+        vm.startPrank(gov);
+        dappManager.pause();
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
         dappManager.withdraw(dappID, address(usdc));
     }
 
@@ -923,13 +1239,15 @@ contract C3DAppManagerTest is Helpers {
         vm.stopPrank();
 
         vm.prank(gov);
+        vm.expectEmit(true, true, false, true);
+        emit IC3DAppManager.Charging(dappID, address(usdc), chargeAmount, 0, depositAmount - chargeAmount);
         dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
 
         assertEq(dappManager.dappStakePool(dappID, address(usdc)), depositAmount - chargeAmount);
     }
 
     function test_Charging_OnlyGov() public {
-        uint256 depositAmount = 1000;
+        uint256 depositAmount = 1000000;
         uint256 feePerByte = 500;
         uint256 feePerGas = 100;
         uint256 minimumDeposit = 999;
@@ -954,6 +1272,30 @@ contract C3DAppManagerTest is Helpers {
             )
         );
         dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
+
+        vm.prank(gov);
+        dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
+    }
+
+    function test_Charging_Paused() public {
+        uint256 sizeBytes = 16;
+        uint256 sizeGas = 32;
+        string memory chain = "ethereum";
+
+        vm.startPrank(gov);
+        dappManager.pause();
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
+        dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, chain);
+    }
+
+    function test_Charging_ZeroDAppID() public {
+        uint256 sizeBytes = 16;
+        uint256 sizeGas = 32;
+        string memory chain = "ethereum";
+
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.charging(0, address(usdc), sizeBytes, sizeGas, chain);
     }
 
     function test_Charging_ZeroAmount() public {
@@ -991,7 +1333,7 @@ contract C3DAppManagerTest is Helpers {
 
     // ============ SET DAPP FEE DISCOUNT TESTS ============
 
-    function test_Discount_ZeroDiscount() public {
+    function test_SetDAppFeeDiscount_ZeroDiscount() public {
         uint256 feePerByte = 100;
         uint256 feePerGas = 1 gwei;
         uint256 sizeByte = 4;
@@ -1010,6 +1352,8 @@ contract C3DAppManagerTest is Helpers {
         vm.stopPrank();
 
         vm.prank(gov);
+        vm.expectEmit(true, false, false, true);
+        emit IC3DAppManager.SetDAppFeeDiscount(dappIDNew, 0);
         dappManager.setDAppFeeDiscount(dappIDNew, 0);
 
         uint256 govInitialBalance = ctm.balanceOf(gov);
@@ -1021,7 +1365,7 @@ contract C3DAppManagerTest is Helpers {
         assertEq(govFinalBalance, govInitialBalance + totalExpectedBill);
     }
 
-    function test_Discount_FullDiscount() public {
+    function test_SetDAppFeeDiscount_FullDiscount() public {
         uint256 feePerByte = 100;
         uint256 feePerGas = 1 gwei;
         uint256 sizeByte = 4;
@@ -1077,6 +1421,16 @@ contract C3DAppManagerTest is Helpers {
         dappManager.setDAppFeeDiscount(0, 10);
     }
 
+    function test_SetDAppFeeDiscount_DiscountAboveMax() public {
+        uint256 discount = 10_001;
+        uint256 maxDiscount = dappManager.DISCOUNT_DENOMINATOR();
+        vm.prank(gov);
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_DiscountAboveMax.selector, discount, maxDiscount)
+        );
+        dappManager.setDAppFeeDiscount(dappID, discount);
+    }
+
     // ============ VIEW FUNCTION TESTS ============
 
     function test_GetDAppConfig_Empty() public {
@@ -1099,6 +1453,11 @@ contract C3DAppManagerTest is Helpers {
         assertEq(addrs.length, 0);
     }
 
+    function test_GetMpcAddrs_ZeroDAppID() public {
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.getAllMpcAddrs(0);
+    }
+
     function test_GetMpcAddrs_WithData() public {
         vm.prank(gov);
         dappManager.addMpcAddr(dappID, mpcAddr1, pubKey1);
@@ -1109,6 +1468,11 @@ contract C3DAppManagerTest is Helpers {
         assertEq(addrs.length, 2);
         assertEq(addrs[0], mpcAddr1);
         assertEq(addrs[1], mpcAddr2);
+    }
+
+    function test_GetMpcCount_ZeroDAppID() public {
+        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_ZeroDAppID.selector));
+        dappManager.getMpcCount(0);
     }
 
     function test_GetMpcPubkey_Empty() public {
@@ -1168,7 +1532,20 @@ contract C3DAppManagerTest is Helpers {
         assertEq(dappManager.cumulativeFees(address(usdc)), 0);
     }
 
-    function test_CumulativeFees_Success() public {}
+    function test_CumulativeFees_Success() public {
+        vm.startPrank(user1);
+        usdc.approve(address(dappManager), 100);
+        dappManager.deposit(dappID, address(usdc), 100);
+        vm.stopPrank();
+        uint256 sizeBytes = 10;
+        uint256 sizeGas = 10;
+        (uint256 feePerByte, uint256 feePerGas) = dappManager.specificChainFee(address(usdc), "ethereum");
+        uint256 expectedFees = (sizeBytes * feePerByte) + (sizeGas * feePerGas);
+        vm.prank(gov);
+        dappManager.charging(dappID, address(usdc), sizeBytes, sizeGas, "ethereum");
+        uint256 fees = dappManager.cumulativeFees(address(usdc));
+        assertEq(fees, expectedFees);
+    }
 
     // ============ EDGE CASES ============
 
