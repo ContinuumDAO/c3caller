@@ -30,7 +30,7 @@ interface IC3DAppManager {
     );
     event InitDAppConfig(uint256 indexed _dappID, string _dappKey, address indexed _admin, address indexed _feeToken, string metadata);
     event UpdateDAppConfig(uint256 indexed _dappID, address indexed _admin, address indexed _feeToken, string metadata);
-    event SetDAppAddr(uint256 indexed _dappID, address[] _addresses);
+    event SetDAppAddr(uint256 indexed _dappID, address _address, bool _status);
     event AddMPCAddr(uint256 indexed _dappID, address _addr, string _pubkey);
     event DelMPCAddr(uint256 indexed _dappID, address _addr, string _pubkey);
     event SetFeeConfig(address indexed _token, uint256 _perByteFee, uint256 _perGasFee);
@@ -46,6 +46,7 @@ interface IC3DAppManager {
     error C3DAppManager_InactiveDApp(uint256 _dappID, DAppStatus);
     error C3DAppManager_InvalidDAppID(uint256 _dappID);
     error C3DAppManager_InvalidStatusTransition(DAppStatus _from, DAppStatus _to);
+    error C3DAppManager_InvalidDAppAddr(address _addr);
     error C3DAppManager_RecentlyUpdated(uint256 _dappID);
     error C3DAppManager_InvalidFeeToken(address _token);
     error C3DAppManager_IsZero(C3ErrorParam);
@@ -83,7 +84,7 @@ interface IC3DAppManager {
     function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason) external;
     function initDAppConfig(string memory _dappKey, address _feeToken, string memory _metadata) external returns (uint256);
     function updateDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata) external;
-    function setDAppAddr(uint256 _dappID, address[] memory _addresses) external;
+    function setDAppAddr(uint256 _dappID, address _address, bool _status) external;
     function addDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey) external;
     function delDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey) external;
     function setFeeConfig(address _token, uint256 _perByteFee, uint256 _perGasFee) external;

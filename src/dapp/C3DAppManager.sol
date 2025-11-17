@@ -49,6 +49,9 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
     /// @notice Mapping of DApp address to DApp ID
     mapping(address => uint256) public c3DAppAddr;
 
+    /// @notice Mapping of DApp ID to C3CallerDApp implementation, which may call C3Caller.c3call
+    mapping(uint256 => address[]) public dappAddrs;
+
     /// @notice Mapping of DApp ID to DApp status (Active, Suspended, Deprecated)
     mapping(uint256 => DAppStatus) internal _dappStatus;
 
@@ -262,23 +265,38 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
     }
 
     /**
-     * @notice Set DApp addresses
-     * @notice This is network-agnostic, therefore all deployed instances using `_dappID` should be included.
+     * @notice Set C3CallerDApp implementation address(es), which may call C3Caller.c3call
      * @param _dappID The DApp ID
-     * @param _addresses Array of DApp addresses
+     * @param _addr DApp address to add/remove
+     * @param _status Whether to add or remove the DApp address
      * @dev Reverts if DApp ID is zero or DApp is not active
      * @dev Only governance or DApp admin can call this function
      */
-    function setDAppAddr(uint256 _dappID, address[] memory _addresses)
+    function setDAppAddr(uint256 _dappID, address _addr, bool _status)
         external
+        dappIDExists(_dappID)
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
         whenNotPaused
     {
-        for (uint256 i = 0; i < _addresses.length; i++) {
-            c3DAppAddr[_addresses[i]] = _dappID;
+        if (_status && c3DAppAddr[_addr] == 0) {
+            c3DAppAddr[_addr] = _dappID;
+            dappAddrs[_dappID].push(_addr);
+        } else if (!_status && c3DAppAddr[_addr] != 0) {
+            delete c3DAppAddr[_addr];
+            uint256 dappIDCount = dappAddrs[_dappID].length;
+            for (uint256 i = 0; i < dappIDCount; i++) {
+                if (dappAddrs[_dappID][i] == _addr) {
+                    dappAddrs[_dappID][i] = dappAddrs[_dappID][dappIDCount - 1];
+                    dappAddrs[_dappID].pop();
+                    break;
+                }
+            }
+        } else {
+            revert C3DAppManager_InvalidDAppAddr(_addr);
         }
-        emit SetDAppAddr(_dappID, _addresses);
+
+        emit SetDAppAddr(_dappID, _addr, _status);
     }
 
     /**
@@ -292,6 +310,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
      */
     function addDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey)
         external
+        dappIDExists(_dappID)
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
         whenNotPaused
@@ -329,6 +348,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
      */
     function delDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey)
         external
+        dappIDExists(_dappID)
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
         whenNotPaused
@@ -472,7 +492,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
     function withdraw(
         uint256 _dappID,
         address _token
-    ) external onlyGovOrAdmin(_dappID) dappIDExists(_dappID) whenNotPaused {
+    ) external dappIDExists(_dappID) onlyGovOrAdmin(_dappID) whenNotPaused {
         uint256 amount = dappStakePool[_dappID][_token];
         if (feeCurrencies[_token]) {
             uint256 minimumRemainder = feeMinimumDeposit[_token];
@@ -587,9 +607,8 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
      * @notice Get all MPC addresses that have been added for a given DApp
      * @param _dappID The DApp ID
      * @return Array of MPC addresses
-     * @dev Reverts if DApp ID is zero
      */
-    function getAllDAppMPCAddrs(uint256 _dappID) external view dappIDExists(_dappID) returns (address[] memory) {
+    function getAllDAppMPCAddrs(uint256 _dappID) external view returns (address[] memory) {
         return dappMPCAddrs[_dappID];
     }
 
@@ -597,10 +616,18 @@ contract C3DAppManager is IC3DAppManager, C3GovClient {
      * @notice Get the number of MPC addresses for a DApp
      * @param _dappID The DApp ID
      * @return The number of MPC addresses
-     * @dev Reverts if DApp ID is zero
      */
-    function getDAppMPCCount(uint256 _dappID) external view dappIDExists(_dappID) returns (uint256) {
+    function getDAppMPCCount(uint256 _dappID) external view returns (uint256) {
         return dappMPCAddrs[_dappID].length;
+    }
+
+    /**
+     * @notice Get all DApp addresses that have been added for a given DApp
+     * @param _dappID The DApp ID
+     * @return Array of DApp addresses
+     */
+    function getAllDAppAddrs(uint256 _dappID) external view returns (address[] memory) {
+        return dappAddrs[_dappID];
     }
 
     /**
