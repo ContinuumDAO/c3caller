@@ -53,8 +53,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovernDApp")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3GovernDAppStorageLocation =
-    // 0xc8c66710888cf7a9b30b25a7681bee72e322593d6079d3f7101b3588b0dff800;
-    0x03cfcaef45dcb6fd7af1f4250ec3c5de537d4e89548540d98c1f045c9c010800;
+        0x03cfcaef45dcb6fd7af1f4250ec3c5de537d4e89548540d98c1f045c9c010800;
 
     /**
      * @notice Get the delay between declaring a new governance address and it being confirmed
@@ -112,16 +111,6 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
             revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
         }
         _;
-    }
-
-    /**
-     * @notice Get the storage struct for C3GovernDApp
-     * @return $ The storage struct
-     */
-    function _getC3GovernDAppStorage() private pure returns (C3GovernDAppStorage storage $) {
-        assembly {
-            $.slot := C3GovernDAppStorageLocation
-        }
     }
 
     /**
@@ -204,5 +193,15 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
         onlyGovOrC3Caller
     {
         _c3broadcast(_targets, _toChainIDs, _data);
+    }
+
+    /**
+     * @notice Get the storage struct for C3GovernDApp
+     * @return $ The storage struct
+     */
+    function _getC3GovernDAppStorage() private pure returns (C3GovernDAppStorage storage $) {
+        assembly {
+            $.slot := C3GovernDAppStorageLocation
+        }
     }
 }

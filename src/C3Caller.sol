@@ -11,7 +11,7 @@ import {IC3DAppManager} from "./dapp/IC3DAppManager.sol";
 import {C3GovClient} from "./gov/C3GovClient.sol";
 import {IC3UUIDKeeper} from "./uuid/IC3UUIDKeeper.sol";
 
-import {C3CallerUtils, C3ErrorParam} from "./utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
 
 /**
  * @title C3Caller
@@ -35,8 +35,6 @@ import {C3CallerUtils, C3ErrorParam} from "./utils/C3CallerUtils.sol";
  */
 contract C3Caller is IC3Caller, C3GovClient {
     using Address for address;
-    using Address for address payable;
-    using C3CallerUtils for bytes;
 
     /// @notice Current execution context for cross-chain operations, set/reset during each execution
     C3Context public context;
@@ -95,7 +93,7 @@ contract C3Caller is IC3Caller, C3GovClient {
         bytes calldata _data,
         bytes memory _extra
     ) external whenNotPaused {
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
@@ -114,7 +112,7 @@ contract C3Caller is IC3Caller, C3GovClient {
         external
         whenNotPaused
     {
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
@@ -142,7 +140,7 @@ contract C3Caller is IC3Caller, C3GovClient {
         if (_to.length != _toChainIDs.length) {
             revert C3Caller_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
         }
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
 
@@ -169,6 +167,94 @@ contract C3Caller is IC3Caller, C3GovClient {
      */
     function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external onlyMPC whenNotPaused {
         _c3Fallback(_dappID, msg.sender, _message);
+    }
+
+    /**
+     * @notice Mark a chain ID active, allowing c3calls to that chain
+     * @param _chainID The chain ID to ensure is active
+     */
+    function activateChainID(string memory _chainID) external onlyGov {
+        if (isActiveChainID[_chainID]) return;
+        isActiveChainID[_chainID] = true;
+        activeChainIDs.push(_chainID);
+        emit AddChainID(_chainID);
+    }
+
+    /**
+     * @notice Mark a chain ID inactive, thus preventing c3calls to that chain
+     * @param _chainID The chain ID to ensure is inactive
+     * @dev This is to prevent payload fees being charged unnecessarily for inactive chains
+     */
+    function deactivateChainID(string memory _chainID) external onlyGov {
+        if (!isActiveChainID[_chainID]) return;
+
+        uint256 chainIDCount = activeChainIDs.length;
+        for (uint256 i = 0; i < chainIDCount; i++) {
+            if (keccak256(bytes(activeChainIDs[i])) == keccak256(bytes(_chainID))) {
+                if (i != chainIDCount - 1) {
+                    activeChainIDs[i] = activeChainIDs[chainIDCount - 1];
+                }
+                activeChainIDs.pop();
+                break;
+            }
+        }
+        isActiveChainID[_chainID] = false;
+        emit RevokeChainID(_chainID);
+    }
+
+    /**
+     * @notice Add an MPC
+     * @param _mpc The address to add as an MPC
+     * @dev Only the governance address can call this function
+     */
+    function addMPC(address _mpc) external onlyGov {
+        if (_mpc == address(0)) {
+            revert C3Caller_IsZeroAddress(C3ErrorParam.MPC);
+        }
+        if (isMPCAddr[_mpc]) {
+            revert C3Caller_AlreadyMPC(_mpc);
+        }
+        isMPCAddr[_mpc] = true;
+        mpcAddrs.push(_mpc);
+        emit AddMPC(_mpc);
+    }
+
+    /**
+     * @notice Revoke MPC status from an address
+     * @param _mpc The address from which to revoke MPC status
+     * @dev Reverts if the address is already not an MPC
+     * @dev Only the governance address can call this function
+     */
+    function revokeMPC(address _mpc) external onlyGov {
+        if (!isMPCAddr[_mpc]) {
+            revert C3Caller_IsNotMPC(_mpc);
+        }
+        isMPCAddr[_mpc] = false;
+        uint256 _length = mpcAddrs.length;
+        for (uint256 _i = 0; _i < _length; _i++) {
+            if (mpcAddrs[_i] == _mpc) {
+                mpcAddrs[_i] = mpcAddrs[_length - 1];
+                mpcAddrs.pop();
+                return;
+            }
+        }
+        emit RevokeMPC(_mpc);
+    }
+
+    /**
+     * @notice Get all active chain IDs
+     * @return Array of all chain ID strings
+     */
+    function getAllActiveChainIDs() external view returns (string[] memory) {
+        return activeChainIDs;
+    }
+
+    /**
+     * @notice Get all MPC addresses
+     * @return Array of all MPC addresses
+     */
+    function getAllMPCAddrs() external view returns (address[] memory) {
+        return mpcAddrs;
     }
 
     /**
@@ -303,91 +389,5 @@ contract C3Caller is IC3Caller, C3GovClient {
         emit LogExecFallback(
             _dappID, _message.to, _message.uuid, _message.fromChainID, _message.sourceTx, _message.data, _result
         );
-    }
-
-    /**
-     * @notice Mark a chain ID active, allowing c3calls to that chain
-     * @param _chainID The chain ID to ensure is active
-     */
-    function activateChainID(string memory _chainID) external onlyGov {
-        if (isActiveChainID[_chainID]) return;
-        isActiveChainID[_chainID] = true;
-        activeChainIDs.push(_chainID);
-    }
-
-    /**
-     * @notice Mark a chain ID inactive, thus preventing c3calls to that chain
-     * @param _chainID The chain ID to ensure is inactive
-     * @dev This is to prevent payload fees being charged unnecessarily for inactive chains
-     */
-    function deactivateChainID(string memory _chainID) external onlyGov {
-        if (!isActiveChainID[_chainID]) return;
-
-        uint256 chainIDCount = activeChainIDs.length;
-        for (uint256 i = 0; i < chainIDCount; i++) {
-            if (keccak256(bytes(activeChainIDs[i])) == keccak256(bytes(_chainID))) {
-                if (i != chainIDCount - 1) {
-                    activeChainIDs[i] = activeChainIDs[chainIDCount - 1];
-                }
-                activeChainIDs.pop();
-                break;
-            }
-        }
-        isActiveChainID[_chainID] = false;
-    }
-
-    /**
-     * @notice Add an MPC
-     * @param _mpc The address to add as an MPC
-     * @dev Only the governance address can call this function
-     */
-    function addMPC(address _mpc) external onlyGov {
-        if (_mpc == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.MPC);
-        }
-        if (isMPCAddr[_mpc]) {
-            revert C3GovClient_AlreadyMPC(_mpc);
-        }
-        isMPCAddr[_mpc] = true;
-        mpcAddrs.push(_mpc);
-        emit AddMPC(_mpc);
-    }
-
-    /**
-     * @notice Revoke MPC status from an address
-     * @param _mpc The address from which to revoke MPC status
-     * @dev Reverts if the address is already not an MPC
-     * @dev Only the governance address can call this function
-     */
-    function revokeMPC(address _mpc) external onlyGov {
-        if (!isMPCAddr[_mpc]) {
-            revert C3GovClient_IsNotMPC(_mpc);
-        }
-        isMPCAddr[_mpc] = false;
-        uint256 _length = mpcAddrs.length;
-        for (uint256 _i = 0; _i < _length; _i++) {
-            if (mpcAddrs[_i] == _mpc) {
-                mpcAddrs[_i] = mpcAddrs[_length - 1];
-                mpcAddrs.pop();
-                return;
-            }
-        }
-        emit RevokeMPC(_mpc);
-    }
-
-    /**
-     * @notice Get all active chain IDs
-     * @return Array of all chain ID strings
-     */
-    function getAllActiveChainIDs() external view returns (string[] memory) {
-        return activeChainIDs;
-    }
-
-    /**
-     * @notice Get all MPC addresses
-     * @return Array of all MPC addresses
-     */
-    function getAllMPCAddrs() external view returns (address[] memory) {
-        return mpcAddrs;
     }
 }

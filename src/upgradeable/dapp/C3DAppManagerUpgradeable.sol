@@ -55,7 +55,7 @@ contract C3DAppManagerUpgradeable is
     mapping(uint256 => DAppConfig) public dappConfig;
 
     /// @notice Mapping of DApp address to DApp ID
-    mapping(address => uint256) public c3DAppAddr;
+    mapping(address => uint256) public dappAddrID;
 
     /// @notice Mapping of DApp ID to C3CallerDApp implementation, which may call C3Caller.c3call
     mapping(uint256 => address[]) public dappAddrs;
@@ -299,11 +299,11 @@ contract C3DAppManagerUpgradeable is
         onlyActive(_dappID)
         whenNotPaused
     {
-        if (_status && c3DAppAddr[_addr] == 0) {
-            c3DAppAddr[_addr] = _dappID;
+        if (_status && dappAddrID[_addr] == 0) {
+            dappAddrID[_addr] = _dappID;
             dappAddrs[_dappID].push(_addr);
-        } else if (!_status && c3DAppAddr[_addr] != 0) {
-            delete c3DAppAddr[_addr];
+        } else if (!_status && dappAddrID[_addr] != 0) {
+            delete dappAddrID[_addr];
             uint256 dappIDCount = dappAddrs[_dappID].length;
             for (uint256 i = 0; i < dappIDCount; i++) {
                 if (dappAddrs[_dappID][i] == _addr) {
@@ -667,7 +667,7 @@ contract C3DAppManagerUpgradeable is
      * @param _creator The address of the creator to check DApp keys
      * @dev This is useful for off-chain DApp ID derivation
      */
-    function getAllDAppKeysByCreator(address _creator) external view returns (string[] memory) {
+    function getAllCreatorDAppKeys(address _creator) external view returns (string[] memory) {
         return creatorDAppKeys[_creator];
     }
 

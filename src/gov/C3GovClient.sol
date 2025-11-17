@@ -25,14 +25,14 @@ import {IC3GovClient} from "./IC3GovClient.sol";
  * @author @potti ContinuumDAO
  */
 contract C3GovClient is IC3GovClient, Pausable {
+    /// @notice The C3Caller contract address
+    address public c3caller;
+
     /// @notice The current governance address
     address public gov;
 
     /// @notice The pending governance address (for two-step governance changes)
     address public pendingGov;
-
-    /// @notice The C3Caller contract address
-    address public c3caller;
 
     /**
      * @notice Modifier to restrict access to governance only
@@ -65,19 +65,14 @@ contract C3GovClient is IC3GovClient, Pausable {
     }
 
     /**
-     * @notice Pause the contract (governance only)
-     * @dev Only the governance address can call this function
+     * @notice Change the C3Caller address
+     * @param _c3caller The new C3Caller address
+     * @dev Only governance can call this
      */
-    function pause() public onlyGov {
-        _pause();
-    }
-
-    /**
-     * @notice Unpause the contract (governance only)
-     * @dev Only the governance address can call this function
-     */
-    function unpause() public onlyGov {
-        _unpause();
+    function setC3Caller(address _c3caller) external onlyGov {
+        address oldC3Caller = c3caller;
+        c3caller = _c3caller;
+        emit SetC3Caller(oldC3Caller, _c3caller);
     }
 
     /**
@@ -107,13 +102,18 @@ contract C3GovClient is IC3GovClient, Pausable {
     }
 
     /**
-     * @notice Change the C3Caller address
-     * @param _c3caller The new C3Caller address
-     * @dev Only governance can call this
+     * @notice Pause the contract (governance only)
+     * @dev Only the governance address can call this function
      */
-    function setC3Caller(address _c3caller) external onlyGov {
-        address oldC3Caller = c3caller;
-        c3caller = _c3caller;
-        emit SetC3Caller(oldC3Caller, _c3caller);
+    function pause() public onlyGov {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause the contract (governance only)
+     * @dev Only the governance address can call this function
+     */
+    function unpause() public onlyGov {
+        _unpause();
     }
 }

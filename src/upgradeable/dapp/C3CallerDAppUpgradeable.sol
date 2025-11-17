@@ -38,8 +38,7 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
 
     // keccak256(abi.encode(uint256(keccak256(bytes("c3caller.storage.C3CallerDApp"))) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3CallerDAppStorageLocation =
-    // 0xa39433114fd213b64ea52624936c26398cba31e0774cfae377a12cb547f1bb00;
-    0xb8c52ef1c1980f4ee6284e96cd37d6632554e7d3ff4cf7b91d46dcb2bc87b300;
+        0xb8c52ef1c1980f4ee6284e96cd37d6632554e7d3ff4cf7b91d46dcb2bc87b300;
 
     /**
      * @notice Get the C3Caller proxy address
@@ -68,16 +67,6 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
             revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
         _;
-    }
-
-    /**
-     * @notice Get the storage struct for C3CallerDApp
-     * @return $ The storage struct
-     */
-    function _getC3CallerDAppStorage() private pure returns (C3CallerDAppStorage storage $) {
-        assembly {
-            $.slot := C3CallerDAppStorageLocation
-        }
     }
 
     /**
@@ -175,5 +164,15 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
         returns (bytes32 uuid, string memory fromChainID, string memory sourceTx)
     {
         return IC3Caller(c3caller()).context();
+    }
+
+    /**
+     * @notice Get the storage struct for C3CallerDApp
+     * @return $ The storage struct
+     */
+    function _getC3CallerDAppStorage() private pure returns (C3CallerDAppStorage storage $) {
+        assembly {
+            $.slot := C3CallerDAppStorageLocation
+        }
     }
 }

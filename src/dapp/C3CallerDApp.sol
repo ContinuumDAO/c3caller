@@ -22,11 +22,11 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
  * @author @potti ContinuumDAO
  */
 abstract contract C3CallerDApp is IC3CallerDApp {
-    /// @notice The C3Caller proxy address
-    address public c3caller;
-
     /// @notice The DApp identifier (to/from which cross-chain calls may be made)
     uint256 public dappID;
+
+    /// @notice The C3Caller proxy address
+    address public c3caller;
 
     /**
      * @notice Modifier to restrict access to C3Caller only

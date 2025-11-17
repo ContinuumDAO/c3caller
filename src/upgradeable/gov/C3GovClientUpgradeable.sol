@@ -45,8 +45,7 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3GovClientStorageLocation =
-    // 0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
-    0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+        0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
 
     /**
      * @notice Get the current governance address
@@ -124,16 +123,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
     }
 
     /**
-     * @notice Get the storage struct for C3GovClient
-     * @return $ The storage struct
-     */
-    function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
-        assembly {
-            $.slot := C3GovClientStorageLocation
-        }
-    }
-
-    /**
      * @notice Change the governance address (two-step process)
      * @param _gov The new governance address
      * @dev Only the current governance address can call this function
@@ -171,5 +160,15 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
         address oldC3Caller = $.c3caller;
         $.c3caller = _c3caller;
         emit SetC3Caller(oldC3Caller, _c3caller);
+    }
+
+    /**
+     * @notice Get the storage struct for C3GovClient
+     * @return $ The storage struct
+     */
+    function _getC3GovClientStorage() private pure returns (C3GovClientStorage storage $) {
+        assembly {
+            $.slot := C3GovClientStorageLocation
+        }
     }
 }

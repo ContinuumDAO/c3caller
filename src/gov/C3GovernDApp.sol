@@ -2,9 +2,6 @@
 
 pragma solidity 0.8.27;
 
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-
 import {IC3GovernDApp} from "./IC3GovernDApp.sol";
 import {IC3CallerDApp} from "../dapp/IC3CallerDApp.sol";
 import {C3CallerDApp} from "../dapp/C3CallerDApp.sol";
@@ -28,9 +25,6 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
  * @author @potti ContinuumDAO
  */
 abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
-    using Strings for *;
-    using Address for address;
-
     /// @notice Delay period for governance changes (default: 2 days)
     uint256 public delay;
 
@@ -78,17 +72,6 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
     }
 
     /**
-     * @notice Get the current governance address
-     * @return The current governance address (new or old based on effective time)
-     */
-    function gov() public view returns (address) {
-        if (block.timestamp >= _newGovEffectiveTime) {
-            return _newGov;
-        }
-        return _oldGov;
-    }
-
-    /**
      * @notice Change the governance address. The new governance address will be valid after delay
      * @param newGov_ The new governance address
      * @dev Reverts if the new governance address is zero
@@ -102,15 +85,6 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
         _newGov = newGov_;
         _newGovEffectiveTime = block.timestamp + delay;
         emit LogChangeGov(_oldGov, _newGov, _newGovEffectiveTime, block.chainid);
-    }
-
-    /**
-     * @notice Set the delay period for governance changes
-     * @param _delay The new delay period in seconds
-     * @dev Only governance or C3Caller can call this function
-     */
-    function setDelay(uint256 _delay) external onlyGovOrC3Caller {
-        delay = _delay;
     }
 
     /**
@@ -136,5 +110,25 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
         onlyGovOrC3Caller
     {
         _c3broadcast(_targets, _toChainIDs, _data);
+    }
+
+    /**
+     * @notice Set the delay period for governance changes
+     * @param _delay The new delay period in seconds
+     * @dev Only governance or C3Caller can call this function
+     */
+    function setDelay(uint256 _delay) external onlyGovOrC3Caller {
+        delay = _delay;
+    }
+
+    /**
+     * @notice Get the current governance address
+     * @return The current governance address (new or old based on effective time)
+     */
+    function gov() public view returns (address) {
+        if (block.timestamp >= _newGovEffectiveTime) {
+            return _newGov;
+        }
+        return _oldGov;
     }
 }

@@ -21,14 +21,14 @@ import {IC3UUIDKeeper} from "./IC3UUIDKeeper.sol";
  * @author @potti ContinuumDAO
  */
 contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
+    /// @notice Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
+    uint256 public currentNonce;
+
     /// @notice Mapping of UUID to completion status
     mapping(bytes32 => bool) public completedSwapin;
 
     /// @notice Mapping of UUID to its associated nonce
     mapping(bytes32 => uint256) public uuid2Nonce;
-
-    /// @notice Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
-    uint256 public currentNonce;
 
     /**
      * @notice Modifier to automatically increment the swapout nonce

@@ -111,7 +111,7 @@ contract C3CallerUpgradeable is
         bytes calldata _data,
         bytes memory _extra
     ) external whenNotPaused {
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
@@ -130,7 +130,7 @@ contract C3CallerUpgradeable is
         external
         whenNotPaused
     {
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
@@ -158,7 +158,7 @@ contract C3CallerUpgradeable is
         if (_to.length != _toChainIDs.length) {
             revert C3Caller_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
         }
-        if (IC3DAppManager(dappManager).c3DAppAddr(msg.sender) != _dappID) {
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
 
@@ -359,10 +359,10 @@ contract C3CallerUpgradeable is
      */
     function addMPC(address _mpc) external onlyGov {
         if (_mpc == address(0)) {
-            revert C3GovClient_IsZeroAddress(C3ErrorParam.MPC);
+            revert C3Caller_IsZeroAddress(C3ErrorParam.MPC);
         }
         if (isMPCAddr[_mpc]) {
-            revert C3GovClient_AlreadyMPC(_mpc);
+            revert C3Caller_AlreadyMPC(_mpc);
         }
         isMPCAddr[_mpc] = true;
         mpcAddrs.push(_mpc);
@@ -377,7 +377,7 @@ contract C3CallerUpgradeable is
      */
     function revokeMPC(address _mpc) external onlyGov {
         if (!isMPCAddr[_mpc]) {
-            revert C3GovClient_IsNotMPC(_mpc);
+            revert C3Caller_IsNotMPC(_mpc);
         }
         isMPCAddr[_mpc] = false;
         uint256 _length = mpcAddrs.length;
