@@ -31,12 +31,12 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
     /// @notice Mapping of UUID to its associated nonce
     mapping(bytes32 => uint256) public uuid2Nonce;
 
-    /// @notice Current nonce for UUID generation
+    /// @notice Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
     uint256 public currentNonce;
 
     /**
-     * @dev Modifier to automatically increase the swapout nonce
-     * @notice Increments the current nonce before executing the function
+     * @notice Modifier to automatically increment the swapout nonce
+     * @dev Increments the current nonce before executing the function
      */
     modifier autoIncreaseSwapoutNonce() {
         currentNonce++;
@@ -44,9 +44,9 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
     }
 
     /**
-     * @dev Modifier to check if a UUID has already been completed
+     * @notice Modifier to check if a UUID has already been completed
      * @param _uuid The UUID to check
-     * @notice Reverts if the UUID has already been completed
+     * @dev Reverts if the UUID has already been completed
      */
     modifier checkCompletion(bytes32 _uuid) {
         if (completedSwapin[_uuid]) {
@@ -61,6 +61,7 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
      */
     function initialize() public initializer {
         __C3GovClient_init(msg.sender);
+        __Pausable_init();
         __UUPSUpgradeable_init();
     }
 
@@ -78,11 +79,11 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
      * @param _toChainID The destination chain ID
      * @param _data The calldata for the cross-chain operation
      * @return _uuid The generated UUID
-     * @dev Only operator (C3Caller contract) can call this function
+     * @dev Only C3Caller address can call this function
      */
     function genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
-        onlyOperator
+        onlyC3Caller
         autoIncreaseSwapoutNonce
         returns (bytes32 _uuid)
     {
@@ -102,9 +103,9 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
      * @notice Register a UUID as completed
      * @param _uuid The UUID to register as completed
      * @param _dappID The DApp identifier associated with the UUID
-     * @dev Only operator (C3Caller contract) can call this function
+     * @dev Only C3Caller address can call this function
      */
-    function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyOperator checkCompletion(_uuid) {
+    function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyC3Caller checkCompletion(_uuid) {
         completedSwapin[_uuid] = true;
         emit UUIDCompleted(_uuid, _dappID, msg.sender);
     }

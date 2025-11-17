@@ -3,7 +3,9 @@
 pragma solidity 0.8.27;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import {IC3GovernorUpgradeable} from "./IC3GovernorUpgradeable.sol";
+import {IC3GovClient} from "../../gov/IC3GovClient.sol";
 import {C3GovernDAppUpgradeable} from "./C3GovernDAppUpgradeable.sol";
 import {C3CallerUtils, C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
@@ -31,18 +33,16 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
     /// @notice Actions that have failed on the destination network have their data stored until they are retried.
     mapping(uint256 => mapping(uint256 => Proposal)) public failed;
 
-    /// @notice The current version of C3Governor
     uint256 public constant VERSION = 1;
 
     /**
      * @notice Initialize C3GovernorUpgradeable
      * @param _gov Deployed Governor contract (or admin of choice).
-     * @param _c3CallerProxy The C3Caller deployed instance.
-     * @param _txSender The MPC address that is whitelisted to execute incoming operations.
+     * @param _c3caller The C3Caller deployed instance.
      * @param _dappID The DApp ID of this C3CallerDApp.
      */
-    function initialize(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID) external initializer {
-        __C3GovernDApp_init(_gov, _c3CallerProxy, _txSender, _dappID);
+    function initialize(address _gov, address _c3caller, uint256 _dappID) external initializer {
+        __C3GovernDApp_init(_gov, _c3caller, _dappID);
         __UUPSUpgradeable_init();
     }
 
@@ -59,7 +59,7 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
      * @param _peerStr The deployed peer client on that network.
      * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
      */
-    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGov {
+    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGovOrC3Caller {
         peer[_chainIdStr] = _peerStr;
     }
 
@@ -153,7 +153,7 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
         string memory _targetStr,
         string memory _toChainIdStr,
         bytes memory _calldata
-    ) external onlyCaller returns (bytes memory) {
+    ) external onlyC3Caller returns (bytes memory) {
         address _target = _targetStr.toAddress();
         // INFO: execute the proposal calldata on target
         (bool success, bytes memory result) = _target.call(_calldata);
@@ -164,6 +164,17 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
             emit C3GovernorExec(_nonce, _index, _targetStr, _toChainIdStr, _calldata);
             return result;
         }
+    }
+
+    /**
+     * @notice Tool for applying C3Governor (this contract) as the governance address where valid on a given
+     * implementation of C3GovClient (for example: C3Caller, C3UUIDKeeper, C3DAppManager).
+     * @param _target The address of the implementation
+     * @dev If the target address C3GovClient:changeGov has not been called with C3Governor (this) as the new governance
+     * address, this call will fail, therefore anyone can call this safely
+     */
+    function applySelfAsGov(address _target) external {
+        IC3GovClient(_target).applyGov();
     }
 
     /**

@@ -2,17 +2,14 @@
 
 pragma solidity 0.8.27;
 
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
-import {IC3CallerDApp} from "../../dapp/IC3CallerDApp.sol";
-import {C3CallerDAppUpgradeable} from "../dapp/C3CallerDAppUpgradeable.sol";
 
 import {IC3GovernDApp} from "../../gov/IC3GovernDApp.sol";
+import {IC3CallerDApp} from "../../dapp/IC3CallerDApp.sol";
+import {C3CallerDAppUpgradeable} from "../dapp/C3CallerDAppUpgradeable.sol";
 import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
@@ -34,7 +31,7 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
  * @dev This contract provides upgradeable governance functionality for DApps
  * @author @potti ContinuumDAO
  */
-abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradeable {
+abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernDApp {
     using Strings for *;
     using Address for address;
 
@@ -52,10 +49,6 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
         address _newGov;
         /// @notice The delay between declaring a new governance address and it being confirmed
         uint256 _newGovEffectiveTime;
-        /// @notice Mapping of MPC addresses to their validity
-        mapping(address => bool) txSenders;
-        /// @notice Array of all txSender addresses
-        address[] senders;
     }
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovernDApp")) - 1)) & ~bytes32(uint256(0xff))
@@ -100,30 +93,21 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
     }
 
     /**
-     * @notice Get the validity of `sender`.
-     * @return True if `sender` is a txSender (MPC address), false otherwise
-     */
-    function txSenders(address sender) public view virtual returns (bool) {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        return $.txSenders[sender];
-    }
-
-    /**
-     * @notice Get txSender address by index
-     * @param _index The index of the txSender
-     * @return The txSender address at the specified index
-     */
-    function senders(uint256 _index) public view returns (address) {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        return $.senders[_index];
-    }
-
-    /**
-     * @notice Modifier to restrict access to governance or C3Caller
-     * @dev Reverts if the caller is neither governance address nor C3Caller
+     * @notice Modifier to restrict access to governance address
+     * @dev Reverts if the caller is not governance address
      */
     modifier onlyGov() {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
+        if (msg.sender != gov()) {
+            revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
+        }
+        _;
+    }
+
+    /**
+     * @notice Modifier to restrict access to governance or C3Caller address
+     * @dev Reverts if the caller is neither governance nor C3Caller address
+     */
+    modifier onlyGovOrC3Caller() {
         if (msg.sender != gov() && msg.sender != c3caller()) {
             revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
         }
@@ -144,10 +128,9 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
      * @notice Internal initializer for the upgradeable C3GovernDApp contract
      * @param _gov The initial governance address
      * @param _c3caller The C3Caller address
-     * @param _txSender The initial valid MPC address
      * @param _dappID The DApp ID (obtained from registering with C3DAppManager)
      */
-    function __C3GovernDApp_init(address _gov, address _c3caller, address _txSender, uint256 _dappID)
+    function __C3GovernDApp_init(address _gov, address _c3caller, uint256 _dappID)
         internal
         onlyInitializing
     {
@@ -157,8 +140,6 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
         $._oldGov = _gov;
         $._newGov = _gov;
         $._newGovEffectiveTime = block.timestamp;
-        $.txSenders[_txSender] = true;
-        $.senders.push(_txSender);
     }
 
     /**
@@ -194,41 +175,9 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
      * @param _delay The new delay period in seconds
      * @dev Only governance or C3Caller can call this function
      */
-    function setDelay(uint256 _delay) external virtual onlyGov {
+    function setDelay(uint256 _delay) external virtual onlyGovOrC3Caller {
         C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
         $.delay = _delay;
-    }
-
-    /**
-     * @notice Add an MPC address that can call functions that should be targeted by C3Caller execute
-     * @param _txSender The MPC address to add
-     * @dev Only governance or C3Caller can call this function
-     */
-    function addTxSender(address _txSender) external virtual onlyGov {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        $.txSenders[_txSender] = true;
-        emit LogTxSender(_txSender, true);
-    }
-
-    /**
-     * @notice Disable an MPC address, which will no longer be able to call functions targeted by C3Caller execute
-     * @param _txSender The MPC address to disable
-     * @dev Only governance or C3Caller can call this function
-     */
-    function disableTxSender(address _txSender) external virtual onlyGov {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        if ($.txSenders[_txSender]) {
-            $.txSenders[_txSender] = false;
-            uint256 senderCount = $.senders.length;
-            for (uint256 i = 0; i < senderCount; i++) {
-                if ($.senders[i] == _txSender) {
-                    $.senders[i] = $.senders[senderCount - 1];
-                    $.senders.pop();
-                    break;
-                }
-            }
-        }
-        emit LogTxSender(_txSender, false);
     }
 
     /**
@@ -238,7 +187,7 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov {
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGovOrC3Caller {
         _c3call(_to, _toChainID, _data);
     }
 
@@ -252,32 +201,8 @@ abstract contract C3GovernDAppUpgradeable is IC3GovernDApp, C3CallerDAppUpgradea
     function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)
         external
         virtual
-        onlyGov
+        onlyGovOrC3Caller
     {
         _c3broadcast(_targets, _toChainIDs, _data);
-    }
-
-    /**
-     * @notice Get all txSender addresses
-     * @return Array of all txSender addresses
-     */
-    function getAllTxSenders() external view returns (address[] memory) {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        return $.senders;
-    }
-
-    /**
-     * @notice Check if an address is a valid MPC address executor for this DApp
-     * @param _txSender The address to check
-     * @return True if the address is a valid sender, false otherwise
-     */
-    function isValidSender(address _txSender)
-        external
-        view
-        virtual
-        override(IC3CallerDApp, C3CallerDAppUpgradeable)
-        returns (bool)
-    {
-        return txSenders(_txSender);
     }
 }
