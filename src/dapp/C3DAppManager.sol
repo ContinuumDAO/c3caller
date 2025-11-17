@@ -4,11 +4,11 @@ pragma solidity 0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
+import {IC3DAppManager} from "./IC3DAppManager.sol";
+import {IC3Caller} from "../IC3Caller.sol";
 import {C3GovClient} from "../gov/C3GovClient.sol";
 import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
-import {IC3DAppManager} from "./IC3DAppManager.sol";
 
 /**
  * @title C3DAppManager
@@ -28,23 +28,26 @@ import {IC3DAppManager} from "./IC3DAppManager.sol";
  * @dev This contract is the central management hub for C3 DApps
  * @author @potti ContinuumDAO
  */
-contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
+contract C3DAppManager is IC3DAppManager, C3GovClient {
     using SafeERC20 for IERC20;
 
     /// @notice Maximum size of the JSON metadata for each DApp
     uint256 public constant METADATA_LIMIT = 512;
 
+    /// @notice Maximum size of the DApp key
+    uint256 public constant DAPP_KEY_LIMIT = 64;
+
     /// @notice Denominator used to calculate fee discount
     uint256 public constant DISCOUNT_DENOMINATOR = 10_000;
 
-    /// @notice The DApp ID for the DApp manager
-    uint256 public dappID;
+    /// @notice The latest DApp ID that was registered
+    uint256 public dappIDRegistry;
 
     /// @notice Mapping of DApp ID to DApp configuration (admin, fee token, discount)
     mapping(uint256 => DAppConfig) public dappConfig;
 
-    /// @notice Mapping of DApp address string to DApp ID
-    mapping(string => uint256) public c3DAppAddr;
+    /// @notice Mapping of DApp address to DApp ID
+    mapping(address => uint256) public c3DAppAddr;
 
     /// @notice Mapping of DApp ID to DApp status (Active, Suspended, Deprecated)
     mapping(uint256 => DAppStatus) internal _dappStatus;
@@ -58,20 +61,23 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     /// @notice Mapping of DApp ID and token address to staking pool balance
     mapping(uint256 => mapping(address => uint256)) public dappStakePool;
 
-    /// @notice Mapping of token address and chain ID string to fee configuration (per calldata byte and per gas unit)
-    mapping(address => mapping(string => FeeConfig)) public specificChainFee;
+    /// @notice Mapping of fee token address to payload fee per byte
+    mapping(address => uint256) public payloadPerByteFee;
+
+    /// @notice Mapping of fee token address to gas fee per ether
+    mapping(address => uint256) public gasPerEtherFee;
 
     /// @notice Mapping of token address to accumulated fees
     mapping(address => uint256) public cumulativeFees;
 
-    /// @notice Mapping of DApp ID and MPC address to public key
-    mapping(uint256 => mapping(string => string)) public mpcPubkey;
+    /// @notice Mapping of DApp ID and MPC address to MPC group public key
+    mapping(uint256 => mapping(address => string)) public dappMPCPubkey;
 
     /// @notice Mapping of DApp ID to array of MPC addresses
-    mapping(uint256 => string[]) public mpcAddrs;
+    mapping(uint256 => address[]) public dappMPCAddrs;
 
     /// @notice Mapping of DApp ID and MPC address to membership status
-    mapping(uint256 => mapping(string => bool)) public mpcMembership;
+    mapping(uint256 => mapping(address => bool)) public dappMPCMembership;
 
     /// @notice Mapping of fee token to minimum deposit amount
     mapping(address => uint256) public feeMinimumDeposit;
@@ -82,11 +88,11 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     /// @notice Mapping of admin address to number of DApp IDs being managed
     mapping(address => uint256) public adminToDAppIDCount;
 
-    /**
-     * @notice Initializes the contract with the deployer as governance address
-     * @dev The C3DAppManager DApp ID is set to zero, subsequent DApps auto-increment dappID starting from 1.
-     */
-    constructor() C3GovClient(msg.sender) {}
+    /// @notice Mapping of creator's address to their list of DApp keys
+    mapping(address => string[]) public creatorDAppKeys;
+
+    /// @notice Mapping of DApp key to its creator's address
+    mapping(string => address) public dappKeyCreator;
 
     /**
      * @notice Modifier to restrict access to governance or DApp admin
@@ -127,32 +133,20 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     }
 
     /**
-     * @notice Modifier to ensure DApp ID is non-zero
-     * @param _dappID The DApp ID
-     * @dev Reverts if DApp ID is zero
+     * @notice Modifier to prevent operations using a non-existent DApp ID
+     * @param _dappID The DApp ID to check
      */
-    modifier nonZeroDAppID(uint256 _dappID) {
-        if (_dappID == 0) {
-            revert C3DAppManager_ZeroDAppID();
+    modifier dappIDExists(uint256 _dappID) {
+        if (!_checkDAppIDExists(_dappID)) {
+            revert C3DAppManager_InvalidDAppID(_dappID);
         }
         _;
     }
 
     /**
-     * @notice Pause the contract (governance only)
-     * @dev Only the governance address can call this function
+     * @notice Initializes the contract with the deployer as governance address
      */
-    function pause() public onlyGov {
-        _pause();
-    }
-
-    /**
-     * @notice Unpause the contract (governance only)
-     * @dev Only the governance address can call this function
-     */
-    function unpause() public onlyGov {
-        _unpause();
-    }
+    constructor() C3GovClient(msg.sender) {}
 
     /**
      * @notice Set DApp status (Active, Suspended, Deprecated)
@@ -165,7 +159,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     function setDAppStatus(uint256 _dappID, DAppStatus _status, string memory _reason)
         external
         onlyGov
-        nonZeroDAppID(_dappID)
+        dappIDExists(_dappID)
     {
         DAppStatus oldStatus = _dappStatus[_dappID];
 
@@ -180,35 +174,38 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
     }
 
     /**
-     * @notice Internal function to validate status transitions
-     * @param _from The current status
-     * @param _to The target status
-     * @return True if the transition is valid
-     * @dev Deprecated DApps cannot undergo status change - deprecation is permanent
-     */
-    function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool) {
-        if (_from == DAppStatus.Active) {
-            // Active can transition to Suspended or Deprecated
-            return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
-        } else if (_from == DAppStatus.Suspended) {
-            // Suspended can transition to Active or Deprecated
-            return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
-        } else {
-            // Deprecated cannot transition to any other status (permanent)
-            return false;
-        }
-    }
-
-    /**
      * @notice Register and configure a new DApp. This is how new C3Caller DApps can be registered
+     * @param _dappKey The user-defined DApp identifier in the form of "v1.contractname.protocolname"
      * @param _feeToken The fee token address
-     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
+     * @param _metadata The JSON encoded DApp name, URL, description and email for the DApp
+     * @dev The DApp ID will be deterministic for an admin who calls this on other chains with the same DApp key
      */
-    function setDAppConfig(address _feeToken, string memory _metadata) external whenNotPaused returns (uint256) {
-        uint256 _dappID = ++dappID;
-        _setDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
+    function initDAppConfig(
+        string memory _dappKey,
+        address _feeToken,
+        string memory _metadata
+    ) external whenNotPaused returns (uint256) {
+        dappIDRegistry++;
+        uint256 _dappID = _deriveDAppID(msg.sender, _dappKey);
 
-        emit SetDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
+        uint256 dappKeyLength = bytes(_dappKey).length;
+        if (dappKeyLength == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.DAppKey);
+        }
+        if (dappKeyLength > DAPP_KEY_LIMIT) {
+            revert C3DAppManager_StringTooLong(dappKeyLength, DAPP_KEY_LIMIT);
+        }
+        if (_checkDAppIDExists(_dappID)) {
+            revert C3DAppManager_InvalidDAppID(_dappID);
+        }
+
+        creatorDAppKeys[msg.sender].push(_dappKey);
+        dappKeyCreator[_dappKey] = msg.sender;
+
+        _setDAppConfig(_dappID, msg.sender, _feeToken, _metadata);
+        _deposit(_dappID, _feeToken, feeMinimumDeposit[_feeToken]);
+
+        emit InitDAppConfig(_dappID, _dappKey, msg.sender, _feeToken, _metadata);
         return _dappID;
     }
 
@@ -217,21 +214,25 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp ID to update
      * @param _admin The new dapp admin
      * @param _feeToken The new fee token address
-     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
+     * @param _metadata The JSON encoded DApp name, URL, description and email for the DApp
      * @dev Reverts if caller is not governance or DApp admin, or if the configuration has changed in the past 30 days.
      */
     function updateDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata)
         external
+        dappIDExists(_dappID)
         onlyGovOrAdmin(_dappID)
         onlyActiveOrDormant(_dappID)
         whenNotPaused
     {
+        if (!feeCurrencies[_feeToken]) {
+            revert C3DAppManager_InvalidFeeToken(_feeToken);
+        }
         if (block.timestamp < dappConfig[_dappID].lastUpdated + 30 days && msg.sender != gov) {
             revert C3DAppManager_RecentlyUpdated(_dappID);
         }
         _setDAppConfig(_dappID, _admin, _feeToken, _metadata);
 
-        emit SetDAppConfig(_dappID, _admin, _feeToken, _metadata);
+        emit UpdateDAppConfig(_dappID, _admin, _feeToken, _metadata);
     }
 
     /**
@@ -239,19 +240,16 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The ID of the DApp to configure
      * @param _feeToken The fee token to set
      * @param _admin The app admin to set
-     * @param _metadata The JSON encoded DApp name, URL, description and email for th DApp
+     * @param _metadata The JSON encoded DApp name, URL, description and email for the DApp
      * @dev Reverts if fee token is not supported or domain/email is empty
      */
     function _setDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata) internal {
-        if (!feeCurrencies[_feeToken]) {
-            revert C3DAppManager_InvalidFeeToken(_feeToken);
-        }
         uint256 metadataLength = bytes(_metadata).length;
         if (metadataLength == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.Metadata);
         }
         if (metadataLength > METADATA_LIMIT) {
-            revert C3DAppManager_MetadataTooLong(metadataLength, METADATA_LIMIT);
+            revert C3DAppManager_StringTooLong(metadataLength, METADATA_LIMIT);
         }
 
         dappConfig[_dappID] = DAppConfig({
@@ -271,10 +269,11 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @dev Reverts if DApp ID is zero or DApp is not active
      * @dev Only governance or DApp admin can call this function
      */
-    function setDAppAddr(uint256 _dappID, string[] memory _addresses)
+    function setDAppAddr(uint256 _dappID, address[] memory _addresses)
         external
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
+        whenNotPaused
     {
         for (uint256 i = 0; i < _addresses.length; i++) {
             c3DAppAddr[_addresses[i]] = _dappID;
@@ -291,28 +290,32 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * or address already exists
      * @dev Only governance or DApp admin can call this function
      */
-    function addMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)
+    function addDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey)
         external
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
+        whenNotPaused
     {
-        if (bytes(_addr).length == 0) {
+        if (!IC3Caller(c3caller).isMPCAddr(_addr)) {
+            revert C3DAppManager_InvalidMPCAddress(_addr);
+        }
+        if (_addr == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
-        if (bytes(_addr).length != bytes(_pubkey).length) {
-            revert C3DAppManager_LengthMismatch(C3ErrorParam.Address, C3ErrorParam.PubKey);
+        if (bytes(_pubkey).length == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.PubKey);
         }
 
         // Check if MPC address already exists
-        if (mpcMembership[_dappID][_addr]) {
-            revert C3DAppManager_MpcAddressExists(_addr);
+        if (dappMPCMembership[_dappID][_addr]) {
+            revert C3DAppManager_MPCAddressExists(_addr);
         }
 
-        mpcPubkey[_dappID][_addr] = _pubkey;
-        mpcAddrs[_dappID].push(_addr);
-        mpcMembership[_dappID][_addr] = true;
+        dappMPCPubkey[_dappID][_addr] = _pubkey;
+        dappMPCAddrs[_dappID].push(_addr);
+        dappMPCMembership[_dappID][_addr] = true;
 
-        emit AddMpcAddr(_dappID, _addr, _pubkey);
+        emit AddMPCAddr(_dappID, _addr, _pubkey);
     }
 
     /**
@@ -324,12 +327,13 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * or address not found
      * @dev Only governance or DApp admin can call this function
      */
-    function delMpcAddr(uint256 _dappID, string memory _addr, string memory _pubkey)
+    function delDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey)
         external
         onlyGovOrAdmin(_dappID)
         onlyActive(_dappID)
+        whenNotPaused
     {
-        if (bytes(_addr).length == 0) {
+        if (_addr == address(0)) {
             revert C3DAppManager_IsZeroAddress(C3ErrorParam.Address);
         }
         if (bytes(_pubkey).length == 0) {
@@ -337,17 +341,17 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         }
 
         // Check if MPC address exists
-        if (!mpcMembership[_dappID][_addr]) {
-            revert C3DAppManager_MpcAddressNotFound(_addr);
+        if (!dappMPCMembership[_dappID][_addr]) {
+            revert C3DAppManager_MPCAddressNotFound(_addr);
         }
 
-        delete mpcPubkey[_dappID][_addr];
-        mpcMembership[_dappID][_addr] = false;
+        delete dappMPCPubkey[_dappID][_addr];
+        dappMPCMembership[_dappID][_addr] = false;
 
         // Remove from array using swap-and-pop technique
-        string[] storage addrs = mpcAddrs[_dappID];
+        address[] storage addrs = dappMPCAddrs[_dappID];
         for (uint256 i = 0; i < addrs.length; i++) {
-            if (keccak256(bytes(addrs[i])) == keccak256(bytes(_addr))) {
+            if (addrs[i] == _addr) {
                 // Swap with last element and pop
                 addrs[i] = addrs[addrs.length - 1];
                 addrs.pop();
@@ -355,34 +359,33 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
             }
         }
 
-        emit DelMpcAddr(_dappID, _addr, _pubkey);
+        emit DelMPCAddr(_dappID, _addr, _pubkey);
     }
 
     /**
      * @notice Set fee configuration for a fee token and network
      * @param _token The fee token address
-     * @param _chain The chain ID
-     * @param _perByteFee Fee per byte of calldata
-     * @param _perGasFee Fee per gas unit of executed transaction
+     * @param _payloadPerByteFee Fee per byte of calldata payload in C3Caller.c3call
+     * @param _gasPerEtherFee Fee per ether spent in gas during C3Caller.execute
      * @dev Reverts if the fee or minimum deposit is zero
      * @dev Only the governance address can call this function
      */
-    function setFeeConfig(address _token, string memory _chain, uint256 _perByteFee, uint256 _perGasFee)
+    function setFeeConfig(address _token, uint256 _payloadPerByteFee, uint256 _gasPerEtherFee)
         external
         onlyGov
     {
-        if (_perByteFee == 0) {
-            revert C3DAppManager_IsZero(C3ErrorParam.FeePerByte);
+        if (_payloadPerByteFee == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.PerByteFee);
         }
-        if (_perGasFee == 0) {
-            revert C3DAppManager_IsZero(C3ErrorParam.FeePerGas);
+        if (_gasPerEtherFee == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.PerGasFee);
         }
 
         feeCurrencies[_token] = true;
-        specificChainFee[_token][_chain].perByte = _perByteFee;
-        specificChainFee[_token][_chain].perGas = _perGasFee;
+        payloadPerByteFee[_token] = _payloadPerByteFee;
+        gasPerEtherFee[_token] = _gasPerEtherFee;
 
-        emit SetFeeConfig(_token, _chain, _perByteFee, _perGasFee);
+        emit SetFeeConfig(_token, _payloadPerByteFee, _gasPerEtherFee);
     }
 
     /**
@@ -406,11 +409,13 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @notice Remove fee configuration for a fee and network
      * @param _token The fee token address
      * @dev Only the governance address can call this function
-     * @dev The value of specificChainFee may still be required to charge fees that were due before the removal
+     * @dev The value of feeConfig may still be required to charge fees that were due before the removal
      */
     function removeFeeConfig(address _token) external onlyGov {
         delete feeCurrencies[_token];
         delete feeMinimumDeposit[_token];
+        delete payloadPerByteFee[_token];
+        // NOTE: gasPerEtherFee is not removed to allow for tx that were halfway done during fee token removal
         emit DeleteFeeConfig(_token);
     }
 
@@ -419,14 +424,29 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp ID
      * @param _token The token address
      * @param _amount The amount to deposit
-     * @dev Reverts if DApp ID is zero, amount is zero, or DApp is not active
+     * @dev Reverts if DApp ID does not exist or DApp is not active
      */
-    function deposit(uint256 _dappID, address _token, uint256 _amount)
-        external
-        nonZeroDAppID(_dappID)
-        onlyActive(_dappID)
-        whenNotPaused
+    function deposit(
+        uint256 _dappID,
+        address _token,
+        uint256 _amount
+    ) external dappIDExists(_dappID) onlyActive(_dappID) whenNotPaused {
+        _deposit(_dappID, _token, _amount);
+    }
+
+    /**
+     * @notice Internal handler to deposit tokens to a DApp's staking pool
+     * @param _dappID The DApp ID to deposit for
+     * @param _token The fee token to deposit to the pool
+     * @param _amount The amount to deposit
+     * @dev Reverts if the fee token is not supported or the amount is below minimum deposit
+     */
+    function _deposit(uint256 _dappID, address _token, uint256 _amount)
+        internal
     {
+        if (!feeCurrencies[_token]) {
+            revert C3DAppManager_InvalidFeeToken(_token);
+        }
         uint256 minimum = feeMinimumDeposit[_token];
         if (_amount < minimum) {
             revert C3DAppManager_BelowMinimumDeposit(_amount, minimum);
@@ -434,7 +454,10 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
 
         dappStakePool[_dappID][_token] += _amount;
 
+        uint256 contractBalInitial = IERC20(_token).balanceOf(address(this));
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        uint256 contractBalFinal = IERC20(_token).balanceOf(address(this));
+        assert(contractBalFinal == contractBalInitial + _amount);
 
         emit Deposit(_dappID, _token, _amount, dappStakePool[_dappID][_token]);
     }
@@ -444,56 +467,105 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @param _dappID The DApp ID
      * @param _token The token address
      * @dev Reverts if DApp ID is zero, amount is zero, or insufficient balance
-     * @dev Only governance can call this function
+     * @dev Only governance or DApp admin can call this function
      */
-    function withdraw(uint256 _dappID, address _token) external onlyGov nonZeroDAppID(_dappID) whenNotPaused {
+    function withdraw(
+        uint256 _dappID,
+        address _token
+    ) external onlyGovOrAdmin(_dappID) dappIDExists(_dappID) whenNotPaused {
         uint256 amount = dappStakePool[_dappID][_token];
+        if (feeCurrencies[_token]) {
+            uint256 minimumRemainder = feeMinimumDeposit[_token];
+            unchecked {
+                if (amount >= minimumRemainder) {
+                    amount -= minimumRemainder;
+                } else {
+                    revert C3DAppManager_BelowMinimumDeposit(amount, minimumRemainder);
+                }
+            }
+        }
+
         if (amount == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.Fee);
         }
 
-        dappStakePool[_dappID][_token] = 0;
+        dappStakePool[_dappID][_token] -= amount;
 
-        IERC20(_token).safeTransfer(dappConfig[_dappID].admin, amount);
+        address admin = dappConfig[_dappID].admin;
+        uint256 adminBalInitial = IERC20(_token).balanceOf(admin);
+        IERC20(_token).safeTransfer(admin, amount);
+        uint256 adminBalFinal = IERC20(_token).balanceOf(admin);
+        assert(adminBalFinal == adminBalInitial + amount);
 
         emit Withdraw(_dappID, _token, amount);
     }
 
     /**
      * @notice Charge fees from a DApp's staking pool
-     * @param _dappID The DApp ID
-     * @param _token The token address
-     * @param _sizeBytes K
-     * @param _sizeGas K
-     * @param _chain The target network to charge for
-     * @dev Reverts if DApp ID is zero, bill is zero, or insufficient balance
-     * @dev Only governance or DApp admin can call this function
+     * @param _dappID The DApp ID to charge for
+     * @param _payloadSizeBytes The payload calldata size
+     * @dev Reverts if DApp ID does not exist
+     * @dev Only C3Caller can call this function (via c3call)
      */
-    function charging(uint256 _dappID, address _token, uint256 _sizeBytes, uint256 _sizeGas, string memory _chain)
-        external
-        onlyGov
-        nonZeroDAppID(_dappID)
-        whenNotPaused
-    {
-        FeeConfig memory feeConfig = specificChainFee[_token][_chain];
-        uint256 bill = (feeConfig.perByte * _sizeBytes) + (feeConfig.perGas * _sizeGas);
+    function chargePayload(
+        uint256 _dappID,
+        uint256 _payloadSizeBytes
+    ) external onlyC3Caller dappIDExists(_dappID) onlyActive(_dappID) whenNotPaused {
+        DAppConfig memory _dappConfig = dappConfig[_dappID];
+        uint256 bill = payloadPerByteFee[_dappConfig.feeToken] * _payloadSizeBytes;
 
         if (bill == 0) {
             revert C3DAppManager_IsZero(C3ErrorParam.Fee);
         }
-
-        if (dappStakePool[_dappID][_token] < bill) {
-            revert C3DAppManager_InsufficientBalance(_token);
+        if (dappStakePool[_dappID][_dappConfig.feeToken] < bill) {
+            revert C3DAppManager_InsufficientBalance(_dappConfig.feeToken);
         }
+        uint256 discount = bill * _dappConfig.discount / DISCOUNT_DENOMINATOR;
+        dappStakePool[_dappID][_dappConfig.feeToken] -= (bill - discount);
+        cumulativeFees[_dappConfig.feeToken] += (bill - discount);
 
-        // NOTE: if the gross bill << 10_000, then discount is forfeited due to integer division (as it would have been negligible anyway)
-        uint256 discount = bill * dappConfig[_dappID].discount / DISCOUNT_DENOMINATOR;
+        emit ChargePayload(_dappID, _dappConfig.feeToken, bill, discount, dappStakePool[_dappID][_dappConfig.feeToken]);
+    }
 
-        dappStakePool[_dappID][_token] -= (bill - discount);
-        cumulativeFees[_token] += (bill - discount);
-        IERC20(_token).safeTransfer(gov, (bill - discount));
+    /**
+     * @notice Charge gas fees from a DApp's staking pool
+     * @param _dappID The DApp ID to charge for
+     * @param _gasSizeEther The gas ether cost
+     * @dev Reverts if DApp ID does not exist, the bill amount is zero or the DApp does not have sufficient funds
+     * @dev Only C3Caller can call this function (via execute or c3Fallback)
+     */
+    function chargeGas(
+        uint256 _dappID,
+        uint256 _gasSizeEther
+    ) external onlyC3Caller dappIDExists(_dappID) whenNotPaused {
+        DAppConfig memory _dappConfig = dappConfig[_dappID];
+        uint256 bill = gasPerEtherFee[_dappConfig.feeToken] * _gasSizeEther;
 
-        emit Charging(_dappID, _token, bill, discount, dappStakePool[_dappID][_token]);
+        if (bill == 0) {
+            revert C3DAppManager_IsZero(C3ErrorParam.Fee);
+        }
+        if (dappStakePool[_dappID][_dappConfig.feeToken] < bill) {
+            revert C3DAppManager_InsufficientBalance(_dappConfig.feeToken);
+        }
+        dappStakePool[_dappID][_dappConfig.feeToken] -= bill;
+        cumulativeFees[_dappConfig.feeToken] += bill;
+
+        emit ChargeGas(_dappID, _dappConfig.feeToken, bill, dappStakePool[_dappID][_dappConfig.feeToken]);
+    }
+
+    /**
+     * @notice Transfer accumulated fees from C3Caller bills to treasury
+     * @param _feeToken The fee token to collect
+     * @dev Anyone can call this, no governance vote required
+     */
+    function collect(address _feeToken) external {
+        uint256 total = cumulativeFees[_feeToken];
+        cumulativeFees[_feeToken] = 0;
+
+        uint256 govBalInitial = IERC20(_feeToken).balanceOf(gov);
+        IERC20(_feeToken).safeTransfer(gov, total);
+        uint256 govBalFinal = IERC20(_feeToken).balanceOf(gov);
+        assert(govBalFinal == govBalInitial + total);
     }
 
     /**
@@ -503,7 +575,7 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @dev Reverts if DApp ID is zero, discount is zero, or DApp is not active
      * @dev Only governance or DApp admin can call this function
      */
-    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external onlyGov nonZeroDAppID(_dappID) {
+    function setDAppFeeDiscount(uint256 _dappID, uint256 _discount) external onlyGov dappIDExists(_dappID) {
         if (_discount > DISCOUNT_DENOMINATOR) {
             revert C3DAppManager_DiscountAboveMax(_discount, DISCOUNT_DENOMINATOR);
         }
@@ -517,8 +589,8 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @return Array of MPC addresses
      * @dev Reverts if DApp ID is zero
      */
-    function getAllMpcAddrs(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (string[] memory) {
-        return mpcAddrs[_dappID];
+    function getAllDAppMPCAddrs(uint256 _dappID) external view dappIDExists(_dappID) returns (address[] memory) {
+        return dappMPCAddrs[_dappID];
     }
 
     /**
@@ -527,8 +599,28 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @return The number of MPC addresses
      * @dev Reverts if DApp ID is zero
      */
-    function getMpcCount(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (uint256) {
-        return mpcAddrs[_dappID].length;
+    function getDAppMPCCount(uint256 _dappID) external view dappIDExists(_dappID) returns (uint256) {
+        return dappMPCAddrs[_dappID].length;
+    }
+
+    /**
+     * @notice Checks if an MPC address has been whitelisted by the DApp to execute cross-chain transactions
+     * @param _dappID The DApp ID
+     * @param _sender The MPC address that is calling C3Caller.execute
+     * @dev If the DApp admin has not whitelisted any MPC addresses, then assume they will allow any MPC address from
+     * the public pool
+     */
+    function isValidMPCAddr(uint256 _dappID, address _sender) external view returns (bool) {
+        return dappMPCAddrs[_dappID].length == 0 || dappMPCMembership[_dappID][_sender];
+    }
+
+    /**
+     * @notice Get all DApp keys that `_creator` has initialized DApps with
+     * @param _creator The address of the creator to check DApp keys
+     * @dev This is useful for off-chain DApp ID derivation
+     */
+    function getAllDAppKeysByCreator(address _creator) external view returns (string[] memory) {
+        return creatorDAppKeys[_creator];
     }
 
     /**
@@ -537,8 +629,17 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
      * @return Active, Dormant, Suspended or Deprecated
      * @dev Calling _parseDAppStatus to check for dormant status
      */
-    function dappStatus(uint256 _dappID) external view nonZeroDAppID(_dappID) returns (DAppStatus) {
+    function dappStatus(uint256 _dappID) external view dappIDExists(_dappID) returns (DAppStatus) {
         return _parseDAppStatus(_dappID);
+    }
+
+    /**
+     * @notice Derive a DApp ID based on creator address and chosen DApp key
+     * @param _creator The msg.sender of the initial DApp creation
+     * @param _dappKey The chosen DApp key, in the form of "v1.contractname.protocolname"
+     */
+    function deriveDAppID(address _creator, string memory _dappKey) external pure returns (uint256) {
+        return _deriveDAppID(_creator, _dappKey);
     }
 
     /**
@@ -553,5 +654,37 @@ contract C3DAppManager is IC3DAppManager, C3GovClient, Pausable {
         } else {
             return status;
         }
+    }
+
+    function _deriveDAppID(address _creator, string memory _dappKey) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encode(_creator, _dappKey)));
+    }
+
+    /**
+     * @notice Internal function to validate status transitions
+     * @param _from The current status
+     * @param _to The target status
+     * @return True if the transition is valid
+     * @dev Deprecated DApps cannot undergo status change - deprecation is permanent
+     */
+    function _isValidStatusTransition(DAppStatus _from, DAppStatus _to) internal pure returns (bool) {
+        if (_from == DAppStatus.Active) {
+            // Active can transition to Suspended or Deprecated
+            return _to == DAppStatus.Suspended || _to == DAppStatus.Deprecated;
+        } else if (_from == DAppStatus.Suspended) {
+            // Suspended can transition to Active or Deprecated
+            return _to == DAppStatus.Active || _to == DAppStatus.Deprecated;
+        } else {
+            // Deprecated cannot transition to any other status (permanent)
+            return false;
+        }
+    }
+
+    /**
+     * @notice Check whether a derived DApp ID already exists, to prevent collisions
+     * @param _dappID The DApp ID to check
+     */
+    function _checkDAppIDExists(uint256 _dappID) internal view returns (bool) {
+        return dappConfig[_dappID].lastUpdated > 0;
     }
 }

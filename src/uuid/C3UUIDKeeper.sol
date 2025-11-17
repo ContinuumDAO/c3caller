@@ -15,7 +15,7 @@ import {IC3UUIDKeeper} from "./IC3UUIDKeeper.sol";
  * - UUID generation with nonce-based uniqueness
  * - UUID completion tracking
  * - UUID revocation capabilities
- * - Utilities to calculate UUID before OR after it happens
+ * - Utilities to calculate UUID before, as OR after it happens
  *
  * @dev This contract is critical for cross-chain security and uniqueness
  * @author @potti ContinuumDAO
@@ -63,11 +63,11 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @param _toChainID The destination chain ID
      * @param _data The calldata for the cross-chain operation
      * @return _uuid The generated UUID
-     * @dev Only operator (C3Caller contract) can call this function
+     * @dev Only C3Caller address can call this function
      */
     function genUUID(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
-        onlyOperator
+        onlyC3Caller
         autoIncreaseSwapoutNonce
         returns (bytes32 _uuid)
     {
@@ -87,9 +87,9 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @notice Register a UUID as completed
      * @param _uuid The UUID to register as completed
      * @param _dappID The DApp identifier associated with the UUID
-     * @dev Only operator (C3Caller contract) can call this function
+     * @dev Only C3Caller address can call this function
      */
-    function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyOperator checkCompletion(_uuid) {
+    function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyC3Caller checkCompletion(_uuid) {
         completedSwapin[_uuid] = true;
         emit UUIDCompleted(_uuid, _dappID, msg.sender);
     }

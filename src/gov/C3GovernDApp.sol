@@ -5,11 +5,10 @@ pragma solidity 0.8.27;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3CallerDApp} from "../dapp/C3CallerDApp.sol";
-import {IC3CallerDApp} from "../dapp/IC3CallerDApp.sol";
-
-import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 import {IC3GovernDApp} from "./IC3GovernDApp.sol";
+import {IC3CallerDApp} from "../dapp/IC3CallerDApp.sol";
+import {C3CallerDApp} from "../dapp/C3CallerDApp.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 /**
  * @title C3GovernDApp
@@ -44,17 +43,22 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
     /// @notice The delay between declaring a new governance address and it being confirmed
     uint256 internal _newGovEffectiveTime;
 
-    /// @notice Mapping of MPC addresses to their validity
-    mapping(address => bool) public txSenders;
-
-    /// @notice Array of all txSender addresses
-    address[] public senders;
-
     /**
-     * @notice Modifier to restrict access to governance or C3Caller
-     * @dev Reverts if the caller is neither governance address nor C3Caller
+     * @notice Modifier to restrict access to governance address
+     * @dev Reverts if the caller is not governance address
      */
     modifier onlyGov() {
+        if (msg.sender != gov()) {
+            revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.Gov);
+        }
+        _;
+    }
+
+    /**
+     * @notice Modifier to restrict access to governance or C3Caller address
+     * @dev Reverts if the caller is neither governance nor C3Caller address
+     */
+    modifier onlyGovOrC3Caller() {
         if (msg.sender != gov() && msg.sender != c3caller) {
             revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
         }
@@ -64,16 +68,13 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
     /**
      * @param _gov The initial governance address
      * @param _c3caller The C3Caller address
-     * @param _txSender The initial valid MPC address
      * @param _dappID The DApp ID (obtained from registering with C3DAppManager)
      */
-    constructor(address _gov, address _c3caller, address _txSender, uint256 _dappID) C3CallerDApp(_c3caller, _dappID) {
+    constructor(address _gov, address _c3caller, uint256 _dappID) C3CallerDApp(_c3caller, _dappID) {
         delay = 2 days;
         _oldGov = _gov;
         _newGov = _gov;
         _newGovEffectiveTime = block.timestamp;
-        txSenders[_txSender] = true;
-        senders.push(_txSender);
     }
 
     /**
@@ -93,7 +94,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @dev Reverts if the new governance address is zero
      * @dev Only governance or C3Caller can call this function
      */
-    function changeGov(address newGov_) external onlyGov {
+    function changeGov(address newGov_) external onlyGovOrC3Caller {
         if (newGov_ == address(0)) {
             revert C3GovernDApp_IsZeroAddress(C3ErrorParam.Gov);
         }
@@ -108,41 +109,8 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @param _delay The new delay period in seconds
      * @dev Only governance or C3Caller can call this function
      */
-    function setDelay(uint256 _delay) external onlyGov {
+    function setDelay(uint256 _delay) external onlyGovOrC3Caller {
         delay = _delay;
-    }
-
-    /**
-     * @notice Add an MPC address that can call functions that should be targeted by C3Caller execute
-     * @param _txSender The MPC address to add
-     * @dev Only governance or C3Caller can call this function
-     */
-    function addTxSender(address _txSender) external onlyGov {
-        if (!txSenders[_txSender]) {
-            txSenders[_txSender] = true;
-            senders.push(_txSender);
-            emit LogTxSender(_txSender, true);
-        }
-    }
-
-    /**
-     * @notice Disable an MPC address, which will no longer be able to call functions targeted by C3Caller execute
-     * @param _txSender The MPC address to disable
-     * @dev Only governance or C3Caller can call this function
-     */
-    function disableTxSender(address _txSender) external onlyGov {
-        if (txSenders[_txSender]) {
-            txSenders[_txSender] = false;
-            uint256 senderCount = senders.length;
-            for (uint256 i = 0; i < senderCount; i++) {
-                if (senders[i] == _txSender) {
-                    senders[i] = senders[senderCount - 1];
-                    senders.pop();
-                    break;
-                }
-            }
-            emit LogTxSender(_txSender, false);
-        }
     }
 
     /**
@@ -152,7 +120,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGov {
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGovOrC3Caller {
         _c3call(_to, _toChainID, _data);
     }
 
@@ -165,25 +133,8 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      */
     function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)
         external
-        onlyGov
+        onlyGovOrC3Caller
     {
         _c3broadcast(_targets, _toChainIDs, _data);
-    }
-
-    /**
-     * @notice Get all txSender addresses
-     * @return Array of all txSender addresses
-     */
-    function getAllTxSenders() external view returns (address[] memory) {
-        return senders;
-    }
-
-    /**
-     * @notice Check if an address is a valid MPC address executor for this DApp
-     * @param _txSender The address to check
-     * @return True if the address is a valid sender, false otherwise
-     */
-    function isValidSender(address _txSender) external view override(IC3CallerDApp, C3CallerDApp) returns (bool) {
-        return txSenders[_txSender];
     }
 }

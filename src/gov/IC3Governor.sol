@@ -48,5 +48,6 @@ interface IC3Governor {
         bytes memory _calldata
     ) external returns (bytes memory);
     function doGov(uint256 _nonce, uint256 _index) external;
+    function applySelfAsGov(address _target) external;
     function VERSION() external pure returns (uint256);
 }

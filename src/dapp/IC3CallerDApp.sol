@@ -9,7 +9,6 @@ interface IC3CallerDApp {
     error C3CallerDApp_InvalidDAppID(uint256, uint256);
 
     function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason) external returns (bool);
-    function isValidSender(address _txSender) external view returns (bool);
     function c3caller() external view returns (address);
     function dappID() external view returns (uint256);
 }

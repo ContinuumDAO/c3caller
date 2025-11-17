@@ -2,10 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import {IC3Caller} from "../IC3Caller.sol";
-
-import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 import {IC3CallerDApp} from "./IC3CallerDApp.sol";
+import {IC3Caller} from "../IC3Caller.sol";
+import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 /**
  * @title C3CallerDApp
@@ -33,7 +32,7 @@ abstract contract C3CallerDApp is IC3CallerDApp {
      * @notice Modifier to restrict access to C3Caller only
      * @dev Reverts if the msg.sender is not the C3Caller
      */
-    modifier onlyCaller() {
+    modifier onlyC3Caller() {
         if (msg.sender != c3caller) {
             revert C3CallerDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.C3Caller);
         }
@@ -61,7 +60,7 @@ abstract contract C3CallerDApp is IC3CallerDApp {
         external
         virtual
         override
-        onlyCaller
+        onlyC3Caller
         returns (bool)
     {
         if (_dappID != dappID) {
@@ -73,16 +72,6 @@ abstract contract C3CallerDApp is IC3CallerDApp {
             return _c3Fallback(bytes4(_data[0:4]), _data[4:], _reason);
         }
     }
-
-    /**
-     * @notice Internal function to check if an address is the C3Caller
-     * @param _addr The address to check
-     * @return True if the address is the C3Caller
-     * FIXIT: redundant
-     */
-    // function _isCaller(address _addr) internal virtual returns (bool) {
-    //     return IC3Caller(c3CallerProxy).isCaller(_addr);
-    // }
 
     /**
      * @notice Internal function to initiate a cross-chain call
@@ -127,14 +116,6 @@ abstract contract C3CallerDApp is IC3CallerDApp {
      * @dev This function must be implemented by derived contracts to handle failed cross-chain executions
      */
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal virtual returns (bool);
-
-    /**
-     * @notice Validates if an address that called C3Caller execute and subsequently a function on this DApp
-     * @param _txSender The address to check
-     * @return True if the address has been previously validated
-     * @dev This function must be implemented by derived contracts
-     */
-    function isValidSender(address _txSender) external view virtual returns (bool);
 
     /**
      * @notice Internal function to get some useful information related to the transaction on the source network

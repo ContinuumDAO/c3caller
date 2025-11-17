@@ -39,13 +39,19 @@ interface IC3Caller is IC3GovClient {
         bytes reason
     );
 
+    event AddMPC(address indexed _mpc);
+    event RevokeMPC(address indexed _mpc);
+
     error C3Caller_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3Caller_InvalidLength(C3ErrorParam);
     error C3Caller_InvalidAccountLength(C3ErrorParam);
     error C3Caller_LengthMismatch(C3ErrorParam, C3ErrorParam);
-    error C3Caller_InvalidDAppID(uint256, uint256);
-    error C3Caller_UUIDAlreadyCompleted(bytes32);
+    error C3Caller_InvalidDAppID(uint256 _expected, uint256 _actual);
+    error C3Caller_UUIDAlreadyCompleted(bytes32 _uuid);
     error C3Caller_IsZero(C3ErrorParam);
+    error C3GovClient_AlreadyMPC(address _mpc);
+    error C3GovClient_IsNotMPC(address _mpc);
+    error C3Caller_InactiveChainID(string _toChainID);
 
     struct C3Context {
         bytes32 swapID;
@@ -61,11 +67,6 @@ interface IC3Caller is IC3GovClient {
         string fallbackTo;
         bytes data;
     }
-
-    // FIXIT: redundant
-    // function isExecutor(address _sender) external returns (bool);
-    // function isCaller(address _sender) external returns (bool);
-    // function c3caller() external view returns (address);
 
     function context() external view returns (bytes32 uuid, string memory fromChainID, string memory sourceTx);
 
@@ -85,4 +86,16 @@ interface IC3Caller is IC3GovClient {
     function execute(uint256 _dappID, C3EvmMessage calldata _message) external;
 
     function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external;
+
+    function activateChainID(string memory _chainID) external;
+    function deactivateChainID(string memory _chainID) external;
+    function isActiveChainID(string memory _chainID) external view returns (bool);
+    function activeChainIDs(uint256 _index) external view returns (string memory);
+    function getAllActiveChainIDs() external view returns (string[] memory);
+
+    function addMPC(address _mpc) external;
+    function revokeMPC(address _mpc) external;
+    function isMPCAddr(address _mpc) external view returns (bool);
+    function mpcAddrs(uint256 _index) external view returns (address);
+    function getAllMPCAddrs() external view returns (address[] memory);
 }

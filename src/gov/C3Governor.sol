@@ -3,6 +3,7 @@
 pragma solidity 0.8.27;
 
 import {IC3Governor} from "./IC3Governor.sol";
+import {IC3GovClient} from "./IC3GovClient.sol";
 import {C3GovernDApp} from "./C3GovernDApp.sol";
 import {C3CallerUtils, C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
@@ -31,12 +32,11 @@ contract C3Governor is IC3Governor, C3GovernDApp {
 
     /**
      * @param _gov Deployed Governor contract (or admin of choice).
-     * @param _c3CallerProxy The C3Caller deployed instance.
-     * @param _txSender The MPC address that is whitelisted to execute incoming operations.
+     * @param _c3caller The C3Caller deployed instance.
      * @param _dappID The DApp ID of this C3CallerDApp.
      */
-    constructor(address _gov, address _c3CallerProxy, address _txSender, uint256 _dappID)
-        C3GovernDApp(_gov, _c3CallerProxy, _txSender, _dappID)
+    constructor(address _gov, address _c3caller, uint256 _dappID)
+        C3GovernDApp(_gov, _c3caller, _dappID)
     {}
 
     /**
@@ -45,7 +45,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @param _peerStr The deployed peer client on that network.
      * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
      */
-    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGov {
+    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGovOrC3Caller {
         peer[_chainIdStr] = _peerStr;
     }
 
@@ -139,7 +139,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
         string memory _targetStr,
         string memory _toChainIdStr,
         bytes memory _calldata
-    ) external onlyCaller returns (bytes memory) {
+    ) external onlyC3Caller returns (bytes memory) {
         address _target = _targetStr.toAddress();
         // INFO: execute the proposal calldata on target
         (bool success, bytes memory result) = _target.call(_calldata);
@@ -150,6 +150,17 @@ contract C3Governor is IC3Governor, C3GovernDApp {
             emit C3GovernorExec(_nonce, _index, _targetStr, _toChainIdStr, _calldata);
             return result;
         }
+    }
+
+    /**
+     * @notice Tool for applying C3Governor (this contract) as the governance address where valid on a given
+     * implementation of C3GovClient (for example: C3Caller, C3UUIDKeeper, C3DAppManager).
+     * @param _target The address of the implementation
+     * @dev If the target address C3GovClient:changeGov has not been called with C3Governor (this) as the new governance
+     * address, this call will fail, therefore anyone can call this safely
+     */
+    function applySelfAsGov(address _target) external {
+        IC3GovClient(_target).applyGov();
     }
 
     /**

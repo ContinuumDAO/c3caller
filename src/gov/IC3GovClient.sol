@@ -5,22 +5,18 @@ pragma solidity 0.8.27;
 import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3GovClient {
-    event ChangeGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
-    event ApplyGov(address indexed oldGov, address indexed newGov, uint256 timestamp);
-    event AddOperator(address indexed op);
+    event ChangeGov(address indexed _oldGov, address indexed _newGov);
+    event ApplyGov(address indexed _oldGov, address indexed _newGov);
+    event SetC3Caller(address indexed _oldC3Caller, address indexed _newC3Caller);
 
     error C3GovClient_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3GovClient_IsZeroAddress(C3ErrorParam);
-    error C3GovClient_AlreadyOperator(address);
-    error C3GovClient_IsNotOperator(address);
+
+    function changeGov(address _gov) external;
+    function applyGov() external;
+    function setC3Caller(address _c3caller) external;
 
     function gov() external view returns (address);
     function pendingGov() external view returns (address);
-    function isOperator(address _op) external view returns (bool);
-    function operators(uint256 _index) external view returns (address);
-    function applyGov() external;
-    function getAllOperators() external view returns (address[] memory);
-    function changeGov(address _gov) external;
-    function addOperator(address _op) external;
-    function revokeOperator(address _op) external;
+    function c3caller() external view returns (address);
 }
