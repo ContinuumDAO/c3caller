@@ -15,8 +15,13 @@ interface IC3GovernDApp is IC3CallerDApp {
     error C3GovernDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
     error C3GovernDApp_IsZeroAddress(C3ErrorParam);
 
-    // State 
+    // State
     function delay() external view returns (uint256);
+
+    // Internal State
+    // function _oldGov() internal view returns (address);
+    // function _newGov() internal view returns (address);
+    // function _newGovEffectiveTime() internal view returns (uint256);
 
     // Mut
     function changeGov(address _newGov) external;
@@ -26,9 +31,4 @@ interface IC3GovernDApp is IC3CallerDApp {
 
     // View
     function gov() external view returns (address);
-
-    // Internal View
-    // function _oldGov() internal view returns (address);
-    // function _newGov() internal view returns (address);
-    // function _newGovEffectiveTime() internal view returns (uint256);
 }

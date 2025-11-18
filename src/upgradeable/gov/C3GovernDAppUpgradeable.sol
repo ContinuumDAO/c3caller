@@ -4,9 +4,6 @@ pragma solidity 0.8.27;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-
 import {IC3GovernDApp} from "../../gov/IC3GovernDApp.sol";
 import {IC3CallerDApp} from "../../dapp/IC3CallerDApp.sol";
 import {C3CallerDAppUpgradeable} from "../dapp/C3CallerDAppUpgradeable.sol";
@@ -32,9 +29,6 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
  * @author @potti ContinuumDAO
  */
 abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernDApp {
-    using Strings for *;
-    using Address for address;
-
     /// @custom:storage-location erc7201:c3caller.storage.C3GovernDApp
     /**
      * @dev Storage struct for C3GovernDApp using ERC-7201 storage pattern
@@ -132,17 +126,6 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
     }
 
     /**
-     * @notice Get the current governance address
-     * @return The current governance address (new or old based on effective time)
-     */
-    function gov() public view virtual returns (address) {
-        if (block.timestamp >= _newGovEffectiveTime()) {
-            return _newGov();
-        }
-        return _oldGov();
-    }
-
-    /**
      * @notice Change the governance address. The new governance address will be valid after delay
      * @param newGov_ The new governance address
      * @dev Reverts if the new governance address is zero
@@ -157,16 +140,6 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
         $._newGov = newGov_;
         $._newGovEffectiveTime = block.timestamp + $.delay;
         emit LogChangeGov($._oldGov, $._newGov, $._newGovEffectiveTime, block.chainid);
-    }
-
-    /**
-     * @notice Set the delay period for governance changes
-     * @param _delay The new delay period in seconds
-     * @dev Only governance or C3Caller can call this function
-     */
-    function setDelay(uint256 _delay) external virtual onlyGovOrC3Caller {
-        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
-        $.delay = _delay;
     }
 
     /**
@@ -193,6 +166,27 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
         onlyGovOrC3Caller
     {
         _c3broadcast(_targets, _toChainIDs, _data);
+    }
+
+    /**
+     * @notice Set the delay period for governance changes
+     * @param _delay The new delay period in seconds
+     * @dev Only governance or C3Caller can call this function
+     */
+    function setDelay(uint256 _delay) external virtual onlyGovOrC3Caller {
+        C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
+        $.delay = _delay;
+    }
+
+    /**
+     * @notice Get the current governance address
+     * @return The current governance address (new or old based on effective time)
+     */
+    function gov() public view virtual returns (address) {
+        if (block.timestamp >= _newGovEffectiveTime()) {
+            return _newGov();
+        }
+        return _oldGov();
     }
 
     /**

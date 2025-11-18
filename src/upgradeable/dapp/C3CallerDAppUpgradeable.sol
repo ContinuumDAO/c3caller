@@ -30,24 +30,15 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
      * @custom:storage-location erc7201:c3caller.storage.C3CallerDApp
      */
     struct C3CallerDAppStorage {
-        /// @notice The C3Caller address
-        address c3caller;
         /// @notice The DApp identifier
         uint256 dappID;
+        /// @notice The C3Caller address
+        address c3caller;
     }
 
     // keccak256(abi.encode(uint256(keccak256(bytes("c3caller.storage.C3CallerDApp"))) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3CallerDAppStorageLocation =
         0xb8c52ef1c1980f4ee6284e96cd37d6632554e7d3ff4cf7b91d46dcb2bc87b300;
-
-    /**
-     * @notice Get the C3Caller proxy address
-     * @return The C3Caller proxy address
-     */
-    function c3caller() public view virtual returns (address) {
-        C3CallerDAppStorage storage $ = _getC3CallerDAppStorage();
-        return $.c3caller;
-    }
 
     /**
      * @notice Get the DApp identifier
@@ -56,6 +47,15 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
     function dappID() public view virtual returns (uint256) {
         C3CallerDAppStorage storage $ = _getC3CallerDAppStorage();
         return $.dappID;
+    }
+
+    /**
+     * @notice Get the C3Caller proxy address
+     * @return The C3Caller proxy address
+     */
+    function c3caller() public view virtual returns (address) {
+        C3CallerDAppStorage storage $ = _getC3CallerDAppStorage();
+        return $.c3caller;
     }
 
     /**

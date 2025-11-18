@@ -25,14 +25,14 @@ import {C3GovClientUpgradeable} from "../gov/C3GovClientUpgradeable.sol";
  * @author @potti ContinuumDAO
  */
 contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgradeable, UUPSUpgradeable {
+    /// @notice Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
+    uint256 public currentNonce;
+
     /// @notice Mapping of UUID to completion status
     mapping(bytes32 => bool) public completedSwapin;
 
     /// @notice Mapping of UUID to its associated nonce
     mapping(bytes32 => uint256) public uuid2Nonce;
-
-    /// @notice Latest used nonce for UUID generation - next UUID will use `currentNonce` +1
-    uint256 public currentNonce;
 
     /**
      * @notice Modifier to automatically increment the swapout nonce

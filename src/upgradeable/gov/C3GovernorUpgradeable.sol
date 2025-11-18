@@ -28,12 +28,12 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
 
     /// @notice A registry of active proposal IDs (or a custom nonce).
     mapping(uint256 => bool) public proposalRegistered;
-    /// @notice The C3Governor clients deployed to destination networks.
-    mapping(string => string) public peer;
+
     /// @notice Actions that have failed on the destination network have their data stored until they are retried.
     mapping(uint256 => mapping(uint256 => Proposal)) public failed;
 
-    uint256 public constant VERSION = 1;
+    /// @notice The C3Governor clients deployed to destination networks.
+    mapping(string => string) public peer;
 
     /**
      * @notice Initialize C3GovernorUpgradeable
@@ -51,40 +51,6 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
      */
     constructor() {
         _disableInitializers();
-    }
-
-    /**
-     * @notice Sets the peer address for a given chain ID.
-     * @param _chainIdStr The chain ID to set.
-     * @param _peerStr The deployed peer client on that network.
-     * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
-     */
-    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGovOrC3Caller {
-        peer[_chainIdStr] = _peerStr;
-    }
-
-    // INFO: allow retry of sending a given index of a given proposal, provided that it failed on previous attempt
-    /**
-     * @notice Allow anyone to retry a given transaction of a given proposal that reverted on another network.
-     * @param _nonce The proposal ID of the transaction.
-     * @param _index The index of the transaction in the proposal.
-     * @dev Some transactions in a given proposal may fail, but this does not stop other transactions in the proposal
-     *   from succeeding. This should be anticipated in the target contract architecture.
-     */
-    function doGov(uint256 _nonce, uint256 _index) external {
-        if (!proposalRegistered[_nonce]) {
-            revert C3Governor_InvalidProposal(_nonce);
-        }
-
-        // NOTE: failed is only set by fallback
-        if (failed[_nonce][_index].data.length == 0) {
-            revert C3Governor_HasNotFailed();
-        }
-
-        Proposal memory _proposal = failed[_nonce][_index];
-        // NOTE: remove data to ensure it is only called once
-        delete failed[_nonce][_index];
-        _sendParams(_nonce, _index, _proposal.target, _proposal.toChainId, _proposal.data);
     }
 
     /**
@@ -166,6 +132,30 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
         }
     }
 
+    // INFO: allow retry of sending a given index of a given proposal, provided that it failed on previous attempt
+    /**
+     * @notice Allow anyone to retry a given transaction of a given proposal that reverted on another network.
+     * @param _nonce The proposal ID of the transaction.
+     * @param _index The index of the transaction in the proposal.
+     * @dev Some transactions in a given proposal may fail, but this does not stop other transactions in the proposal
+     *   from succeeding. This should be anticipated in the target contract architecture.
+     */
+    function doGov(uint256 _nonce, uint256 _index) external {
+        if (!proposalRegistered[_nonce]) {
+            revert C3Governor_InvalidProposal(_nonce);
+        }
+
+        // NOTE: failed is only set by fallback
+        if (failed[_nonce][_index].data.length == 0) {
+            revert C3Governor_HasNotFailed();
+        }
+
+        Proposal memory _proposal = failed[_nonce][_index];
+        // NOTE: remove data to ensure it is only called once
+        delete failed[_nonce][_index];
+        _sendParams(_nonce, _index, _proposal.target, _proposal.toChainId, _proposal.data);
+    }
+
     /**
      * @notice Tool for applying C3Governor (this contract) as the governance address where valid on a given
      * implementation of C3GovClient (for example: C3Caller, C3UUIDKeeper, C3DAppManager).
@@ -175,6 +165,16 @@ contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeabl
      */
     function applySelfAsGov(address _target) external {
         IC3GovClient(_target).applyGov();
+    }
+
+    /**
+     * @notice Sets the peer address for a given chain ID.
+     * @param _chainIdStr The chain ID to set.
+     * @param _peerStr The deployed peer client on that network.
+     * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
+     */
+    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGovOrC3Caller {
+        peer[_chainIdStr] = _peerStr;
     }
 
     /**

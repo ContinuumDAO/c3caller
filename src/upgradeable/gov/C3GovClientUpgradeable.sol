@@ -35,17 +35,26 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
      * @custom:storage-location erc7201:c3caller.storage.C3GovClient
      */
     struct C3GovClientStorage {
+        /// @notice The C3Caller contract address
+        address c3caller;
         /// @notice The current governance address
         address gov;
         /// @notice The pending governance address (for two-step governance changes)
         address pendingGov;
-        /// @notice The C3Caller contract address
-        address c3caller;
     }
 
     // keccak256(abi.encode(uint256(keccak256("c3caller.storage.C3GovClient")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant C3GovClientStorageLocation =
         0xfc30bbdfb847b0ba1d1dd9d15321eef3badc6d5d43505a7d5c3da71b05087100;
+
+    /**
+     * @notice Get the c3caller address
+     * @return The c3caller address
+     */
+    function c3caller() public view returns (address) {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        return $.c3caller;
+    }
 
     /**
      * @notice Get the current governance address
@@ -63,15 +72,6 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
     function pendingGov() public view returns (address) {
         C3GovClientStorage storage $ = _getC3GovClientStorage();
         return $.pendingGov;
-    }
-
-    /**
-     * @notice Get the c3caller address
-     * @return The c3caller address
-     */
-    function c3caller() public view returns (address) {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        return $.c3caller;
     }
 
     /**
@@ -107,19 +107,15 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
     }
 
     /**
-     * @notice Pause the contract (governance only)
-     * @dev Only the governance address can call this function
+     * @notice Change the C3Caller address
+     * @param _c3caller The new C3Caller address
+     * @dev Only governance can call this
      */
-    function pause() public onlyGov {
-        _pause();
-    }
-
-    /**
-     * @notice Unpause the contract (governance only)
-     * @dev Only the governance address can call this function
-     */
-    function unpause() public onlyGov {
-        _unpause();
+    function setC3Caller(address _c3caller) external onlyGov {
+        C3GovClientStorage storage $ = _getC3GovClientStorage();
+        address oldC3Caller = $.c3caller;
+        $.c3caller = _c3caller;
+        emit SetC3Caller(oldC3Caller, _c3caller);
     }
 
     /**
@@ -151,15 +147,19 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
     }
 
     /**
-     * @notice Change the C3Caller address
-     * @param _c3caller The new C3Caller address
-     * @dev Only governance can call this
+     * @notice Pause the contract (governance only)
+     * @dev Only the governance address can call this function
      */
-    function setC3Caller(address _c3caller) external onlyGov {
-        C3GovClientStorage storage $ = _getC3GovClientStorage();
-        address oldC3Caller = $.c3caller;
-        $.c3caller = _c3caller;
-        emit SetC3Caller(oldC3Caller, _c3caller);
+    function pause() public onlyGov {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause the contract (governance only)
+     * @dev Only the governance address can call this function
+     */
+    function unpause() public onlyGov {
+        _unpause();
     }
 
     /**
