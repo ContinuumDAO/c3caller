@@ -17,10 +17,10 @@ contract GetAllOperators is Script {
             revert("C3CALLER not defined");
         }
 
-        address[] memory operators = IC3GovClient(c3caller).getAllOperators();
+        // address[] memory operators = IC3GovClient(c3caller).getAllOperators();
 
-        for (uint8 i = 0; i < operators.length; i++) {
-            console.log(operators[i]);
-        }
+        // for (uint8 i = 0; i < operators.length; i++) {
+        //     console.log(operators[i]);
+        // }
     }
 }

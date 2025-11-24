@@ -44,14 +44,14 @@ contract AddMPC is Script {
         }
 
         vm.startBroadcast();
-        IC3GovClient(c3UUIDKeeper).addOperator(mpc1);
-        IC3GovClient(c3UUIDKeeper).addOperator(mpc2);
+        // IC3GovClient(c3UUIDKeeper).addOperator(mpc1);
+        // IC3GovClient(c3UUIDKeeper).addOperator(mpc2);
 
-        IC3GovClient(c3caller).addOperator(mpc1);
-        IC3GovClient(c3caller).addOperator(mpc2);
+        // IC3GovClient(c3caller).addOperator(mpc1);
+        // IC3GovClient(c3caller).addOperator(mpc2);
 
-        IC3GovClient(c3DAppManager).addOperator(mpc1);
-        IC3GovClient(c3DAppManager).addOperator(mpc2);
+        // IC3GovClient(c3DAppManager).addOperator(mpc1);
+        // IC3GovClient(c3DAppManager).addOperator(mpc2);
         vm.stopBroadcast();
     }
 }

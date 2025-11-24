@@ -23,7 +23,7 @@ contract AddUUIDOperator is Script {
         }
 
         vm.startBroadcast();
-        IC3GovClient(c3UUIDKeeper).addOperator(c3caller);
+        // IC3GovClient(c3UUIDKeeper).addOperator(c3caller);
         vm.stopBroadcast();
     }
 }

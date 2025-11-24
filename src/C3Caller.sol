@@ -92,8 +92,8 @@ contract C3Caller is IC3Caller, C3GovClient {
         string calldata _toChainID,
         bytes calldata _data,
         bytes memory _extra
-    ) external whenNotPaused {
-        _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
+    ) external whenNotPaused returns (bytes32) {
+        return _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
     }
 
     /**
@@ -108,8 +108,9 @@ contract C3Caller is IC3Caller, C3GovClient {
     function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
         whenNotPaused
+        returns(bytes32)
     {
-        _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
+        return _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
     }
 
     /**
@@ -124,6 +125,7 @@ contract C3Caller is IC3Caller, C3GovClient {
     function c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)
         external
         whenNotPaused
+        returns (bytes32[] memory)
     {
         if (_to.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.To);
@@ -135,9 +137,13 @@ contract C3Caller is IC3Caller, C3GovClient {
             revert C3Caller_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
         }
 
+        bytes32[] memory uuids = new bytes32[](_toChainIDs.length);
+
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
-            _c3call(_dappID, msg.sender, _to[i], _toChainIDs[i], _data, "");
+            uuids[i] = _c3call(_dappID, msg.sender, _to[i], _toChainIDs[i], _data, "");
         }
+
+        return uuids;
     }
 
     /**
@@ -269,7 +275,7 @@ contract C3Caller is IC3Caller, C3GovClient {
         string calldata _toChainID,
         bytes calldata _data,
         bytes memory _extra
-    ) internal {
+    ) internal returns (bytes32) {
         if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
@@ -288,6 +294,8 @@ contract C3Caller is IC3Caller, C3GovClient {
         IC3DAppManager(dappManager).chargePayload(_dappID, bytes(_data).length);
         bytes32 _uuid = IC3UUIDKeeper(uuidKeeper).genUUID(_dappID, _to, _toChainID, _data);
         emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
+
+        return _uuid;
     }
 
     /**

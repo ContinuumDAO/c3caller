@@ -23,7 +23,7 @@ contract NewOperator is Script {
         }
 
         vm.startBroadcast();
-        IC3GovClient(c3caller).addOperator(newOperator);
+        // IC3GovClient(c3caller).addOperator(newOperator);
         vm.stopBroadcast();
     }
 }

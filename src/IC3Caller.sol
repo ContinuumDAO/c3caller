@@ -87,10 +87,10 @@ interface IC3Caller is IC3GovClient {
         string calldata _toChainID,
         bytes calldata _data,
         bytes memory _extra
-    ) external;
-    function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data) external;
+    ) external returns (bytes32);
+    function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data) external returns (bytes32);
     function c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)
-        external;
+        external returns (bytes32[] memory);
     function execute(uint256 _dappID, C3EvmMessage calldata _message) external;
     function c3Fallback(uint256 _dappID, C3EvmMessage calldata _message) external;
     function activateChainID(string memory _chainID) external;
