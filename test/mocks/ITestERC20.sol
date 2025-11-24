@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 
 interface ITestERC20 is IERC20 {
     error OnlyAuthorized(C3ErrorParam, C3ErrorParam);

@@ -25,7 +25,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
     uint256 public currentNonce;
 
     /// @notice Mapping of UUID to completion status
-    mapping(bytes32 => bool) public completedSwapin;
+    mapping(bytes32 => bool) public completedSwapIn;
 
     /// @notice Mapping of UUID to its associated nonce
     mapping(bytes32 => uint256) public uuid2Nonce;
@@ -45,7 +45,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @dev Reverts if the UUID has already been completed
      */
     modifier checkCompletion(bytes32 _uuid) {
-        if (completedSwapin[_uuid]) {
+        if (completedSwapIn[_uuid]) {
             revert C3UUIDKeeper_UUIDAlreadyCompleted(_uuid);
         }
         _;
@@ -74,9 +74,6 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
         _uuid = keccak256(
             abi.encode(address(this), msg.sender, block.chainid, _dappID, _to, _toChainID, currentNonce, _data)
         );
-        if (doesUUIDExist(_uuid)) {
-            revert C3UUIDKeeper_UUIDAlreadyExists(_uuid);
-        }
         uuid2Nonce[_uuid] = currentNonce;
 
         emit UUIDGenerated(_uuid, _dappID, msg.sender, _to, _toChainID, currentNonce, _data);
@@ -90,7 +87,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @dev Only C3Caller address can call this function
      */
     function registerUUID(bytes32 _uuid, uint256 _dappID) external onlyC3Caller checkCompletion(_uuid) {
-        completedSwapin[_uuid] = true;
+        completedSwapIn[_uuid] = true;
         emit UUIDCompleted(_uuid, _dappID, msg.sender);
     }
 
@@ -100,8 +97,8 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @param _dappID The DApp identifier associated with the UUID
      * @dev Only the governance address can call this function
      */
-    function revokeSwapin(bytes32 _uuid, uint256 _dappID) external onlyGov {
-        completedSwapin[_uuid] = false;
+    function revokeSwapIn(bytes32 _uuid, uint256 _dappID) external onlyGov {
+        completedSwapIn[_uuid] = false;
         emit UUIDRevoked(_uuid, _dappID, msg.sender);
     }
 
@@ -111,7 +108,7 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @return True if the UUID has been completed, false otherwise
      */
     function isCompleted(bytes32 _uuid) external view returns (bool) {
-        return completedSwapin[_uuid];
+        return completedSwapIn[_uuid];
     }
 
     /**
@@ -174,14 +171,14 @@ contract C3UUIDKeeper is IC3UUIDKeeper, C3GovClient {
      * @return The encoded data for the UUID
      * @dev This function returns the input to keccak256 that would produce the corresponding UUID
      */
-    function calcCallerEncode(
+    function calcCallerUUIDEncodingWithNonce(
         address _from,
         uint256 _dappID,
         string calldata _to,
         string calldata _toChainID,
-        bytes calldata _data
+        bytes calldata _data,
+        uint256 _nonce
     ) public view returns (bytes memory) {
-        uint256 _nonce = currentNonce + 1;
         return abi.encode(address(this), _from, block.chainid, _dappID, _to, _toChainID, _nonce, _data);
     }
 }

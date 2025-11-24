@@ -36,6 +36,7 @@ interface IC3DAppManager {
     event Withdraw(uint256 indexed _dappID, address indexed _token, uint256 _amount);
     event ChargePayload(uint256 indexed _dappID, address indexed _feeToken, uint256 _bill, uint256 _discount, uint256 _left);
     event ChargeGas(uint256 indexed _dappID, address indexed _feeToken, uint256 _bill, uint256 _left);
+    event Collect(address indexed _feeToken, uint256 _total);
     event SetDAppFeeDiscount(uint256 indexed _dappID, uint256 _discount);
 
     // Errors
@@ -53,7 +54,7 @@ interface IC3DAppManager {
     error C3DAppManager_MPCAddressExists(address _addr);
     error C3DAppManager_MPCAddressNotFound(address _addr);
     error C3DAppManager_BelowMinimumDeposit(uint256 _amount, uint256 _minimum);
-    error C3DAppManager_InsufficientBalance(address _token);
+    error C3DAppManager_InsufficientBalance(uint256 pool, uint256 bill);
     error C3DAppManager_DiscountAboveMax(uint256 _discount, uint256 _maxDiscount);
 
     // State

@@ -4,8 +4,8 @@ pragma solidity 0.8.27;
 
 import {Utils} from "./Utils.sol";
 
-import {ITestERC20} from "./mocks/ITestERC20.sol";
-import {TestERC20} from "./mocks/TestERC20.sol";
+import {ITestERC20} from "../mocks/ITestERC20.sol";
+import {TestERC20} from "../mocks/TestERC20.sol";
 
 contract Accounts is Utils {
     TestERC20 usdc;
@@ -19,7 +19,7 @@ contract Accounts is Utils {
     address mpc1;
     address mpc2;
 
-    uint256 constant _100_000 = 100_000;
+    uint256 constant _100_000_000 = 100_000_000;
 
     function _getAccounts() internal returns (address[] memory) {
         string memory mnemonic = "test test test test test test test test test test test junk";
@@ -63,31 +63,28 @@ contract Accounts is Utils {
         deal(_token, mpc2, amount, true);
     }
 
-    function _approveAllERC20( /*address _token, uint256 _amount, FeeContracts memory feeContracts*/ ) internal {
-        // ITestERC20 token = ITestERC20(_token);
-        // uint256 decimals = token.decimals();
-        // uint256 amount = _amount * 10 ** decimals;
+    function _approveAllERC20(address _token, uint256 _amount, address _dappManager) internal {
+        ITestERC20 token = ITestERC20(_token);
+        uint256 decimals = token.decimals();
+        uint256 amount = _amount * 10 ** decimals;
 
-        // _approveERC20(admin, token, amount, feeContracts);
-        // _approveERC20(gov, token, amount, feeContracts);
-        // _approveERC20(treasury, token, amount, feeContracts);
-        // _approveERC20(user1, token, amount, feeContracts);
-        // _approveERC20(user2, token, amount, feeContracts);
-        // _approveERC20(mpc1, token, amount, feeContracts);
-        // _approveERC20(mpc2, token, amount, feeContracts);
+        _approveERC20(admin, token, amount, _dappManager);
+        _approveERC20(gov, token, amount, _dappManager);
+        _approveERC20(treasury, token, amount, _dappManager);
+        _approveERC20(user1, token, amount, _dappManager);
+        _approveERC20(user2, token, amount, _dappManager);
+        _approveERC20(mpc1, token, amount, _dappManager);
+        _approveERC20(mpc2, token, amount, _dappManager);
     }
 
-    function _approveERC20( /*address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts*/ )
-        private {
-        // vm.startPrank(account);
-
-        // token.approve(feeContracts.rwa1X, amount);
-        // token.approve(feeContracts.ctmRwaDeployInvest, amount);
-        // token.approve(feeContracts.ctmRwaERC20Deployer, amount);
-        // token.approve(feeContracts.identity, amount);
-        // token.approve(feeContracts.sentryManager, amount);
-        // token.approve(feeContracts.storageManager, amount);
-
-        // vm.stopPrank();
+    function _approveERC20(
+        address _account,
+        ITestERC20 _token,
+        uint256 _amount,
+        address _dappManager
+    ) internal {
+        vm.startPrank(_account);
+        _token.approve(_dappManager, _amount);
+        vm.stopPrank();
     }
 }

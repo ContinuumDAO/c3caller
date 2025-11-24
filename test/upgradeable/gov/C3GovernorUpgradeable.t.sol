@@ -6,27 +6,29 @@ import {console} from "forge-std/console.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3Governor} from "../../src/gov/C3Governor.sol";
-import {IC3Governor} from "../../src/gov/IC3Governor.sol";
+import {C3GovernorUpgradeable} from "../../../src/upgradeable/gov/C3GovernorUpgradeable.sol";
+import {IC3Governor} from "../../../src/gov/IC3Governor.sol";
 
-import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
-import {MockC3GovernDApp} from "../mocks/MockC3GovernDApp.sol";
-import {Helpers} from "../helpers/Helpers.sol";
-import {C3UUIDKeeper} from "../../src/uuid/C3UUIDKeeper.sol";
-import {C3Caller} from "../../src/C3Caller.sol";
-import {IC3Caller} from "../../src/IC3Caller.sol";
-import {IC3CallerDApp} from "../../src/dapp/IC3CallerDApp.sol";
-import {IC3GovernDApp} from "../../src/gov/IC3GovernDApp.sol";
-import {TestGovernor} from "../mocks/MockGovernor.sol";
-import {MockC3GovClient} from "../mocks/MockC3GovClient.sol";
+import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
+import {MockC3GovernDAppUpgradeable} from "../../mocks/MockC3GovernDAppUpgradeable.sol";
+import {Helpers} from "../../helpers/Helpers.sol";
+import {C3UUIDKeeperUpgradeable} from "../../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3CallerUpgradeable} from "../../../src/upgradeable/C3CallerUpgradeable.sol";
+import {IC3Caller} from "../../../src/IC3Caller.sol";
+import {IC3CallerDApp} from "../../../src/dapp/IC3CallerDApp.sol";
+import {IC3GovernDApp} from "../../../src/gov/IC3GovernDApp.sol";
+import {TestGovernor} from "../../mocks/MockGovernor.sol";
+import {MockC3GovClient} from "../../mocks/MockC3GovClient.sol";
+import {C3DAppManagerUpgradeable} from "../../../src/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
+import {C3CallerProxy} from "../../../src/utils/C3CallerProxy.sol";
 
 // TODO: Add tests for C3Governor
-contract C3GovernorTest is Helpers {
+contract C3GovernorUpgradeableTest is Helpers {
     using Strings for *;
 
-    C3Governor public c3governor;
+    C3GovernorUpgradeable public c3governor;
     TestGovernor public testGovernor;
-    MockC3GovernDApp public mockC3GovernDApp;
+    MockC3GovernDAppUpgradeable public mockC3GovernDApp;
 
     uint256 public c3governorDAppID;
     uint256 public mockDAppID;
@@ -71,45 +73,49 @@ contract C3GovernorTest is Helpers {
         super.setUp();
 
         // Deploy C3UUIDKeeper, C3DAppManager and C3Caller
-        _deployC3UUIDKeeper(gov);
-        _deployC3DAppManager(gov);
-        _deployC3Caller(gov);
+        _deployC3UUIDKeeperUpgradeable(gov);
+        _deployC3DAppManagerUpgradeable(gov);
+        _deployC3CallerUpgradeable(gov);
 
         // Set C3Caller address in UUIDKeeper and DAppManager
-        _setC3Caller(gov);
+        _setC3CallerUpgradeable(gov);
 
         // Set USDC and CTM as valid fee tokens
-        _setFeeConfig(gov, address(usdc));
-        _setFeeConfig(gov, address(ctm));
+        _setFeeConfigUpgradeable(gov, address(usdc));
+        _setFeeConfigUpgradeable(gov, address(ctm));
 
-        string memory dappKey = "v1.c3governor.c3caller";
+        string memory dappKey = "v1.c3governor.c3caller_u";
         string memory metadata = "{'version':1,'name':'C3Governor','description':'Cross-chain governance','email':'admin@c3gov.com','url':'c3gov.com'}";
 
-        c3governorDAppID = _initDAppConfig(gov, dappKey, address(usdc), metadata);
+        c3governorDAppID = _initDAppConfigUpgradeable(gov, dappKey, address(usdc), metadata);
 
         vm.prank(gov);
-        usdc.approve(address(dappManager), type(uint256).max);
+        usdc.approve(address(dappManager_u), type(uint256).max);
 
         // Deploy C3Governor with gov as the governance contract
-        c3governor = new C3Governor(
-            gov, // Use gov as the governance contract
-            address(c3caller),
+        c3governor = new C3GovernorUpgradeable();
+        bytes memory initData = abi.encodeWithSelector(
+            C3GovernorUpgradeable.initialize.selector,
+            gov,
+            address(c3caller_u),
             c3governorDAppID
         );
+        C3CallerProxy proxy = new C3CallerProxy(address(c3governor), initData);
+        c3governor = C3GovernorUpgradeable(address(proxy));
         vm.startPrank(gov);
-        dappManager.setDAppAddr(c3governorDAppID, address(c3governor), true);
-        dappManager.deposit(c3governorDAppID, address(usdc), 100 * 10 ** usdc.decimals());
+        dappManager_u.setDAppAddr(c3governorDAppID, address(c3governor), true);
+        dappManager_u.deposit(c3governorDAppID, address(usdc), 100 * 10 ** usdc.decimals());
         vm.stopPrank();
 
         // Deploy TestGovernor
         testGovernor = new TestGovernor("TestGovernor", IVotes(address(ctm)), 4, 1, 50400, 0);
 
         vm.startPrank(gov);
-        c3caller.activateChainID("1");
-        c3caller.activateChainID("10");
-        c3caller.activateChainID("56");
-        c3caller.activateChainID("137");
-        c3caller.activateChainID("421614");
+        c3caller_u.activateChainID("1");
+        c3caller_u.activateChainID("10");
+        c3caller_u.activateChainID("56");
+        c3caller_u.activateChainID("137");
+        c3caller_u.activateChainID("421614");
         c3governor.setPeer("1",      "0xaabbccddaabbccddaabbccddaabbccddaabbccdd");
         c3governor.setPeer("10",     "0xbbccddeebbccddeebbccddeebbccddeebbccddee");
         c3governor.setPeer("56",     "0xccddeeffccddeeffccddeeffccddeeffccddeeff");
@@ -117,10 +123,10 @@ contract C3GovernorTest is Helpers {
         c3governor.setPeer("421614", "0xeeff0011eeff0011eeff0011eeff0011eeff0011");
         vm.stopPrank();
 
-        string memory dappKeyMock = "v1.c3mock.c3caller";
+        string memory dappKeyMock = "v1.c3mock.c3caller_u";
         string memory metadataMock = "{'version':1,'name':'MockC3GovernDApp','description':'Mock description','email':'admin@c3mock.com','url':'c3mock.com'}";
 
-        (mockC3GovernDApp, mockDAppID) = _createC3GovernDApp(
+        (mockC3GovernDApp, mockDAppID) = _createC3GovernDAppUpgradeable(
             gov,
             address(c3governor),
             dappKeyMock,
@@ -147,7 +153,7 @@ contract C3GovernorTest is Helpers {
             datas[i] = getTestCalldata(i);
         }
 
-        uint256 c3Nonce = uuidKeeper.currentNonce();
+        uint256 c3Nonce = uuidKeeper_u.currentNonce();
 
         bytes[] memory destChainDatas = new bytes[](5);
         bytes32[] memory expectedUUIDs = new bytes32[](5);
@@ -158,8 +164,8 @@ contract C3GovernorTest is Helpers {
             destChainDatas[i] = abi.encodeWithSelector(
                 IC3Governor.receiveParams.selector, nonce, i, targets[i], toChainIds[i], datas[i]
             );
-            expectedUUIDs[i] = uuidKeeper.calcCallerUUIDWithNonce(
-                address(c3caller), c3governorDAppID, peers[i], toChainIds[i], destChainDatas[i], c3Nonce + i + 1
+            expectedUUIDs[i] = uuidKeeper_u.calcCallerUUIDWithNonce(
+                address(c3caller_u), c3governorDAppID, peers[i], toChainIds[i], destChainDatas[i], c3Nonce + i + 1
             );
         }
 
@@ -346,23 +352,23 @@ contract C3GovernorTest is Helpers {
         bytes[] memory datas = new bytes[](1);
         targets[0] = address(mockC3GovernDApp).toHexString();
         toChainIds[0] = toChainId;
-        datas[0] = abi.encodeWithSelector(MockC3GovernDApp.mockC3ExecutableGov.selector, "Sensitive change");
+        datas[0] = abi.encodeWithSelector(MockC3GovernDAppUpgradeable.mockC3ExecutableGov.selector, "Sensitive change");
 
         vm.prank(gov);
         c3governor.sendParams(nonce, targets, toChainIds, datas);
 
         bytes memory destChainData = abi.encodeWithSelector(
-            C3Governor.receiveParams.selector, nonce, index, targets[0], toChainIds[0], datas[0]
+            C3GovernorUpgradeable.receiveParams.selector, nonce, index, targets[0], toChainIds[0], datas[0]
         );
 
         bytes memory revertData =
             abi.encodeWithSelector(IC3Governor.C3Governor_ExecFailed.selector, "Target contract revert data");
 
-        vm.prank(address(c3caller));
+        vm.prank(address(c3caller_u));
         c3governor.c3Fallback(c3governorDAppID, destChainData, revertData);
 
         bytes32 expectedUUID =
-            uuidKeeper.calcCallerUUID(address(c3caller), c3governorDAppID, peer, toChainId, destChainData);
+            uuidKeeper_u.calcCallerUUID(address(c3caller_u), c3governorDAppID, peer, toChainId, destChainData);
         vm.expectEmit(true, true, false, true);
         emit IC3Caller.LogC3Call(c3governorDAppID, expectedUUID, address(c3governor), toChainId, peer, destChainData, "");
         c3governor.doGov(nonce, index);
@@ -411,8 +417,8 @@ contract C3GovernorTest is Helpers {
         bytes[] memory datas = new bytes[](1);
         targets[0] = targetAddr.toHexString();
         toChainIds[0] = getTestChainId(0);
-        datas[0] = abi.encodeWithSelector(MockC3GovernDApp.mockC3ExecutableGov.selector, setMessage);
-        vm.prank(address(c3caller));
+        datas[0] = abi.encodeWithSelector(MockC3GovernDAppUpgradeable.mockC3ExecutableGov.selector, setMessage);
+        vm.prank(address(c3caller_u));
         vm.expectEmit(true, true, true, true);
         emit IC3Governor.C3GovernorExec(nonce, index, targets[0], toChainIds[0], datas[0]);
         bytes memory result = c3governor.receiveParams(nonce, index, targets[0], toChainIds[0], datas[0]);
@@ -433,8 +439,8 @@ contract C3GovernorTest is Helpers {
         targets[0] = targetAddr.toHexString();
         toChainIds[0] = getTestChainId(0);
         datas[0] = abi.encodeWithSelector(mockC3GovernDApp.mockC3ExecutableRevertGov.selector, setMessage);
-        bytes memory callFailedResult = abi.encodeWithSelector(MockC3GovernDApp.TargetCallFailed.selector);
-        vm.prank(address(c3caller));
+        bytes memory callFailedResult = abi.encodeWithSelector(MockC3GovernDAppUpgradeable.TargetCallFailed.selector);
+        vm.prank(address(c3caller_u));
         vm.expectRevert(abi.encodeWithSelector(IC3Governor.C3Governor_ExecFailed.selector, callFailedResult));
         c3governor.receiveParams(nonce, index, targets[0], toChainIds[0], datas[0]);
     }
@@ -449,17 +455,17 @@ contract C3GovernorTest is Helpers {
         uint256 index = 0;
         string memory target = address(mockC3GovernDApp).toHexString();
         string memory toChainId = getTestChainId(0);
-        bytes memory data = abi.encodeWithSelector(MockC3GovernDApp.mockC3ExecutableGov.selector, "Sensitive change");
+        bytes memory data = abi.encodeWithSelector(MockC3GovernDAppUpgradeable.mockC3ExecutableGov.selector, "Sensitive change");
 
         bytes memory destChainData =
-            abi.encodeWithSelector(C3Governor.receiveParams.selector, nonce, index, target, toChainId, data);
+            abi.encodeWithSelector(C3GovernorUpgradeable.receiveParams.selector, nonce, index, target, toChainId, data);
 
         bytes memory revertData =
             abi.encodeWithSelector(IC3Governor.C3Governor_ExecFailed.selector, "Target contract revert data");
         bytes memory reason = bytes("Target contract revert data");
 
         // NOTE: only C3Caller is able to call c3Fallback on C3CallerDApp
-        vm.prank(address(c3caller));
+        vm.prank(address(c3caller_u));
         vm.expectEmit(true, false, false, true);
         emit IC3Governor.C3GovernorFallback(nonce, 0, target, toChainId, data, reason);
         c3governor.c3Fallback(c3governorDAppID, destChainData, revertData);
@@ -475,7 +481,7 @@ contract C3GovernorTest is Helpers {
     function test_C3Fallback_WrongSelector() public {
         uint256 nonce = uint256(keccak256("wrong-selector-call"));
         uint256 index = 47;
-        vm.prank(address(c3caller));
+        vm.prank(address(c3caller_u));
         bytes memory wrongSelectorData = abi.encodeWithSelector(IC3Governor.doGov.selector, nonce, index);
         bool result = c3governor.c3Fallback(c3governorDAppID, wrongSelectorData, "");
         assertFalse(result);
@@ -487,7 +493,7 @@ contract C3GovernorTest is Helpers {
 
     function test_ApplySelfAsGov_Success() public {
         vm.startPrank(gov);
-        MockC3GovClient mockC3GovClient = new MockC3GovClient(address(c3caller), gov);
+        MockC3GovClient mockC3GovClient = new MockC3GovClient(address(c3caller_u), gov);
         mockC3GovClient.changeGov(address(c3governor));
         vm.stopPrank();
         c3governor.applySelfAsGov(address(mockC3GovClient));

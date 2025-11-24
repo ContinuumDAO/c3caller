@@ -3,38 +3,41 @@
 pragma solidity 0.8.27;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Helpers} from "../helpers/Helpers.sol";
-import {MockC3GovernDApp} from "../mocks/MockC3GovernDApp.sol";
-import {C3GovernDApp} from "../../src/gov/C3GovernDApp.sol";
-import {IC3GovernDApp} from "../../src/gov/IC3GovernDApp.sol";
-import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
-import {IC3Caller} from "../../src/IC3Caller.sol";
+import {Helpers} from "../../helpers/Helpers.sol";
+import {MockC3GovernDApp} from "../../mocks/MockC3GovernDApp.sol";
+import {C3GovernDAppUpgradeable} from "../../../src/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {IC3GovernDApp} from "../../../src/gov/IC3GovernDApp.sol";
+import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
+import {IC3Caller} from "../../../src/IC3Caller.sol";
+import {C3UUIDKeeperUpgradeable} from "../../../src/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3DAppManagerUpgradeable} from "../../../src/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
+import {C3CallerUpgradeable} from "../../../src/upgradeable/C3CallerUpgradeable.sol";
 
-contract C3GovernDAppTest is Helpers {
+contract C3GovernDAppUpgradeableTest is Helpers {
     using Strings for address;
 
     MockC3GovernDApp mockC3GovernDApp;
     uint256 mockC3GovernDAppID;
-    string mockDAppKey = "v1.mockdapp.c3caller";
+    string mockDAppKey = "v1.mockdapp.c3caller_u";
     string mockMetadata = "{'version':1,'name':'MockC3GovernDApp','description':'Mock C3GovernDApp','email':'admin@mock.com','url':'mock.com'}";
 
     function setUp() public override virtual {
         super.setUp();
-        _deployC3UUIDKeeper(gov);
-        _deployC3DAppManager(gov);
-        _deployC3Caller(gov);
-        _setC3Caller(gov);
-        _setFeeConfig(gov, address(usdc));
-        mockC3GovernDAppID = _initDAppConfig(gov, mockDAppKey, address(usdc), mockMetadata);
-        mockC3GovernDApp = new MockC3GovernDApp(gov, address(c3caller), mockC3GovernDAppID);
+        _deployC3UUIDKeeperUpgradeable(gov);
+        _deployC3DAppManagerUpgradeable(gov);
+        _deployC3CallerUpgradeable(gov);
+        _setC3CallerUpgradeable(gov);
+        _setFeeConfigUpgradeable(gov, address(usdc));
+        mockC3GovernDAppID = _initDAppConfigUpgradeable(gov, mockDAppKey, address(usdc), mockMetadata);
+        mockC3GovernDApp = new MockC3GovernDApp(gov, address(c3caller_u), mockC3GovernDAppID);
 
         vm.startPrank(gov);
-        usdc.approve(address(dappManager), type(uint256).max);
-        dappManager.deposit(mockC3GovernDAppID, address(usdc), 100 * 10 ** usdc.decimals());
-        dappManager.setDAppAddr(mockC3GovernDAppID, address(mockC3GovernDApp), true);
+        usdc.approve(address(dappManager_u), type(uint256).max);
+        dappManager_u.deposit(mockC3GovernDAppID, address(usdc), 100 * 10 ** usdc.decimals());
+        dappManager_u.setDAppAddr(mockC3GovernDAppID, address(mockC3GovernDApp), true);
         vm.stopPrank();
 
-        _activateChainID(gov, "ethereum");
+        _activateChainIDUpgradeable(gov, "ethereum");
     }
 
     // ============================
@@ -42,7 +45,7 @@ contract C3GovernDAppTest is Helpers {
     // ============================
 
     function test_Deployment() public {
-        mockC3GovernDApp = new MockC3GovernDApp(gov, address(c3caller), mockC3GovernDAppID);
+        mockC3GovernDApp = new MockC3GovernDApp(gov, address(c3caller_u), mockC3GovernDAppID);
     }
 
     function test_State() public view {
@@ -118,7 +121,7 @@ contract C3GovernDAppTest is Helpers {
         string memory toChainID = "ethereum";
         string memory message = "Outgoing message";
         bytes memory data = abi.encodeWithSelector(MockC3GovernDApp.mockC3Executable.selector, message);
-        bytes32 uuid = uuidKeeper.calcCallerUUID(address(c3caller), mockC3GovernDAppID, target, toChainID, data);
+        bytes32 uuid = uuidKeeper_u.calcCallerUUID(address(c3caller_u), mockC3GovernDAppID, target, toChainID, data);
         vm.prank(gov);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogC3Call(mockC3GovernDAppID, uuid, address(mockC3GovernDApp), toChainID, target, data, "");
@@ -130,8 +133,8 @@ contract C3GovernDAppTest is Helpers {
     // ==================================
 
     function test_DoGovBroadcast_Success() public {
-        _activateChainID(gov, "polygon");
-        _activateChainID(gov, "avalanche");
+        _activateChainIDUpgradeable(gov, "polygon");
+        _activateChainIDUpgradeable(gov, "avalanche");
         address[] memory targets = new address[](3);
         targets[0] = address(mockC3GovernDApp);
         targets[1] = address(mockC3GovernDApp);
@@ -144,13 +147,13 @@ contract C3GovernDAppTest is Helpers {
         bytes memory data = abi.encodeWithSelector(MockC3GovernDApp.mockC3Executable.selector, outgoingMessage);
         vm.prank(gov);
         for (uint256 i = 0; i < 3; i++) {
-            bytes32 uuid = uuidKeeper.calcCallerUUIDWithNonce(
-                address(c3caller),
+            bytes32 uuid = uuidKeeper_u.calcCallerUUIDWithNonce(
+                address(c3caller_u),
                 mockC3GovernDAppID,
                 targets[i].toHexString(),
                 toChainIDs[i],
                 data,
-                uuidKeeper.currentNonce() + i + 1
+                uuidKeeper_u.currentNonce() + i + 1
             );
             vm.expectEmit(true, true, true, true);
             emit IC3Caller.LogC3Call(

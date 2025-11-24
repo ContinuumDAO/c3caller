@@ -49,17 +49,6 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
     }
 
     /**
-     * @notice Modifier to restrict access to governance or C3Caller address
-     * @dev Reverts if the caller is neither governance nor C3Caller address
-     */
-    modifier onlyGovOrC3Caller() {
-        if (msg.sender != gov() && msg.sender != c3caller) {
-            revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
-        }
-        _;
-    }
-
-    /**
      * @param _gov The initial governance address
      * @param _c3caller The C3Caller address
      * @param _dappID The DApp ID (obtained from registering with C3DAppManager)
@@ -77,14 +66,14 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @dev Reverts if the new governance address is zero
      * @dev Only governance or C3Caller can call this function
      */
-    function changeGov(address newGov_) external onlyGovOrC3Caller {
+    function changeGov(address newGov_) external onlyGov {
         if (newGov_ == address(0)) {
             revert C3GovernDApp_IsZeroAddress(C3ErrorParam.Gov);
         }
         _oldGov = gov();
         _newGov = newGov_;
         _newGovEffectiveTime = block.timestamp + delay;
-        emit LogChangeGov(_oldGov, _newGov, _newGovEffectiveTime, block.chainid);
+        emit LogChangeGov(_oldGov, _newGov, _newGovEffectiveTime);
     }
 
     /**
@@ -94,7 +83,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGovOrC3Caller {
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGov {
         _c3call(_to, _toChainID, _data);
     }
 
@@ -107,7 +96,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      */
     function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)
         external
-        onlyGovOrC3Caller
+        onlyGov
     {
         _c3broadcast(_targets, _toChainIDs, _data);
     }
@@ -117,7 +106,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @param _delay The new delay period in seconds
      * @dev Only governance or C3Caller can call this function
      */
-    function setDelay(uint256 _delay) external onlyGovOrC3Caller {
+    function setDelay(uint256 _delay) external onlyGov {
         delay = _delay;
     }
 

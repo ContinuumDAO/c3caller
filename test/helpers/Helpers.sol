@@ -19,13 +19,7 @@ contract Helpers is Test, Accounts, Deployer {
         vm.deal(mpc1, 100 ether);
         vm.deal(mpc2, 100 ether);
 
-        _dealAllERC20(address(usdc), _100_000);
-        _dealAllERC20(address(ctm), _100_000);
-
-        // vm.startPrank(gov);
-
-        // _deployC3Caller(gov);
-
-        // vm.stopPrank();
+        _dealAllERC20(address(usdc), _100_000_000);
+        _dealAllERC20(address(ctm), _100_000_000);
     }
 }

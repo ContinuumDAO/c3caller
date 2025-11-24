@@ -59,7 +59,6 @@ abstract contract C3CallerDApp is IC3CallerDApp {
     function c3Fallback(uint256 _dappID, bytes calldata _data, bytes calldata _reason)
         external
         virtual
-        override
         onlyC3Caller
         returns (bool)
     {

@@ -25,7 +25,6 @@ enum C3ErrorParam { // TODO: check which ones are no longer used
     Admin,
     GovOrAdmin,
     GovOrMPC,
-    GovOrC3Caller,
     MPC,
     Gov,
     PendingGov,

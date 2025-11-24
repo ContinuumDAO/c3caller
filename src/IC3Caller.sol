@@ -62,10 +62,12 @@ interface IC3Caller is IC3GovClient {
     error C3Caller_InvalidLength(C3ErrorParam);
     error C3Caller_LengthMismatch(C3ErrorParam, C3ErrorParam);
     error C3Caller_IsZero(C3ErrorParam);
-    error C3Caller_InactiveChainID(string _toChainID);
+    error C3Caller_InactiveChainID(string _chainID);
     error C3Caller_InvalidDAppID(uint256 _expected, uint256 _actual);
     error C3Caller_UUIDAlreadyCompleted(bytes32 _uuid);
     error C3Caller_IsZeroAddress(C3ErrorParam);
+    error C3Caller_AlreadyChainID(string _chainID);
+    error C3Caller_IsNotChainID(string _chainID);
     error C3Caller_AlreadyMPC(address _mpc);
     error C3Caller_IsNotMPC(address _mpc);
 

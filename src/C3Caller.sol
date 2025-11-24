@@ -93,9 +93,6 @@ contract C3Caller is IC3Caller, C3GovClient {
         bytes calldata _data,
         bytes memory _extra
     ) external whenNotPaused {
-        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
-            revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
-        }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, _extra);
     }
 
@@ -112,9 +109,6 @@ contract C3Caller is IC3Caller, C3GovClient {
         external
         whenNotPaused
     {
-        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
-            revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
-        }
         _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
     }
 
@@ -125,7 +119,7 @@ contract C3Caller is IC3Caller, C3GovClient {
      * @param _to Array of target addresses on destination networks (C3CallerDApp destination implementations)
      * @param _toChainIDs Array of destination chain IDs
      * @param _data The calldata to execute on each destination network (ABI encoded)
-     * @dev Calls `_c3broadcast` with msg.sender as the caller (C3CallerDApp source implementation)
+     * @dev Calls `_c3call` with msg.sender as the caller (C3CallerDApp source implementation)
      */
     function c3broadcast(uint256 _dappID, string[] calldata _to, string[] calldata _toChainIDs, bytes calldata _data)
         external
@@ -139,9 +133,6 @@ contract C3Caller is IC3Caller, C3GovClient {
         }
         if (_to.length != _toChainIDs.length) {
             revert C3Caller_LengthMismatch(C3ErrorParam.To, C3ErrorParam.ChainID);
-        }
-        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
-            revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
 
         for (uint256 i = 0; i < _toChainIDs.length; i++) {
@@ -172,9 +163,12 @@ contract C3Caller is IC3Caller, C3GovClient {
     /**
      * @notice Mark a chain ID active, allowing c3calls to that chain
      * @param _chainID The chain ID to ensure is active
+     * @dev Revert if chain ID is already active
      */
     function activateChainID(string memory _chainID) external onlyGov {
-        if (isActiveChainID[_chainID]) return;
+        if (isActiveChainID[_chainID]) {
+            revert C3Caller_AlreadyChainID(_chainID);
+        }
         isActiveChainID[_chainID] = true;
         activeChainIDs.push(_chainID);
         emit AddChainID(_chainID);
@@ -184,10 +178,12 @@ contract C3Caller is IC3Caller, C3GovClient {
      * @notice Mark a chain ID inactive, thus preventing c3calls to that chain
      * @param _chainID The chain ID to ensure is inactive
      * @dev This is to prevent payload fees being charged unnecessarily for inactive chains
+     * @dev Revert if chain ID is not active
      */
     function deactivateChainID(string memory _chainID) external onlyGov {
-        if (!isActiveChainID[_chainID]) return;
-
+        if (!isActiveChainID[_chainID]) {
+            revert C3Caller_IsNotChainID(_chainID);
+        }
         uint256 chainIDCount = activeChainIDs.length;
         for (uint256 i = 0; i < chainIDCount; i++) {
             if (keccak256(bytes(activeChainIDs[i])) == keccak256(bytes(_chainID))) {
@@ -235,7 +231,7 @@ contract C3Caller is IC3Caller, C3GovClient {
             if (mpcAddrs[_i] == _mpc) {
                 mpcAddrs[_i] = mpcAddrs[_length - 1];
                 mpcAddrs.pop();
-                return;
+                break;
             }
         }
         emit RevokeMPC(_mpc);
@@ -274,8 +270,8 @@ contract C3Caller is IC3Caller, C3GovClient {
         bytes calldata _data,
         bytes memory _extra
     ) internal {
-        if (_dappID == 0) {
-            revert C3Caller_IsZero(C3ErrorParam.DAppID);
+        if (IC3DAppManager(dappManager).dappAddrID(msg.sender) != _dappID) {
+            revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.DAppID);
         }
         if (bytes(_to).length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.To);
@@ -357,11 +353,11 @@ contract C3Caller is IC3Caller, C3GovClient {
         if (_message.data.length == 0) {
             revert C3Caller_InvalidLength(C3ErrorParam.Calldata);
         }
-        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
-            revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
-        }
         if (!IC3DAppManager(dappManager).isValidMPCAddr(_dappID, _txSender)) {
             revert C3Caller_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.MPC);
+        }
+        if (IC3UUIDKeeper(uuidKeeper).isCompleted(_message.uuid)) {
+            revert C3Caller_UUIDAlreadyCompleted(_message.uuid);
         }
 
         uint256 expectedDAppID = IC3CallerDApp(_message.to).dappID();

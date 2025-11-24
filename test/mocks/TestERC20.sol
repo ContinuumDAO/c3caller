@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import {C3ErrorParam} from "../../../src/utils/C3CallerUtils.sol";
+import {C3ErrorParam} from "../../src/utils/C3CallerUtils.sol";
 import {ITestERC20} from "./ITestERC20.sol";
 
 /**

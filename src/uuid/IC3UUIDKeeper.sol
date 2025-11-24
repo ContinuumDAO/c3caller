@@ -18,11 +18,10 @@ interface IC3UUIDKeeper {
 
     // Errors
     error C3UUIDKeeper_UUIDAlreadyCompleted(bytes32);
-    error C3UUIDKeeper_UUIDAlreadyExists(bytes32);
 
     // State
     function currentNonce() external view returns (uint256);
-    function completedSwapin(bytes32 _uuid) external view returns (bool);
+    function completedSwapIn(bytes32 _uuid) external view returns (bool);
     function uuid2Nonce(bytes32 _uuid) external view returns (uint256);
 
     // Mut
@@ -30,7 +29,7 @@ interface IC3UUIDKeeper {
         external
         returns (bytes32 _uuid);
     function registerUUID(bytes32 _uuid, uint256 _dappID) external;
-    function revokeSwapin(bytes32 _uuid, uint256 _dappID) external;
+    function revokeSwapIn(bytes32 _uuid, uint256 _dappID) external;
 
     // View
     function isCompleted(bytes32 _uuid) external view returns (bool);
@@ -50,11 +49,12 @@ interface IC3UUIDKeeper {
         bytes calldata _data,
         uint256 _nonce
     ) external view returns (bytes32);
-    function calcCallerEncode(
+    function calcCallerUUIDEncodingWithNonce(
         address _from,
         uint256 _dappID,
         string calldata _to,
         string calldata _toChainID,
-        bytes calldata _data
+        bytes calldata _data,
+        uint256 _nonce
     ) external view returns (bytes memory);
 }

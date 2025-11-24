@@ -159,7 +159,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @param _peerStr The deployed peer client on that network.
      * @dev Chain ID and peer address are encoded as a string to allow non-EVM data.
      */
-    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGovOrC3Caller {
+    function setPeer(string memory _chainIdStr, string memory _peerStr) external onlyGov {
         peer[_chainIdStr] = _peerStr;
     }
 

@@ -97,17 +97,6 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
     }
 
     /**
-     * @notice Modifier to restrict access to governance or C3Caller address
-     * @dev Reverts if the caller is neither governance nor C3Caller address
-     */
-    modifier onlyGovOrC3Caller() {
-        if (msg.sender != gov() && msg.sender != c3caller()) {
-            revert C3GovernDApp_OnlyAuthorized(C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller);
-        }
-        _;
-    }
-
-    /**
      * @notice Internal initializer for the upgradeable C3GovernDApp contract
      * @param _gov The initial governance address
      * @param _c3caller The C3Caller address
@@ -139,7 +128,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
         $._oldGov = gov();
         $._newGov = newGov_;
         $._newGovEffectiveTime = block.timestamp + $.delay;
-        emit LogChangeGov($._oldGov, $._newGov, $._newGovEffectiveTime, block.chainid);
+        emit LogChangeGov($._oldGov, $._newGov, $._newGovEffectiveTime);
     }
 
     /**
@@ -149,7 +138,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGovOrC3Caller {
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov {
         _c3call(_to, _toChainID, _data);
     }
 
@@ -163,7 +152,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
     function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)
         external
         virtual
-        onlyGovOrC3Caller
+        onlyGov
     {
         _c3broadcast(_targets, _toChainIDs, _data);
     }
@@ -173,7 +162,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
      * @param _delay The new delay period in seconds
      * @dev Only governance or C3Caller can call this function
      */
-    function setDelay(uint256 _delay) external virtual onlyGovOrC3Caller {
+    function setDelay(uint256 _delay) external virtual onlyGov {
         C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
         $.delay = _delay;
     }

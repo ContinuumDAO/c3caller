@@ -8,7 +8,7 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 interface IC3GovernDApp is IC3CallerDApp {
     // Events
     event LogChangeGov(
-        address indexed _oldGov, address indexed _newGov, uint256 indexed _effectiveTime, uint256 _chainID
+        address indexed _oldGov, address indexed _newGov, uint256 indexed _effectiveTime
     );
 
     // Errors

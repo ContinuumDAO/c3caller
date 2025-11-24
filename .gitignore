@@ -3,8 +3,12 @@ cache/
 out/
 sizes/
 
+# Documentation
+docs/
+
 # Legacy test files
 test-hardhat/
+legacy-test/
 
 # Ignores development broadcast logs
 !/broadcast
