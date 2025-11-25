@@ -78,8 +78,8 @@ abstract contract C3CallerDApp is IC3CallerDApp {
      * @param _toChainID The destination chain ID
      * @param _data The calldata to execute on target contract
      */
-    function _c3call(string memory _to, string memory _toChainID, bytes memory _data) internal virtual {
-        IC3Caller(c3caller).c3call(dappID, _to, _toChainID, _data, "");
+    function _c3call(string memory _to, string memory _toChainID, bytes memory _data) internal virtual returns (bytes32) {
+        return IC3Caller(c3caller).c3call(dappID, _to, _toChainID, _data, "");
     }
 
     /**
@@ -92,8 +92,9 @@ abstract contract C3CallerDApp is IC3CallerDApp {
     function _c3call(string memory _to, string memory _toChainID, bytes memory _data, bytes memory _extra)
         internal
         virtual
+        returns (bytes32)
     {
-        IC3Caller(c3caller).c3call(dappID, _to, _toChainID, _data, _extra);
+        return IC3Caller(c3caller).c3call(dappID, _to, _toChainID, _data, _extra);
     }
 
     /**
@@ -102,8 +103,8 @@ abstract contract C3CallerDApp is IC3CallerDApp {
      * @param _toChainIDs Array of destination chain IDs
      * @param _data The calldata to execute on the target contracts
      */
-    function _c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal virtual {
-        IC3Caller(c3caller).c3broadcast(dappID, _to, _toChainIDs, _data);
+    function _c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal virtual returns (bytes32[] memory){
+        return IC3Caller(c3caller).c3broadcast(dappID, _to, _toChainIDs, _data);
     }
 
     /**

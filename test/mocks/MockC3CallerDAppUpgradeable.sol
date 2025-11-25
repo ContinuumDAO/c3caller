@@ -35,23 +35,23 @@ contract MockC3CallerDAppUpgradeable is C3CallerDAppUpgradeable {
         revert TargetCallFailed();
     }
 
-    function mockC3Call(address _target, string memory _toChainID, string memory _message) public {
+    function mockC3Call(address _target, string memory _toChainID, string memory _message) public returns (bytes32) {
         bytes memory data = abi.encodeWithSelector(this.mockC3Executable.selector, _message);
-        _c3call(_target.toHexString(), _toChainID, data, "");
+        return _c3call(_target.toHexString(), _toChainID, data, "");
     }
 
-    function mockC3CallWithExtra(address _target, string memory _toChainID, string memory _message, string memory extra) public {
+    function mockC3CallWithExtra(address _target, string memory _toChainID, string memory _message, string memory extra) public returns (bytes32) {
         bytes memory data = abi.encodeWithSelector(this.mockC3Executable.selector, _message);
-        _c3call(_target.toHexString(), _toChainID, data, bytes(extra));
+        return _c3call(_target.toHexString(), _toChainID, data, bytes(extra));
     }
 
-    function mockC3Broadcast(address[] memory _targets, string[] memory _toChainIDs, string memory _message) public {
+    function mockC3Broadcast(address[] memory _targets, string[] memory _toChainIDs, string memory _message) public returns (bytes32[] memory) {
         string[] memory _targetStrs = new string[](_targets.length);
         for (uint256 i = 0; i < _targets.length; i++) {
             _targetStrs[i] = _targets[i].toHexString();
         }
         bytes memory data = abi.encodeWithSelector(this.mockC3Executable.selector, _message);
-        _c3broadcast(_targetStrs, _toChainIDs, data);
+        return _c3broadcast(_targetStrs, _toChainIDs, data);
     }
 
     function _c3Fallback(

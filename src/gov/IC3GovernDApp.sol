@@ -25,8 +25,8 @@ interface IC3GovernDApp is IC3CallerDApp {
 
     // Mut
     function changeGov(address _newGov) external;
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external;
-    function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data) external;
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external returns (bytes32);
+    function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data) external returns (bytes32[] memory);
     function setDelay(uint256 _delay) external;
 
     // View

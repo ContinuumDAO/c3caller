@@ -138,8 +138,8 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov {
-        _c3call(_to, _toChainID, _data);
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov returns (bytes32) {
+        return _c3call(_to, _toChainID, _data);
     }
 
     /**
@@ -153,8 +153,9 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
         external
         virtual
         onlyGov
+        returns (bytes32[] memory)
     {
-        _c3broadcast(_targets, _toChainIDs, _data);
+        return _c3broadcast(_targets, _toChainIDs, _data);
     }
 
     /**

@@ -125,7 +125,8 @@ contract C3GovernDAppUpgradeableTest is Helpers {
         vm.prank(gov);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogC3Call(mockC3GovernDAppID, uuid, address(mockC3GovernDApp), toChainID, target, data, "");
-        mockC3GovernDApp.doGov(target, toChainID, data);
+        bytes32 _uuid = mockC3GovernDApp.doGov(target, toChainID, data);
+        assertEq(_uuid, uuid);
     }
 
     // ==================================
@@ -145,6 +146,7 @@ contract C3GovernDAppUpgradeableTest is Helpers {
         toChainIDs[2] = "avalanche";
         string memory outgoingMessage = "C3Broadcast";
         bytes memory data = abi.encodeWithSelector(MockC3GovernDApp.mockC3Executable.selector, outgoingMessage);
+        bytes32[] memory uuids = new bytes32[](3);
         vm.prank(gov);
         for (uint256 i = 0; i < 3; i++) {
             bytes32 uuid = uuidKeeper_u.calcCallerUUIDWithNonce(
@@ -155,12 +157,16 @@ contract C3GovernDAppUpgradeableTest is Helpers {
                 data,
                 uuidKeeper_u.currentNonce() + i + 1
             );
+            uuids[i] = uuid;
             vm.expectEmit(true, true, true, true);
             emit IC3Caller.LogC3Call(
                 mockC3GovernDAppID, uuid, address(mockC3GovernDApp), toChainIDs[i], targets[i].toHexString(), data, ""
             );
         }
-        mockC3GovernDApp.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        bytes32[] memory _uuids = mockC3GovernDApp.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(_uuids[i], uuids[i]);
+        }
     }
 
     // ===========================

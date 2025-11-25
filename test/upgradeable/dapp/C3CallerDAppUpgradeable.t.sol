@@ -117,7 +117,8 @@ contract C3CallerDAppUpgradeableTest is Helpers {
         bytes32 uuid = uuidKeeper_u.calcCallerUUID(address(c3caller_u), mockC3CallerDAppID, to.toHexString(), toChainID, data);
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogC3Call(mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, "");
-        mockC3CallerDApp.mockC3Call(to, toChainID, message);
+        bytes32 _uuid = mockC3CallerDApp.mockC3Call(to, toChainID, message);
+        assertEq(_uuid, uuid);
     }
 
     // ===================================
@@ -133,7 +134,8 @@ contract C3CallerDAppUpgradeableTest is Helpers {
         string memory extra = "extra data to include in event";
         vm.expectEmit(true, true, true, true);
         emit IC3Caller.LogC3Call(mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, bytes(extra));
-        mockC3CallerDApp.mockC3CallWithExtra(to, toChainID, message, extra);
+        bytes32 _uuid = mockC3CallerDApp.mockC3CallWithExtra(to, toChainID, message, extra);
+        assertEq(_uuid, uuid);
     }
 
     // =============================
@@ -153,6 +155,7 @@ contract C3CallerDAppUpgradeableTest is Helpers {
         toChainIDs[2] = "avalanche";
         string memory outgoingMessage = "C3Broadcast";
         bytes memory data = abi.encodeWithSelector(MockC3CallerDApp.mockC3Executable.selector, outgoingMessage);
+        bytes32[] memory uuids = new bytes32[](3);
         for (uint256 i = 0; i < 3; i++) {
             bytes32 uuid = uuidKeeper_u.calcCallerUUIDWithNonce(
                 address(c3caller_u),
@@ -162,11 +165,15 @@ contract C3CallerDAppUpgradeableTest is Helpers {
                 data,
                 uuidKeeper_u.currentNonce() + i + 1
             );
+            uuids[i] = uuid;
             vm.expectEmit(true, true, true, true);
             emit IC3Caller.LogC3Call(
                 mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainIDs[i], targets[i].toHexString(), data, ""
             );
         }
-        mockC3CallerDApp.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        bytes32[] memory _uuids = mockC3CallerDApp.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(_uuids[i], uuids[i]);
+        }
     }
 }

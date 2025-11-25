@@ -274,7 +274,8 @@ contract C3CallerUpgradeableTest is Helpers {
         emit IC3Caller.LogC3Call(
             c3pingDAppID, uuid, address(c3ping), toChainID, target.toHexString(), data, ""
         );
-        c3ping.mockC3Call(target, toChainID, outgoingMessage);
+        bytes32 _uuid = c3ping.mockC3Call(target, toChainID, outgoingMessage);
+        assertEq(_uuid, uuid);
     }
 
     function test_C3Call_RevertWhen_CallerIsNotDAppID() public {
@@ -350,7 +351,8 @@ contract C3CallerUpgradeableTest is Helpers {
         emit IC3Caller.LogC3Call(
             c3pingDAppID, uuid, address(c3ping), toChainID, target.toHexString(), data, bytes(extra)
         );
-        c3ping.mockC3CallWithExtra(target, toChainID, outgoingMessage, extra);
+        bytes32 _uuid = c3ping.mockC3CallWithExtra(target, toChainID, outgoingMessage, extra);
+        assertEq(_uuid, uuid);
     }
 
     // =============================
@@ -371,6 +373,7 @@ contract C3CallerUpgradeableTest is Helpers {
         toChainIDs[2] = "avalanche";
         string memory outgoingMessage = "C3Broadcast";
         bytes memory data = abi.encodeWithSelector(MockC3CallerDAppUpgradeable.mockC3Executable.selector, outgoingMessage);
+        bytes32[] memory uuids = new bytes32[](3);
         for (uint256 i = 0; i < 3; i++) {
             bytes32 uuid = uuidKeeper_u.calcCallerUUIDWithNonce(
                 address(c3caller_u),
@@ -380,12 +383,16 @@ contract C3CallerUpgradeableTest is Helpers {
                 data,
                 uuidKeeper_u.currentNonce() + i + 1
             );
+            uuids[i] = uuid;
             vm.expectEmit(true, true, true, true);
             emit IC3Caller.LogC3Call(
                 c3pingDAppID, uuid, address(c3ping), toChainIDs[i], targets[i].toHexString(), data, ""
             );
         }
-        c3ping.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        bytes32[] memory _uuids = c3ping.mockC3Broadcast(targets, toChainIDs, outgoingMessage);
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(_uuids[i], uuids[i]);
+        }
     }
 
     function test_C3Broadcast_RevertWhen_ZeroToLength() public {
