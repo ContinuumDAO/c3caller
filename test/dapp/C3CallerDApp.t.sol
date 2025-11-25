@@ -15,9 +15,10 @@ contract C3CallerDAppTest is Helpers {
     MockC3CallerDApp mockC3CallerDApp;
     uint256 mockC3CallerDAppID;
     string mockDAppKey = "v1.mockdapp.c3caller";
-    string mockMetadata = "{'version':1,'name':'MockC3CallerDApp','description':'Mock C3CallerDApp','email':'admin@mock.com','url':'mock.com'}";
+    string mockMetadata =
+        "{'version':1,'name':'MockC3CallerDApp','description':'Mock C3CallerDApp','email':'admin@mock.com','url':'mock.com'}";
 
-    function setUp() public override virtual {
+    function setUp() public virtual override {
         super.setUp();
         _deployC3UUIDKeeper(gov);
         _deployC3DAppManager(gov);
@@ -59,7 +60,11 @@ contract C3CallerDAppTest is Helpers {
         string memory message = "Incoming message";
         bytes memory data = abi.encodeWithSelector(MockC3CallerDApp.mockC3Executable.selector, message);
         bytes memory reason = abi.encodeWithSelector(MockC3CallerDApp.TargetCallFailed.selector);
-        vm.expectRevert(abi.encodeWithSelector(IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
+            )
+        );
         mockC3CallerDApp.c3Fallback(mockC3CallerDAppID, data, reason);
     }
 
@@ -86,13 +91,15 @@ contract C3CallerDAppTest is Helpers {
         bytes memory reason = abi.encodeWithSelector(MockC3CallerDApp.TargetCallFailed.selector);
         uint256 wrongDAppID = 79;
         vm.prank(address(c3caller));
-        vm.expectRevert(abi.encodeWithSelector(IC3CallerDApp.C3CallerDApp_InvalidDAppID.selector, mockC3CallerDAppID, wrongDAppID));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3CallerDApp.C3CallerDApp_InvalidDAppID.selector, mockC3CallerDAppID, wrongDAppID)
+        );
         mockC3CallerDApp.c3Fallback(wrongDAppID, data, reason);
     }
 
     function test_C3Fallback_DataLessThan4Bytes() public {
         bytes memory data = bytes("");
-        bytes memory reason =  abi.encodeWithSelector(MockC3CallerDApp.TargetCallFailed.selector);
+        bytes memory reason = abi.encodeWithSelector(MockC3CallerDApp.TargetCallFailed.selector);
         vm.prank(address(c3caller));
         bool success = mockC3CallerDApp.c3Fallback(mockC3CallerDAppID, data, reason);
         bytes memory _reason = mockC3CallerDApp.reason();
@@ -111,9 +118,12 @@ contract C3CallerDAppTest is Helpers {
         string memory toChainID = "ethereum";
         string memory message = "Outgoing message";
         bytes memory data = abi.encodeWithSelector(MockC3CallerDApp.mockC3Executable.selector, message);
-        bytes32 uuid = uuidKeeper.calcCallerUUID(address(c3caller), mockC3CallerDAppID, to.toHexString(), toChainID, data);
+        bytes32 uuid =
+            uuidKeeper.calcCallerUUID(address(c3caller), mockC3CallerDAppID, to.toHexString(), toChainID, data);
         vm.expectEmit(true, true, true, true);
-        emit IC3Caller.LogC3Call(mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, "");
+        emit IC3Caller.LogC3Call(
+            mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, ""
+        );
         bytes32 _uuid = mockC3CallerDApp.mockC3Call(to, toChainID, message);
         assertEq(_uuid, uuid);
     }
@@ -127,10 +137,13 @@ contract C3CallerDAppTest is Helpers {
         string memory toChainID = "ethereum";
         string memory message = "Outgoing message";
         bytes memory data = abi.encodeWithSelector(MockC3CallerDApp.mockC3Executable.selector, message);
-        bytes32 uuid = uuidKeeper.calcCallerUUID(address(c3caller), mockC3CallerDAppID, to.toHexString(), toChainID, data);
+        bytes32 uuid =
+            uuidKeeper.calcCallerUUID(address(c3caller), mockC3CallerDAppID, to.toHexString(), toChainID, data);
         string memory extra = "extra data to include in event";
         vm.expectEmit(true, true, true, true);
-        emit IC3Caller.LogC3Call(mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, bytes(extra));
+        emit IC3Caller.LogC3Call(
+            mockC3CallerDAppID, uuid, address(mockC3CallerDApp), toChainID, to.toHexString(), data, bytes(extra)
+        );
         bytes32 _uuid = mockC3CallerDApp.mockC3CallWithExtra(to, toChainID, message, extra);
         assertEq(_uuid, uuid);
     }

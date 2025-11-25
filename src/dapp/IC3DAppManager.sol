@@ -12,6 +12,7 @@ interface IC3DAppManager {
         Suspended, // DApp is temporarily suspended
         Deprecated // DApp is permanently deprecated and cannot be reused
     }
+
     struct DAppConfig {
         address admin; // account who admin the application's config
         address feeToken; // token address for fee token
@@ -24,7 +25,9 @@ interface IC3DAppManager {
     event DAppStatusChanged(
         uint256 indexed _dappID, DAppStatus indexed _oldStatus, DAppStatus indexed _newStatus, string _reason
     );
-    event InitDAppConfig(uint256 indexed _dappID, string _dappKey, address indexed _admin, address indexed _feeToken, string metadata);
+    event InitDAppConfig(
+        uint256 indexed _dappID, string _dappKey, address indexed _admin, address indexed _feeToken, string metadata
+    );
     event UpdateDAppConfig(uint256 indexed _dappID, address indexed _admin, address indexed _feeToken, string metadata);
     event SetDAppAddr(uint256 indexed _dappID, address _address, bool _status);
     event AddMPCAddr(uint256 indexed _dappID, address _addr, string _pubkey);
@@ -34,7 +37,9 @@ interface IC3DAppManager {
     event DeleteFeeConfig(address indexed _token);
     event Deposit(uint256 indexed _dappID, address indexed _token, uint256 _amount, uint256 _left);
     event Withdraw(uint256 indexed _dappID, address indexed _token, uint256 _amount);
-    event ChargePayload(uint256 indexed _dappID, address indexed _feeToken, uint256 _bill, uint256 _discount, uint256 _left);
+    event ChargePayload(
+        uint256 indexed _dappID, address indexed _feeToken, uint256 _bill, uint256 _discount, uint256 _left
+    );
     event ChargeGas(uint256 indexed _dappID, address indexed _feeToken, uint256 _bill, uint256 _left);
     event Collect(address indexed _feeToken, uint256 _total);
     event SetDAppFeeDiscount(uint256 indexed _dappID, uint256 _discount);
@@ -84,7 +89,9 @@ interface IC3DAppManager {
     // function _dappStatus(uint256 _dappID) internal view returns (DAppStatus);
 
     // Mut
-    function initDAppConfig(string memory _dappKey, address _feeToken, string memory _metadata) external returns (uint256);
+    function initDAppConfig(string memory _dappKey, address _feeToken, string memory _metadata)
+        external
+        returns (uint256);
     function updateDAppConfig(uint256 _dappID, address _admin, address _feeToken, string memory _metadata) external;
     function setDAppAddr(uint256 _dappID, address _address, bool _status) external;
     function addDAppMPCAddr(uint256 _dappID, address _addr, string memory _pubkey) external;

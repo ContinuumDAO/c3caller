@@ -50,12 +50,20 @@ contract MockC3GovernDAppUpgradeable is C3GovernDAppUpgradeable {
         return _c3call(_target.toHexString(), _toChainID, data, "");
     }
 
-    function mockC3CallWithExtra(address _target, string memory _toChainID, string memory _message, string memory extra) public returns (bytes32) {
+    function mockC3CallWithExtra(
+        address _target,
+        string memory _toChainID,
+        string memory _message,
+        string memory extra
+    ) public returns (bytes32) {
         bytes memory data = abi.encodeWithSelector(this.mockC3Executable.selector, _message);
         return _c3call(_target.toHexString(), _toChainID, data, bytes(extra));
     }
 
-    function mockC3Broadcast(address[] memory _targets, string[] memory _toChainIDs, string memory _message) public returns (bytes32[] memory) {
+    function mockC3Broadcast(address[] memory _targets, string[] memory _toChainIDs, string memory _message)
+        public
+        returns (bytes32[] memory)
+    {
         string[] memory _targetStrs = new string[](_targets.length);
         for (uint256 i = 0; i < _targets.length; i++) {
             _targetStrs[i] = _targets[i].toHexString();
@@ -64,11 +72,11 @@ contract MockC3GovernDAppUpgradeable is C3GovernDAppUpgradeable {
         return _c3broadcast(_targetStrs, _toChainIDs, data);
     }
 
-    function _c3Fallback(
-        bytes4 _selector,
-        bytes calldata _data,
-        bytes calldata _reason
-    ) internal override returns (bool) {
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+        internal
+        override
+        returns (bool)
+    {
         if (_selector == this.mockC3Executable.selector) {
             reason = _reason;
             (string memory _fallbackMessage) = abi.decode(_data, (string));

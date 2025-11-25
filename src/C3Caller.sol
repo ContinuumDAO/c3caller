@@ -108,7 +108,7 @@ contract C3Caller is IC3Caller, C3GovClient {
     function c3call(uint256 _dappID, string calldata _to, string calldata _toChainID, bytes calldata _data)
         external
         whenNotPaused
-        returns(bytes32)
+        returns (bytes32)
     {
         return _c3call(_dappID, msg.sender, _to, _toChainID, _data, "");
     }

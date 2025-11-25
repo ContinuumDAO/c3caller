@@ -112,7 +112,11 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
      * @param _toChainID The destination chain ID
      * @param _data The calldata to execute on target contract
      */
-    function _c3call(string memory _to, string memory _toChainID, bytes memory _data) internal virtual returns (bytes32) {
+    function _c3call(string memory _to, string memory _toChainID, bytes memory _data)
+        internal
+        virtual
+        returns (bytes32)
+    {
         return IC3Caller(c3caller()).c3call(dappID(), _to, _toChainID, _data, "");
     }
 
@@ -137,7 +141,11 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
      * @param _toChainIDs Array of destination chain IDs
      * @param _data The calldata to execute on the target contracts
      */
-    function _c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data) internal virtual returns (bytes32[] memory){
+    function _c3broadcast(string[] memory _to, string[] memory _toChainIDs, bytes memory _data)
+        internal
+        virtual
+        returns (bytes32[] memory)
+    {
         return IC3Caller(c3caller()).c3broadcast(dappID(), _to, _toChainIDs, _data);
     }
 

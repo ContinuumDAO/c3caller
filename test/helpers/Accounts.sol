@@ -77,12 +77,7 @@ contract Accounts is Utils {
         _approveERC20(mpc2, token, amount, _dappManager);
     }
 
-    function _approveERC20(
-        address _account,
-        ITestERC20 _token,
-        uint256 _amount,
-        address _dappManager
-    ) internal {
+    function _approveERC20(address _account, ITestERC20 _token, uint256 _amount, address _dappManager) internal {
         vm.startPrank(_account);
         _token.approve(_dappManager, _amount);
         vm.stopPrank();

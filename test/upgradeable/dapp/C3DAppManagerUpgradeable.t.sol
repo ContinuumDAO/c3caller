@@ -83,7 +83,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     // ==================================
 
     function test_RevertWhen_CallerNotGovOrAdmin() public {
-        bytes memory onlyAuthGovOrAdminError = abi.encodeWithSelector(IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin);
+        bytes memory onlyAuthGovOrAdminError = abi.encodeWithSelector(
+            IC3DAppManager.C3DAppManager_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrAdmin
+        );
 
         vm.expectRevert(onlyAuthGovOrAdminError);
         dappManager_u.updateDAppConfig(c3pingDAppID, user2, address(ctm), c3pingMetadata);
@@ -102,7 +104,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     }
 
     function test_RevertWhen_CallerNotC3Caller() public {
-        bytes memory onlyAuthC3CallerError = abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller);
+        bytes memory onlyAuthC3CallerError = abi.encodeWithSelector(
+            IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
+        );
 
         vm.expectRevert(onlyAuthC3CallerError);
         dappManager_u.chargePayload(c3pingDAppID, 128);
@@ -119,7 +123,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.prank(gov);
         dappManager_u.setDAppStatus(c3pingDAppID, IC3DAppManager.DAppStatus.Suspended, "suspended dapp");
 
-        bytes memory onlyActiveDAppError = abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, c3pingDAppID, IC3DAppManager.DAppStatus.Suspended);
+        bytes memory onlyActiveDAppError = abi.encodeWithSelector(
+            IC3DAppManager.C3DAppManager_InactiveDApp.selector, c3pingDAppID, IC3DAppManager.DAppStatus.Suspended
+        );
 
         vm.startPrank(user1);
         vm.expectRevert(onlyActiveDAppError);
@@ -143,7 +149,11 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         dappManager_u.setDAppStatus(c3pingDAppID, IC3DAppManager.DAppStatus.Suspended, "suspended dapp");
 
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InactiveDApp.selector, c3pingDAppID, IC3DAppManager.DAppStatus.Suspended));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_InactiveDApp.selector, c3pingDAppID, IC3DAppManager.DAppStatus.Suspended
+            )
+        );
         dappManager_u.updateDAppConfig(c3pingDAppID, user2, address(ctm), c3pingMetadata);
     }
 
@@ -153,7 +163,8 @@ contract C3DAppManagerUpgradeableTest is Helpers {
 
     function test_RevertWhen_DAppIDNonExistent() public {
         uint256 nonExistentID = 1234567;
-        bytes memory invalidDAppIDError = abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidDAppID.selector, nonExistentID);
+        bytes memory invalidDAppIDError =
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidDAppID.selector, nonExistentID);
 
         vm.expectRevert(invalidDAppIDError);
         dappManager_u.updateDAppConfig(nonExistentID, user2, address(ctm), c3pingMetadata);
@@ -228,7 +239,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 limit = dappManager_u.DAPP_KEY_LIMIT();
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_StringTooLong.selector, 65, limit));
-        dappManager_u.initDAppConfig("00000000000000000000000000000000000000000000000000000000000000000", address(usdc), c3governorMetadata);
+        dappManager_u.initDAppConfig(
+            "00000000000000000000000000000000000000000000000000000000000000000", address(usdc), c3governorMetadata
+        );
     }
 
     function test_InitDAppConfig_RevertWhen_DAppIDExists() public {
@@ -254,7 +267,11 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 limit = dappManager_u.METADATA_LIMIT();
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_StringTooLong.selector, 513, limit));
-        dappManager_u.initDAppConfig(c3governorDAppKey, address(usdc), "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+        dappManager_u.initDAppConfig(
+            c3governorDAppKey,
+            address(usdc),
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        );
     }
 
     // ====================================
@@ -322,7 +339,12 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 limit = dappManager_u.METADATA_LIMIT();
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_StringTooLong.selector, 513, limit));
-        dappManager_u.updateDAppConfig(c3pingDAppID, user1, address(usdc), "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+        dappManager_u.updateDAppConfig(
+            c3pingDAppID,
+            user1,
+            address(usdc),
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        );
     }
 
     // ===============================
@@ -365,7 +387,8 @@ contract C3DAppManagerUpgradeableTest is Helpers {
 
     function test_SetDAppAddr_RevertWhen_InvalidAddr() public {
         vm.startPrank(user1);
-        bytes memory invalidDAppAddrError = abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidDAppAddr.selector, address(c3ping));
+        bytes memory invalidDAppAddrError =
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidDAppAddr.selector, address(c3ping));
         vm.expectRevert(invalidDAppAddrError);
         dappManager_u.setDAppAddr(c3pingDAppID, address(c3ping), true);
 
@@ -421,8 +444,8 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     // ===================================
 
     function test_DelDAppMPCAddr_Success() public {
-        _addMPCUpgradeable(gov,mpcAddr2);
-        _addMPCUpgradeable(gov,mpcAddr3);
+        _addMPCUpgradeable(gov, mpcAddr2);
+        _addMPCUpgradeable(gov, mpcAddr3);
         vm.startPrank(user1);
         dappManager_u.addDAppMPCAddr(c3pingDAppID, mpcAddr1, pubKey1);
         dappManager_u.addDAppMPCAddr(c3pingDAppID, mpcAddr2, pubKey2);
@@ -497,7 +520,11 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.prank(gov);
         dappManager_u.setFeeMinimumDeposit(address(usdc), minimumDeposit);
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, minimumDeposit - 1, minimumDeposit));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, minimumDeposit - 1, minimumDeposit
+            )
+        );
         dappManager_u.deposit(c3pingDAppID, address(usdc), minimumDeposit - 1);
     }
 
@@ -537,9 +564,7 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.prank(gov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector,
-                minimumDepositUSDC,
-                minimumDepositUSDC + 1
+                IC3DAppManager.C3DAppManager_BelowMinimumDeposit.selector, minimumDepositUSDC, minimumDepositUSDC + 1
             )
         );
         dappManager_u.withdraw(c3pingDAppID, address(usdc));
@@ -622,7 +647,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 payloadSize = 10_001;
         uint256 bill = payloadSize * dappManager_u.payloadPerByteFee(address(usdc));
         vm.prank(address(c3caller_u));
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, poolBalance, bill));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, poolBalance, bill)
+        );
         dappManager_u.chargePayload(c3pingDAppID, payloadSize);
     }
 
@@ -656,7 +683,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         uint256 gasSize = 0.1 ether;
         uint256 bill = gasSize * dappManager_u.gasPerEtherFee(address(usdc)) / 1 ether;
         vm.prank(address(c3caller_u));
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, poolBalance, bill));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InsufficientBalance.selector, poolBalance, bill)
+        );
         dappManager_u.chargeGas(c3pingDAppID, gasSize);
     }
 
@@ -731,14 +760,18 @@ contract C3DAppManagerUpgradeableTest is Helpers {
 
     function test_SetFeeMinimumDeposit_RevertWhen_MinIsZero() public {
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.MinimumDeposit));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_IsZero.selector, C3ErrorParam.MinimumDeposit)
+        );
         dappManager_u.setFeeMinimumDeposit(address(usdc), 0);
     }
 
     function test_SetFeeMinimumDeposit_RevertWhen_InvalidFeeToken() public {
         TestERC20 randomToken = new TestERC20("Random token", "ABC", 18);
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(randomToken)));
+        vm.expectRevert(
+            abi.encodeWithSelector(IC3DAppManager.C3DAppManager_InvalidFeeToken.selector, address(randomToken))
+        );
         dappManager_u.setFeeMinimumDeposit(address(randomToken), 1050);
     }
 
@@ -765,14 +798,18 @@ contract C3DAppManagerUpgradeableTest is Helpers {
         vm.expectEmit(true, true, true, true);
         emit IC3DAppManager.SetDAppFeeDiscount(c3pingDAppID, 5000);
         dappManager_u.setDAppFeeDiscount(c3pingDAppID, 5000);
-        (,,uint256 discount,,) = dappManager_u.dappConfig(c3pingDAppID);
+        (,, uint256 discount,,) = dappManager_u.dappConfig(c3pingDAppID);
         assertEq(discount, 5000);
     }
 
     function test_SetDAppFeeDiscount_RevertWhen_DiscountIsAboveMax() public {
         uint256 maxDiscountDenominator = dappManager_u.DISCOUNT_DENOMINATOR();
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(IC3DAppManager.C3DAppManager_DiscountAboveMax.selector, 10_001, maxDiscountDenominator));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3DAppManager.C3DAppManager_DiscountAboveMax.selector, 10_001, maxDiscountDenominator
+            )
+        );
         dappManager_u.setDAppFeeDiscount(c3pingDAppID, 10_001);
     }
 
@@ -783,7 +820,9 @@ contract C3DAppManagerUpgradeableTest is Helpers {
     function test_SetDAppStatus_Success() public {
         vm.prank(gov);
         vm.expectEmit(true, true, true, true);
-        emit IC3DAppManager.DAppStatusChanged(c3pingDAppID, IC3DAppManager.DAppStatus.Active, IC3DAppManager.DAppStatus.Suspended, "suspended dapp");
+        emit IC3DAppManager.DAppStatusChanged(
+            c3pingDAppID, IC3DAppManager.DAppStatus.Active, IC3DAppManager.DAppStatus.Suspended, "suspended dapp"
+        );
         dappManager_u.setDAppStatus(c3pingDAppID, IC3DAppManager.DAppStatus.Suspended, "suspended dapp");
     }
 

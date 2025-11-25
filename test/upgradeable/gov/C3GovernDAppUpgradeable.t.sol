@@ -19,9 +19,10 @@ contract C3GovernDAppUpgradeableTest is Helpers {
     MockC3GovernDApp mockC3GovernDApp;
     uint256 mockC3GovernDAppID;
     string mockDAppKey = "v1.mockdapp.c3caller_u";
-    string mockMetadata = "{'version':1,'name':'MockC3GovernDApp','description':'Mock C3GovernDApp','email':'admin@mock.com','url':'mock.com'}";
+    string mockMetadata =
+        "{'version':1,'name':'MockC3GovernDApp','description':'Mock C3GovernDApp','email':'admin@mock.com','url':'mock.com'}";
 
-    function setUp() public override virtual {
+    function setUp() public virtual override {
         super.setUp();
         _deployC3UUIDKeeperUpgradeable(gov);
         _deployC3DAppManagerUpgradeable(gov);
@@ -55,7 +56,6 @@ contract C3GovernDAppUpgradeableTest is Helpers {
         assertEq(_gov, gov);
     }
 
-
     // ==================================
     // ======== ACCESS MODIFIERS ========
     // ==================================
@@ -73,9 +73,7 @@ contract C3GovernDAppUpgradeableTest is Helpers {
         toChainIDs[1] = "polygon";
         toChainIDs[2] = "arbitrum";
         bytes memory onlyAuthGovError = abi.encodeWithSelector(
-            IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
-            C3ErrorParam.Sender,
-            C3ErrorParam.Gov
+            IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
         );
 
         vm.expectRevert(onlyAuthGovError);

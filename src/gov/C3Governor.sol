@@ -35,9 +35,7 @@ contract C3Governor is IC3Governor, C3GovernDApp {
      * @param _c3caller The C3Caller deployed instance.
      * @param _dappID The DApp ID of this C3CallerDApp.
      */
-    constructor(address _gov, address _c3caller, uint256 _dappID)
-        C3GovernDApp(_gov, _c3caller, _dappID)
-    {}
+    constructor(address _gov, address _c3caller, uint256 _dappID) C3GovernDApp(_gov, _c3caller, _dappID) {}
 
     /**
      * @notice Entry point for a proposal to be executed on another network (called by Governor).

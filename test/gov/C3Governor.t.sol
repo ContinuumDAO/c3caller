@@ -83,7 +83,8 @@ contract C3GovernorTest is Helpers {
         _setFeeConfig(gov, address(ctm));
 
         string memory dappKey = "v1.c3governor.c3caller";
-        string memory metadata = "{'version':1,'name':'C3Governor','description':'Cross-chain governance','email':'admin@c3gov.com','url':'c3gov.com'}";
+        string memory metadata =
+            "{'version':1,'name':'C3Governor','description':'Cross-chain governance','email':'admin@c3gov.com','url':'c3gov.com'}";
 
         c3governorDAppID = _initDAppConfig(gov, dappKey, address(usdc), metadata);
 
@@ -110,23 +111,19 @@ contract C3GovernorTest is Helpers {
         c3caller.activateChainID("56");
         c3caller.activateChainID("137");
         c3caller.activateChainID("421614");
-        c3governor.setPeer("1",      "0xaabbccddaabbccddaabbccddaabbccddaabbccdd");
-        c3governor.setPeer("10",     "0xbbccddeebbccddeebbccddeebbccddeebbccddee");
-        c3governor.setPeer("56",     "0xccddeeffccddeeffccddeeffccddeeffccddeeff");
-        c3governor.setPeer("137",    "0xddeeff00ddeeff00ddeeff00ddeeff00ddeeff00");
+        c3governor.setPeer("1", "0xaabbccddaabbccddaabbccddaabbccddaabbccdd");
+        c3governor.setPeer("10", "0xbbccddeebbccddeebbccddeebbccddeebbccddee");
+        c3governor.setPeer("56", "0xccddeeffccddeeffccddeeffccddeeffccddeeff");
+        c3governor.setPeer("137", "0xddeeff00ddeeff00ddeeff00ddeeff00ddeeff00");
         c3governor.setPeer("421614", "0xeeff0011eeff0011eeff0011eeff0011eeff0011");
         vm.stopPrank();
 
         string memory dappKeyMock = "v1.c3mock.c3caller";
-        string memory metadataMock = "{'version':1,'name':'MockC3GovernDApp','description':'Mock description','email':'admin@c3mock.com','url':'c3mock.com'}";
+        string memory metadataMock =
+            "{'version':1,'name':'MockC3GovernDApp','description':'Mock description','email':'admin@c3mock.com','url':'c3mock.com'}";
 
-        (mockC3GovernDApp, mockDAppID) = _createC3GovernDApp(
-            gov,
-            address(c3governor),
-            dappKeyMock,
-            address(usdc),
-            metadataMock
-        );
+        (mockC3GovernDApp, mockDAppID) =
+            _createC3GovernDApp(gov, address(c3governor), dappKeyMock, address(usdc), metadataMock);
     }
 
     // =============================
@@ -364,7 +361,9 @@ contract C3GovernorTest is Helpers {
         bytes32 expectedUUID =
             uuidKeeper.calcCallerUUID(address(c3caller), c3governorDAppID, peer, toChainId, destChainData);
         vm.expectEmit(true, true, false, true);
-        emit IC3Caller.LogC3Call(c3governorDAppID, expectedUUID, address(c3governor), toChainId, peer, destChainData, "");
+        emit IC3Caller.LogC3Call(
+            c3governorDAppID, expectedUUID, address(c3governor), toChainId, peer, destChainData, ""
+        );
         c3governor.doGov(nonce, index);
 
         // should fail the second time for the same nonce & index

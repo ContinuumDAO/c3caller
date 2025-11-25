@@ -67,10 +67,7 @@ contract Deployer is Utils {
         vm.stopPrank();
     }
 
-    function _deployC3CallerDApp(
-        address _creator,
-        uint256 _dappID
-    ) internal returns (MockC3CallerDApp) {
+    function _deployC3CallerDApp(address _creator, uint256 _dappID) internal returns (MockC3CallerDApp) {
         vm.prank(_creator);
         return new MockC3CallerDApp(address(c3caller), _dappID);
     }
@@ -80,22 +77,18 @@ contract Deployer is Utils {
         return new MockC3GovernDApp(_gov, address(c3caller), _dappID);
     }
 
-    function _initDAppConfig(
-        address _creator,
-        string memory _dappKey,
-        address _feeToken,
-        string memory _metadata
-    ) internal returns (uint256) {
+    function _initDAppConfig(address _creator, string memory _dappKey, address _feeToken, string memory _metadata)
+        internal
+        returns (uint256)
+    {
         vm.prank(_creator);
         return dappManager.initDAppConfig(_dappKey, _feeToken, _metadata);
     }
 
-    function _createC3CallerDApp(
-        address _creator,
-        string memory _dappKey,
-        address _feeToken,
-        string memory _metadata
-    ) internal returns (MockC3CallerDApp, uint256) {
+    function _createC3CallerDApp(address _creator, string memory _dappKey, address _feeToken, string memory _metadata)
+        internal
+        returns (MockC3CallerDApp, uint256)
+    {
         uint256 dappID = _initDAppConfig(_creator, _dappKey, _feeToken, _metadata);
         MockC3CallerDApp dapp = _deployC3CallerDApp(_creator, dappID);
         vm.startPrank(_creator);
@@ -114,7 +107,7 @@ contract Deployer is Utils {
         string memory _metadata
     ) internal returns (MockC3GovernDApp, uint256) {
         uint256 dappID = _initDAppConfig(_gov, _dappKey, _feeToken, _metadata);
-        MockC3GovernDApp dapp =  _deployC3GovernDApp(_creator, _gov, dappID);
+        MockC3GovernDApp dapp = _deployC3GovernDApp(_creator, _gov, dappID);
         vm.startPrank(_creator);
         dappManager.setDAppAddr(dappID, address(dapp), true);
         dappManager.deposit(dappID, _feeToken, 100 * 10 ** ITestERC20(_feeToken).decimals());
@@ -143,7 +136,9 @@ contract Deployer is Utils {
     function _deployC3CallerUpgradeable(address _gov) internal {
         vm.startPrank(_gov);
         C3CallerUpgradeable impl = new C3CallerUpgradeable();
-        bytes memory initData = abi.encodeWithSelector(C3CallerUpgradeable.initialize.selector, address(uuidKeeper_u), address(dappManager_u));
+        bytes memory initData = abi.encodeWithSelector(
+            C3CallerUpgradeable.initialize.selector, address(uuidKeeper_u), address(dappManager_u)
+        );
         C3CallerProxy proxy = new C3CallerProxy(address(impl), initData);
         c3caller_u = C3CallerUpgradeable(address(proxy));
         vm.stopPrank();
@@ -174,28 +169,36 @@ contract Deployer is Utils {
         vm.stopPrank();
     }
 
-    function _deployC3CallerDAppUpgradeable(
-        address _creator,
-        uint256 _dappID
-    ) internal returns (MockC3CallerDAppUpgradeable) {
+    function _deployC3CallerDAppUpgradeable(address _creator, uint256 _dappID)
+        internal
+        returns (MockC3CallerDAppUpgradeable)
+    {
         vm.startPrank(_creator);
         MockC3CallerDAppUpgradeable impl = new MockC3CallerDAppUpgradeable();
-        bytes memory initData = abi.encodeWithSelector(MockC3CallerDAppUpgradeable.initialize.selector, address(c3caller_u), _dappID);
+        bytes memory initData =
+            abi.encodeWithSelector(MockC3CallerDAppUpgradeable.initialize.selector, address(c3caller_u), _dappID);
         C3CallerProxy proxy = new C3CallerProxy(address(impl), initData);
         vm.stopPrank();
         return MockC3CallerDAppUpgradeable(address(proxy));
     }
 
-    function _deployC3GovernDAppUpgradeable(address _creator, address _gov, uint256 _dappID) internal returns (MockC3GovernDAppUpgradeable) {
+    function _deployC3GovernDAppUpgradeable(address _creator, address _gov, uint256 _dappID)
+        internal
+        returns (MockC3GovernDAppUpgradeable)
+    {
         vm.startPrank(_creator);
         MockC3GovernDAppUpgradeable impl = new MockC3GovernDAppUpgradeable();
-        bytes memory initData = abi.encodeWithSelector(MockC3GovernDAppUpgradeable.initialize.selector, _gov, address(c3caller_u), _dappID);
+        bytes memory initData =
+            abi.encodeWithSelector(MockC3GovernDAppUpgradeable.initialize.selector, _gov, address(c3caller_u), _dappID);
         C3CallerProxy proxy = new C3CallerProxy(address(impl), initData);
         vm.stopPrank();
         return MockC3GovernDAppUpgradeable(address(proxy));
     }
 
-    function _deployC3GovClientUpgradeable(address _creator, address _gov) internal returns (MockC3GovClientUpgradeable) {
+    function _deployC3GovClientUpgradeable(address _creator, address _gov)
+        internal
+        returns (MockC3GovClientUpgradeable)
+    {
         vm.startPrank(_creator);
         MockC3GovClientUpgradeable impl = new MockC3GovClientUpgradeable();
         bytes memory initData = abi.encodeWithSelector(MockC3GovClientUpgradeable.initialize.selector, _gov);
@@ -238,7 +241,7 @@ contract Deployer is Utils {
         string memory _metadata
     ) internal returns (MockC3GovernDAppUpgradeable, uint256) {
         uint256 dappID = _initDAppConfigUpgradeable(_gov, _dappKey, _feeToken, _metadata);
-        MockC3GovernDAppUpgradeable dapp =  _deployC3GovernDAppUpgradeable(_creator, _gov, dappID);
+        MockC3GovernDAppUpgradeable dapp = _deployC3GovernDAppUpgradeable(_creator, _gov, dappID);
         vm.startPrank(_creator);
         dappManager_u.setDAppAddr(dappID, address(dapp), true);
         dappManager_u.deposit(dappID, _feeToken, 100 * 10 ** ITestERC20(_feeToken).decimals());

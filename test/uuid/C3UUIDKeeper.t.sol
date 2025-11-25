@@ -39,9 +39,7 @@ contract C3UUIDKeeperTest is Helpers {
     function test_RevertWhen_CallerNotGov() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         uuidKeeper.revokeSwapIn(keccak256("completed swap ID"), mockDAppID);
@@ -49,13 +47,13 @@ contract C3UUIDKeeperTest is Helpers {
 
     function test_RevertWhen_CallerNotC3Caller() public {
         bytes memory onlyAuthC3CallerError = abi.encodeWithSelector(
-            IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-            C3ErrorParam.Sender,
-            C3ErrorParam.C3Caller
+            IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
         );
 
         vm.expectRevert(onlyAuthC3CallerError);
-        uuidKeeper.genUUID(mockDAppID, "to address", "to chain ID", abi.encodeWithSelector(C3UUIDKeeper.genUUID.selector));
+        uuidKeeper.genUUID(
+            mockDAppID, "to address", "to chain ID", abi.encodeWithSelector(C3UUIDKeeper.genUUID.selector)
+        );
 
         vm.expectRevert(onlyAuthC3CallerError);
         uuidKeeper.registerUUID(keccak256("sample UUID"), mockDAppID);
@@ -71,11 +69,22 @@ contract C3UUIDKeeperTest is Helpers {
         string memory mockToChainID = "to chain ID";
         bytes memory data = abi.encodeWithSelector(C3UUIDKeeper.genUUID.selector);
         bytes32 expectedUUID = keccak256(
-            abi.encode(address(uuidKeeper), address(c3caller), block.chainid, mockDAppID, mockTarget, mockToChainID, nonceBefore + 1, data)
+            abi.encode(
+                address(uuidKeeper),
+                address(c3caller),
+                block.chainid,
+                mockDAppID,
+                mockTarget,
+                mockToChainID,
+                nonceBefore + 1,
+                data
+            )
         );
         vm.prank(address(c3caller));
         vm.expectEmit(true, true, true, true);
-        emit IC3UUIDKeeper.UUIDGenerated(expectedUUID, mockDAppID, address(c3caller), mockTarget, mockToChainID, nonceBefore + 1, data);
+        emit IC3UUIDKeeper.UUIDGenerated(
+            expectedUUID, mockDAppID, address(c3caller), mockTarget, mockToChainID, nonceBefore + 1, data
+        );
         bytes32 uuid = uuidKeeper.genUUID(mockDAppID, mockTarget, mockToChainID, data);
         assertEq(uuidKeeper.currentNonce(), nonceBefore + 1);
         assertEq(uuid, expectedUUID);
@@ -142,7 +151,9 @@ contract C3UUIDKeeperTest is Helpers {
         string memory toChainID = "to chain ID";
         bytes memory data = abi.encode("some executable data");
         uint256 currentNonce = uuidKeeper.currentNonce();
-        bytes32 expectedUUID = uuidKeeper.calcCallerUUIDWithNonce(address(c3caller), mockDAppID, target, toChainID, data, currentNonce + 1);
+        bytes32 expectedUUID = uuidKeeper.calcCallerUUIDWithNonce(
+            address(c3caller), mockDAppID, target, toChainID, data, currentNonce + 1
+        );
         vm.prank(address(c3caller));
         bytes32 actualUUID = uuidKeeper.genUUID(mockDAppID, target, toChainID, data);
         assertEq(actualUUID, expectedUUID);
@@ -157,7 +168,9 @@ contract C3UUIDKeeperTest is Helpers {
         string memory toChainID = "to chain ID";
         bytes memory data = abi.encode("some executable data");
         uint256 currentNonce = uuidKeeper.currentNonce();
-        bytes memory expectedEncoding = uuidKeeper.calcCallerUUIDEncodingWithNonce(address(c3caller), mockDAppID, target, toChainID, data, currentNonce + 1);
+        bytes memory expectedEncoding = uuidKeeper.calcCallerUUIDEncodingWithNonce(
+            address(c3caller), mockDAppID, target, toChainID, data, currentNonce + 1
+        );
         vm.prank(address(c3caller));
         bytes32 actualUUID = uuidKeeper.genUUID(mockDAppID, target, toChainID, data);
         assertEq(actualUUID, keccak256(expectedEncoding));

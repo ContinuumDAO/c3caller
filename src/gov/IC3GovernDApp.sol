@@ -7,9 +7,7 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 interface IC3GovernDApp is IC3CallerDApp {
     // Events
-    event LogChangeGov(
-        address indexed _oldGov, address indexed _newGov, uint256 indexed _effectiveTime
-    );
+    event LogChangeGov(address indexed _oldGov, address indexed _newGov, uint256 indexed _effectiveTime);
 
     // Errors
     error C3GovernDApp_OnlyAuthorized(C3ErrorParam, C3ErrorParam);
@@ -26,7 +24,9 @@ interface IC3GovernDApp is IC3CallerDApp {
     // Mut
     function changeGov(address _newGov) external;
     function doGov(string memory _to, string memory _toChainID, bytes memory _data) external returns (bytes32);
-    function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data) external returns (bytes32[] memory);
+    function doGovBroadcast(string[] memory _targets, string[] memory _toChainIDs, bytes memory _data)
+        external
+        returns (bytes32[] memory);
     function setDelay(uint256 _delay) external;
 
     // View

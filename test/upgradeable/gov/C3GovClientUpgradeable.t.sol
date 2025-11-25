@@ -17,7 +17,7 @@ import {C3CallerProxy} from "../../../src/utils/C3CallerProxy.sol";
 contract C3GovClientUpgradeableTest is Helpers {
     MockC3GovClientUpgradeable mockC3GovClient;
 
-    function setUp() public override virtual {
+    function setUp() public virtual override {
         super.setUp();
         _deployC3UUIDKeeperUpgradeable(gov);
         _deployC3DAppManagerUpgradeable(gov);
@@ -165,7 +165,9 @@ contract C3GovClientUpgradeableTest is Helpers {
 
     function test_Pause_RevertWhen_CallerNotGov() public {
         vm.expectRevert(
-            abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov)
+            abi.encodeWithSelector(
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
+            )
         );
         mockC3GovClient.pause();
     }
@@ -174,9 +176,7 @@ contract C3GovClientUpgradeableTest is Helpers {
         vm.prank(gov);
         mockC3GovClient.pause();
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Pausable.EnforcedPause.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
         mockC3GovClient.mockFunctionWhenNotPaused("Contract is paused!");
     }
 
@@ -188,7 +188,9 @@ contract C3GovClientUpgradeableTest is Helpers {
         vm.prank(gov);
         mockC3GovClient.pause();
         vm.expectRevert(
-            abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov)
+            abi.encodeWithSelector(
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
+            )
         );
         mockC3GovClient.unpause();
     }

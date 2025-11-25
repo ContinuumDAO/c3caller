@@ -8,7 +8,8 @@ pragma solidity 0.8.27;
  * Provides standardized error parameter types for consistent error handling
  * This allows reuse of errors to describe different error situations
  */
-enum C3ErrorParam { // TODO: check which ones are no longer used
+enum C3ErrorParam {
+    // TODO: check which ones are no longer used
     ChainID,
     Calldata,
     DAppID,

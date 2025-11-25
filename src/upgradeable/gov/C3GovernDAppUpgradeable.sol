@@ -102,10 +102,7 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
      * @param _c3caller The C3Caller address
      * @param _dappID The DApp ID (obtained from registering with C3DAppManager)
      */
-    function __C3GovernDApp_init(address _gov, address _c3caller, uint256 _dappID)
-        internal
-        onlyInitializing
-    {
+    function __C3GovernDApp_init(address _gov, address _c3caller, uint256 _dappID) internal onlyInitializing {
         __C3CallerDApp_init(_c3caller, _dappID);
         C3GovernDAppStorage storage $ = _getC3GovernDAppStorage();
         $.delay = 2 days;
@@ -138,7 +135,12 @@ abstract contract C3GovernDAppUpgradeable is C3CallerDAppUpgradeable, IC3GovernD
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external virtual onlyGov returns (bytes32) {
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data)
+        external
+        virtual
+        onlyGov
+        returns (bytes32)
+    {
         return _c3call(_to, _toChainID, _data);
     }
 

@@ -83,7 +83,7 @@ abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {
      * @param _data The calldata to execute
      * @dev Only governance or C3Caller can call this function
      */
-    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGov returns (bytes32 ){
+    function doGov(string memory _to, string memory _toChainID, bytes memory _data) external onlyGov returns (bytes32) {
         return _c3call(_to, _toChainID, _data);
     }
 

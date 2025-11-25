@@ -41,9 +41,7 @@ contract C3UUIDKeeperUpgradeableTest is Helpers {
     function test_RevertWhen_CallerNotGov() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-                C3ErrorParam.Sender,
-                C3ErrorParam.Gov
+                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         uuidKeeper_u.revokeSwapIn(keccak256("completed swap ID"), mockDAppID);
@@ -51,13 +49,13 @@ contract C3UUIDKeeperUpgradeableTest is Helpers {
 
     function test_RevertWhen_CallerNotC3Caller() public {
         bytes memory onlyAuthC3CallerError = abi.encodeWithSelector(
-            IC3GovClient.C3GovClient_OnlyAuthorized.selector,
-            C3ErrorParam.Sender,
-            C3ErrorParam.C3Caller
+            IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
         );
 
         vm.expectRevert(onlyAuthC3CallerError);
-        uuidKeeper_u.genUUID(mockDAppID, "to address", "to chain ID", abi.encodeWithSelector(C3UUIDKeeperUpgradeable.genUUID.selector));
+        uuidKeeper_u.genUUID(
+            mockDAppID, "to address", "to chain ID", abi.encodeWithSelector(C3UUIDKeeperUpgradeable.genUUID.selector)
+        );
 
         vm.expectRevert(onlyAuthC3CallerError);
         uuidKeeper_u.registerUUID(keccak256("sample UUID"), mockDAppID);
@@ -73,11 +71,22 @@ contract C3UUIDKeeperUpgradeableTest is Helpers {
         string memory mockToChainID = "to chain ID";
         bytes memory data = abi.encodeWithSelector(C3UUIDKeeperUpgradeable.genUUID.selector);
         bytes32 expectedUUID = keccak256(
-            abi.encode(address(uuidKeeper_u), address(c3caller_u), block.chainid, mockDAppID, mockTarget, mockToChainID, nonceBefore + 1, data)
+            abi.encode(
+                address(uuidKeeper_u),
+                address(c3caller_u),
+                block.chainid,
+                mockDAppID,
+                mockTarget,
+                mockToChainID,
+                nonceBefore + 1,
+                data
+            )
         );
         vm.prank(address(c3caller_u));
         vm.expectEmit(true, true, true, true);
-        emit IC3UUIDKeeper.UUIDGenerated(expectedUUID, mockDAppID, address(c3caller_u), mockTarget, mockToChainID, nonceBefore + 1, data);
+        emit IC3UUIDKeeper.UUIDGenerated(
+            expectedUUID, mockDAppID, address(c3caller_u), mockTarget, mockToChainID, nonceBefore + 1, data
+        );
         bytes32 uuid = uuidKeeper_u.genUUID(mockDAppID, mockTarget, mockToChainID, data);
         assertEq(uuidKeeper_u.currentNonce(), nonceBefore + 1);
         assertEq(uuid, expectedUUID);
@@ -144,7 +153,9 @@ contract C3UUIDKeeperUpgradeableTest is Helpers {
         string memory toChainID = "to chain ID";
         bytes memory data = abi.encode("some executable data");
         uint256 currentNonce = uuidKeeper_u.currentNonce();
-        bytes32 expectedUUID = uuidKeeper_u.calcCallerUUIDWithNonce(address(c3caller_u), mockDAppID, target, toChainID, data, currentNonce + 1);
+        bytes32 expectedUUID = uuidKeeper_u.calcCallerUUIDWithNonce(
+            address(c3caller_u), mockDAppID, target, toChainID, data, currentNonce + 1
+        );
         vm.prank(address(c3caller_u));
         bytes32 actualUUID = uuidKeeper_u.genUUID(mockDAppID, target, toChainID, data);
         assertEq(actualUUID, expectedUUID);
@@ -159,7 +170,9 @@ contract C3UUIDKeeperUpgradeableTest is Helpers {
         string memory toChainID = "to chain ID";
         bytes memory data = abi.encode("some executable data");
         uint256 currentNonce = uuidKeeper_u.currentNonce();
-        bytes memory expectedEncoding = uuidKeeper_u.calcCallerUUIDEncodingWithNonce(address(c3caller_u), mockDAppID, target, toChainID, data, currentNonce + 1);
+        bytes memory expectedEncoding = uuidKeeper_u.calcCallerUUIDEncodingWithNonce(
+            address(c3caller_u), mockDAppID, target, toChainID, data, currentNonce + 1
+        );
         vm.prank(address(c3caller_u));
         bytes32 actualUUID = uuidKeeper_u.genUUID(mockDAppID, target, toChainID, data);
         assertEq(actualUUID, keccak256(expectedEncoding));
