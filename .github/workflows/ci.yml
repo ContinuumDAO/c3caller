@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry (latest stable)
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      # -------------------------------------------------
+      # Soldeer — now works perfectly because c3caller is public
+      # -------------------------------------------------
+      - name: Install Soldeer dependencies
+        run: |
+          forge soldeer install --clean
+          forge soldeer update
+
+      # -------------------------------------------------
+      # Your full via-IR + flattening pipeline
+      # -------------------------------------------------
+      - name: Build & format
+        run: |
+          chmod +x helpers/*.sh
+          ./helpers/all.sh
+        env:
+          FOUNDRY_PROFILE: default
+
+      # -------------------------------------------------
+      # Tests (this is the only thing that can fail the CI)
+      # -------------------------------------------------
+      - name: Run tests
+        run: forge test -vvv
+
+      # -------------------------------------------------
+      # Optional: upload coverage as artifact (for manual download)
+      # -------------------------------------------------
+      - name: Generate coverage report (optional artifact)
+        if: always()
+        run: |
+          forge coverage --report lcov --report-file lcov.info --ir-minimum || true
+          mkdir -p coverage-artifacts
+          cp lcov.info coverage-artifacts/ || true
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-artifacts/
+          if-no-files-found: ignore

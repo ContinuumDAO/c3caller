@@ -1,5 +1,14 @@
 # C3Caller
 
+---
+
+[![Solidity](https://img.shields.io/badge/solidity-v0.8.27-%23363636?style=for-the-badge&logo=solidity)](https://soliditylang.org)
+[![OpenZeppelin](https://img.shields.io/badge/openzeppelin-v5.4.0-%234e5ee4?style=for-the-badge&logo=openzeppelin)](https://docs.openzeppelin.com/contracts/5.x)
+[![Foundry](https://img.shields.io/badge/Built%20with-Foundry-ff3366?style=for-the-badge&logo=foundry)](https://github.com/foundry-rs/foundry)
+[![Audit](https://img.shields.io/badge/audit-In%20Progress-yellow?style=for-the-badge)](https://github.com/ContinuumDAO/vectm/tree/main/audits)
+
+---
+
 ## Continuum Cross-Chain Caller
 
 A smart contract suite for arbitrary execution of data across
