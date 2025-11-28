@@ -30,11 +30,11 @@ DApp project metadata should be encoded according to the following JSON schema:
 
 ```json
 {
-  'version': 1,
-  'name': 'CTMRWA1X',
-  'description': 'AssetX: Cross-chain transfers',
-  'email': 'admin@assetx.com',
-  'url': 'assetx.org'
+  version: 1,
+  name: "CTMRWA1X",
+  description: "AssetX: Cross-chain transfers",
+  email: "admin@assetx.com",
+  url: "assetx.org"
 }
 ```
 
@@ -86,7 +86,7 @@ Install C3Caller as a dependency to access the smart contracts and implement a `
 ### Forge & Soldeer
 
 ```bash
-forge soldeer install
+forge soldeer install @c3caller~0.1
 ```
 
 ### Forge & Git Submodules
