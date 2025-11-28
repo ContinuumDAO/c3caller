@@ -1,76 +1,101 @@
 # C3Caller (Continuum Cross-Chain Caller)
 
-:satellite: A smart contract suite for arbitrary execution of data across
+A smart contract suite for arbitrary execution of data across
 cross-chain DApps using the ContinuumDAO MPC network.
 
-# Table of Contents
+---
 
-- [Project Structure](#project-structure)
-- [API Reference](#api-reference)
-- [Upgrade Reference](docs/upgradeable/C3Upgrades.md)
-- [Installation](#installation)
-- [Integration](#integration-into-your-dapp)
-- [Deployment](docs/DEPLOYMENT.md)
+## Usage
 
-# Project Structure
+### Deployment
 
-src/\
-├── C3Caller.sol\
-├── dapp\
-│   ├── C3CallerDapp.sol\
-│   └── C3DappManager.sol\
-├── gov\
-│   ├── C3GovClient.sol\
-│   ├── C3GovernDapp.sol\
-│   └── C3Governor.sol\
-├── upgradeable\
-│   ├── C3CallerUpgradeable.sol\
-│   ├── dapp\
-│   │   ├── C3CallerDappUpgradeable.sol\
-│   │   └── C3DappManagerUpgradeable.sol\
-│   ├── gov\
-│   │   ├── C3GovClientUpgradeable.sol\
-│   │   ├── C3GovernDappUpgradeable.sol\
-│   │   └── C3GovernorUpgradeable.sol\
-│   └── uuid\
-│       └── C3UUIDKeeperUpgradeable.sol\
-├── utils\
-│   ├── C3CallerProxy.sol\
-│   └── C3CallerUtils.sol\
-└── uuid\
-    └── C3UUIDKeeper.sol
+Protocol contracts are deployed to every supported network. These contracts include:
 
-# API Reference
+- `C3Caller`: Main entry point for incoming and outgoing transactions. Communicates directly with the Continuum network via events. Only the MPC network can execute incoming transactions.
+- `C3UUIDKeeper`: Tracks UUIDs for each cross-chain transaction and its completion progress/status.
+- `C3DAppManager`: Central point to register new DApps on each network and configure their deployed addresses and fee model.
 
-## Core Utility
+### Fee Model
 
-- [C3Caller](docs/C3Caller.md)
-- [C3UUIDKeeper](docs/uuid/C3UUIDKeeper.md)
-- [C3GovClient](docs/gov/C3GovClient.md)
-- [C3DAppManager](docs/dapp/C3DAppManager.md)
+Network fees are charged for payload size and to cover execution gas cost. The rates are measured as follows:
 
-## User Integrations
+- Payload: A network fee is charged per byte of calldata on outgoing transactions. This means a minimum of 4 bytes are billable per transaction.
+- Gas: A network fee is charged per ether of gas required to execute incoming transactions. A slight excess of the actual gas cost is charged.
 
-- [C3CallerDApp](docs/dapp/C3CallerDApp.md)
-- [C3GovernDApp](docs/gov/C3GovernDApp.md)
-- [C3Governor](docs/gov/C3Governor.md)
+Valid fee tokens for each network can be inspected on the `C3DAppManager` contract. Expect lower rates for stablecoins and the protocol token, CTM.
 
-## Upgrades
+### Metadata
 
-- [C3Upgrades](docs/upgradeable/C3Upgrades.md)
+DApp project metadata should be encoded according to the following JSON schema:
+
+```json
+{
+  'version': 1,
+  'name': 'CTMRWA1X',
+  'description': 'AssetX: Cross-chain transfers',
+  'email': 'admin@assetx.com',
+  'url': 'assetx.org'
+};
+```
+
+Version: The schema version, currently version 1.
+Name: The protocol name for this DApp ID. This can be the contract name or the broader ecosystem if it consists of multiple contracts.
+Description: An optional short description of the DApp.
+Email: An email address that will be used to notify the DApp admin when their fee reserves are running low or if their fee token will soon be deprecated.
+URL: A custom URL for the protocol for integration with the C3Caller Hub.
+
+### Registration
+
+New DApps can be registered with the locally deployed instance of `C3DAppManager` on supported networks.
+Registration involves three main decisions:
+
+1. Decide on a unique DApp key for your project. DApp keys are used to generate the DApp ID (for deterministic derivation on sister networks).
+DApp keys should take the form of `vX.contractname.protocolname`, but any consistent naming mechanism that is memorable and modular is valid.
+2. Choose a fee token from the list of valid fee tokens. This is what fees will be paid in.
+3. Encode DApp metadata according to the [Metadata schema](#metadata). This is optional and improves compatibility with the C3Caller Hub.
+
+*Note:* To prevent spam, `initDAppConfig` takes an initial fee deposit corresponding to the minimum deposit for that fee token. This deposit will be used to pay for DApp fees and can be withdrawn later.
+
+At this point, registration should be done on every network desired for communication, *using the same creator address and DApp key*.
+More networks can be added at a later date.
+
+**Optional:** If you have a specific subset of MPC addresses that your wish to exclusively allow to execute methods implementing `onlyC3Caller` in your DApp, specify them using `addMPCAddr` in `C3DAppManager` for each relevant network. Otherwise, the entire public pool of MPC addresses will be deemed as valid executors.
+
+### Development
+
+Once a DApp has been registered and a DApp ID obtained, an implementation of `C3CallerDApp` can be deployed. Implementation constructors require:
+
+1. The address of the local `C3Caller` contract on that network,
+2. The registered DApp ID.
+
+Note that in order for contracts to be able to communicate across networks, they must implement the same DApp ID.
+
+Once the DApp has been deployed to each network (using the same DApp ID for each deployment), the deployed contracts must be whitelisted by the DApp admin.
+To do this, `setDAppAddr` must be called on each network using the local instance of the DApp as input.
+
+*And that's it*. Your contract is now an integrated part of the ContinuumDAO ecoysystem.
+
+---
 
 # Installation
 
 ## Dependencies
 
-[Foundry](https://getfoundry.sh/) is currently supported, or any smart contract
-development framework that supports git submodules.
+Install C3Caller as a dependency to access the smart contracts and implement a `C3CallerDApp`.
 
-Install C3Caller to access the smart contracts and implement a C3CallerDApp:
+### Forge & Soldeer
+
+```bash
+forge soldeer install
+```
+
+### Forge & Git Submodules
 
 ```bash
 forge install ContinuumDAO/c3caller
 ```
+
+### Suggested Remappings (if not using Soldeer)
 
 Example entry in `remappings.txt`:
 
@@ -78,8 +103,18 @@ Example entry in `remappings.txt`:
 @c3caller/=lib/c3caller/src/
 ```
 
-# Integration into your DApp
+## Available Configurations Out of the Box
 
+There are two main valid DApp implementations available out of the box:
+
+1. C3CallerDApp: basic inheritable DApp
+2. C3GovernDApp: Same as the basic format, with the addition of an `gov` account that has administrator privileges
+
+---
+
+# Example Integration
+
+Below is an example of a valid implementation of `C3CallerDApp`, where `_c3call` is used to transmit outgoing messages and functions corresponding to incoming messages are marked as `onlyC3Caller`.
 Inherit from `C3CallerDApp` and implement the required functions to make it C3Caller compliant:
 
 ```solidity
@@ -109,12 +144,6 @@ contract MyDApp is C3CallerDApp {
         }
     }
 
-    // Override this function to decide who can execute functions in your DApp (for incoming cross-chain calls)
-    // Set it to allow the valid MPC address on the network in question to allow cross-chain execution from other chains
-    function isValidSender(address _txSender) external view virtual override returns (bool) {
-        return isMPC[_txSender];
-    }
-
     // Override this function to decide what happens when a cross-chain call reverted on the target network.
     // In this example, we check for a known error on the target network and act accordingly.
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
@@ -140,8 +169,8 @@ contract MyDApp is C3CallerDApp {
     }
 
     // This function can be executed by `transferCrossChain` that was called from another network.
-    // Note the `onlyCaller` modifier to ensure only the C3Caller contract (and thus the MPC network) can call this.
-    function receiveCrossChain(address _recipient, uint256 _amount) external onlyCaller {
+    // Note the `onlyC3Caller` modifier to ensure only the C3Caller contract (and thus the MPC network) can call this.
+    function receiveCrossChain(address _recipient, uint256 _amount) external onlyC3Caller {
         tokenXYZ.transfer(_recipient, _amount);
     }
 }
