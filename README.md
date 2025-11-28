@@ -29,13 +29,13 @@ Valid fee tokens for each network can be inspected on the `C3DAppManager` contra
 DApp project metadata should be encoded according to the following JSON schema:
 
 ```json
-{
-  version: 1,
-  name: "CTMRWA1X",
-  description: "AssetX: Cross-chain transfers",
-  email: "admin@assetx.com",
-  url: "assetx.org"
-}
+"{
+  "version": 1,
+  "name": "CTMRWA1X",
+  "description": "AssetX: Cross-chain transfers",
+  "email": "admin@assetx.com",
+  "url": "assetx.org"
+}"
 ```
 
 Version: The schema version, currently version 1.
