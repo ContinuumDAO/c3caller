@@ -35,7 +35,7 @@ DApp project metadata should be encoded according to the following JSON schema:
   'description': 'AssetX: Cross-chain transfers',
   'email': 'admin@assetx.com',
   'url': 'assetx.org'
-};
+}
 ```
 
 Version: The schema version, currently version 1.
