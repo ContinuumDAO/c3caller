@@ -1,20 +1,14 @@
 # C3Caller
 
----
-
 [![Solidity](https://img.shields.io/badge/solidity-v0.8.27-%23363636?style=for-the-badge&logo=solidity)](https://soliditylang.org)
 [![OpenZeppelin](https://img.shields.io/badge/openzeppelin-v5.4.0-%234e5ee4?style=for-the-badge&logo=openzeppelin)](https://docs.openzeppelin.com/contracts/5.x)
 [![Foundry](https://img.shields.io/badge/Built%20with-Foundry-ff3366?style=for-the-badge&logo=foundry)](https://github.com/foundry-rs/foundry)
 [![Audit](https://img.shields.io/badge/audit-In%20Progress-yellow?style=for-the-badge)](https://github.com/ContinuumDAO/vectm/tree/main/audits)
 
----
-
 ## Continuum Cross-Chain Caller
 
 A smart contract suite for arbitrary execution of data across
 cross-chain DApps using the ContinuumDAO MPC network.
-
----
 
 ## Usage
 
@@ -49,11 +43,15 @@ DApp project metadata should be encoded according to the following JSON schema:
 }
 ```
 
-Version: The schema version, currently version 1.
-Name: The protocol name for this DApp ID. This can be the contract name or the broader ecosystem if it consists of multiple contracts.
-Description: An optional short description of the DApp.
-Email: An email address that will be used to notify the DApp admin when their fee reserves are running low or if their fee token will soon be deprecated.
-URL: A custom URL for the protocol for integration with the C3Caller Hub.
+:pushpin: Version: The schema version, currently version 1.
+
+:label: Name: The protocol name for this DApp ID. This can be the contract name or the broader ecosystem if it consists of multiple contracts.
+
+:information_source: Description: An optional short description of the DApp.
+
+:email: Email: An email address that will be used to notify the DApp admin when their fee reserves are running low or if their fee token will soon be deprecated.
+
+:link: URL: A custom URL for the protocol for integration with the C3Caller Hub.
 
 ### Registration
 
@@ -86,8 +84,6 @@ To do this, `setDAppAddr` must be called on each network using the local instanc
 
 *And that's it*. Your contract is now an integrated part of the ContinuumDAO ecoysystem.
 
----
-
 # Installation
 
 ## Dependencies
@@ -118,10 +114,8 @@ Example entry in `remappings.txt`:
 
 There are two main valid DApp implementations available out of the box:
 
-1. C3CallerDApp: basic inheritable DApp
-2. C3GovernDApp: Same as the basic format, with the addition of an `gov` account that has administrator privileges
-
----
+1. `C3CallerDApp`: basic inheritable DApp
+2. `C3GovernDApp`: Same as the basic format, with the addition of an `gov` account that has administrator privileges
 
 # Example Integration
 
