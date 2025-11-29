@@ -135,53 +135,74 @@ contract MyDApp is C3CallerDApp {
 
     error CrossChainTransferFailed();
 
-    // The address of the corresponding contract on another chain that will be in communication with this one.
-    // It is a string type to accommodate networks that use some other form of account, other than 20-byte hex.
+    // The address of the corresponding contract on another chain that will be
+    // in communication with this one. It is a string type to accommodate
+    // networks that use some other form of account, other than 20-byte hex.
     mapping (string => string) public peers;
 
     mapping (address => bool) public isMPC;
     mapping (address => uint256) public failedTransfer;
 
-    // Here, we initialize the DApp. Initialize C3CallerDApp with the c3caller endpoint and your DApp ID.
-    constructor (address _endpoint, uint256 _dappID, address _mpc, string[] memory _chainIDs, string[] memory _peers)
-        C3CallerDApp(_endpoint, _dappID)
-    {
+    // Here, we initialize the DApp. Initialize C3CallerDApp with the c3caller
+    // endpoint and your DApp ID.
+    constructor (
+        address _endpoint,
+        uint256 _dappID,
+        address _mpc,
+        string[] memory _chainIDs,
+        string[] memory _peers
+    ) C3CallerDApp(_endpoint, _dappID) {
         isMPC[_mpc] = true;
 
-        // Here tell this contract the addresses of the contracts that are deployed on other networks that we wish to
-        // communicate with via c3caller.
+        // Here tell this contract the addresses of the contracts that are
+        // deployed on other networks that we wish to communicate with via
+        // c3caller.
         for (uint8 i = 0; i < _chainIDs.length; i++) {
             peers[_chainIDs[i]] = _peers[i];
         }
     }
 
-    // Override this function to decide what happens when a cross-chain call reverted on the target network.
-    // In this example, we check for a known error on the target network and act accordingly.
-    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
-        internal
-        virtual
-        override
-        returns (bool)
-    {
+    // Override this function to decide what happens when a cross-chain call
+    // reverted on the target network. In this example, we check for a known
+    // error on the target network and act accordingly.
+    function _c3Fallback(
+        bytes4 _selector,
+        bytes calldata _data,
+        bytes calldata _reason
+    ) internal virtual override returns (bool) {
         if (_selector == CrossChainTransferFailed.selector) {
-            (address _recipient, uint256 _amount) = abi.decode(_data, (address, uint256));
-            // A cross-chain transfer has failed. Compensate the would-be recipient locally
+            (address _recipient, uint256 _amount) =
+                abi.decode(_data, (address, uint256));
+            // A cross-chain transfer has failed. Compensate the would-be
+            // recipient locally
             failedTransfer[_recipient] += _amount;
         }
         return true;
     }
 
-    // Here we have a function that initiates a cross-chain call. It provides the address of the contract on the
-    // target network, based on the given chain ID.
-    function transferCrossChain(string memory _targetChainID, address _recipient, uint256 _amount) external {
-        bytes memory _data = abi.encodeWithSignature("receiveCrossChain(address,uint256)", (_recipient, _amount));
+    // Here we have a function that initiates a cross-chain call. It provides
+    // the address of the contract on the target network, based on the given
+    // chain ID.
+    function transferCrossChain(
+        string memory _targetChainID,
+        address _recipient,
+        uint256 _amount
+    ) external {
+        bytes memory _data = abi.encodeWithSignature(
+            "receiveCrossChain(address,uint256)",
+            (_recipient, _amount)
+        );
         string memory _targetNetworkDAppAddress = peers[_targetChainID];
         _c3call(_targetNetworkDAppAddress, _chainID, _data);
     }
 
-    // This function can be executed by `transferCrossChain` that was called from another network.
-    // Note the `onlyC3Caller` modifier to ensure only the C3Caller contract (and thus the MPC network) can call this.
-    function receiveCrossChain(address _recipient, uint256 _amount) external onlyC3Caller {
+    // This function can be executed by `transferCrossChain` that was called
+    // from another network. Note the `onlyC3Caller` modifier to ensure only
+    // the C3Caller contract (and thus the MPC network) can call this.
+    function receiveCrossChain(
+        address _recipient,
+        uint256 _amount
+    ) external onlyC3Caller {
         tokenXYZ.transfer(_recipient, _amount);
     }
 }
