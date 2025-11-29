@@ -43,15 +43,11 @@ DApp project metadata should be encoded according to the following JSON schema:
 }
 ```
 
-:pushpin: Version: The schema version, currently version 1.
-
-:label: Name: The protocol name for this DApp ID. This can be the contract name or the broader ecosystem if it consists of multiple contracts.
-
-:information_source: Description: An optional short description of the DApp.
-
-:email: Email: An email address that will be used to notify the DApp admin when their fee reserves are running low or if their fee token will soon be deprecated.
-
-:link: URL: A custom URL for the protocol for integration with the C3Caller Hub.
+- :pushpin: Version: The schema version, currently version 1.
+- :label: Name: The protocol name for this DApp ID. This can be the contract name or the broader ecosystem if it consists of multiple contracts.
+- :information_source: Description: An optional short description of the DApp.
+- :email: Email: An email address that will be used to notify the DApp admin when their fee reserves are running low or if their fee token will soon be deprecated.
+- :link: URL: A custom URL for the protocol for integration with the C3Caller Hub.
 
 ### Registration
 
@@ -67,6 +63,9 @@ DApp keys should take the form of `vX.contractname.protocolname`, but any consis
 
 At this point, registration should be done on every network desired for communication, *using the same creator address and DApp key*.
 More networks can be added at a later date.
+
+> [!CAUTION]
+> If a different account **or** a different DApp key is used to register the DApp on another network, it will have a different DApp ID and therefore will not be able to communicate with other networks.
 
 **Optional:** If you have a specific subset of MPC addresses that your wish to exclusively allow to execute methods implementing `onlyC3Caller` in your DApp, specify them using `addMPCAddr` in `C3DAppManager` for each relevant network. Otherwise, the entire public pool of MPC addresses will be deemed as valid executors.
 
