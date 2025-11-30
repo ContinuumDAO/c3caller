@@ -14,22 +14,24 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
  * @title C3DAppManagerUpgradeable
- * @notice Upgradeable contract for managing DApp configurations, fees, and MPC addresses in the C3 protocol.
- * This contract provides comprehensive management functionality for DApps including
- * configuration, fee management, staking pools, MPC address management, with upgradeable capabilities.
+ * @notice Upgradeable contract for managing DApp registration, fee configuration and billing, and MPC address
+ * whitelists per-DApp in the C3 protocol. This contract provides comprehensive management functionality for DApps
+ * including registration, configuration, fee management and charging, DApp fee pools, and MPC address management.
+ * This contract provides the same functionality as C3DAppManager but with upgradeable capabilities using the UUPS
+ * (Universal Upgradeable Proxy Standard) pattern.
  *
  * Key features:
- * - DApp configuration management
- * - Fee configuration and management
- * - Staking pool management
- * - MPC address and public key management
- * - Blacklist functionality
- * - DApp lifecycle management (Active, Suspended, Deprecated)
+ * - DApp registration 
+ * - Fee configuration, calculation and billing
+ * - Fee pool management
+ * - MPC address and public key management per-DApp
+ * - DApp whitelists for executor validation (MPC groups)
+ * - DApp lifecycle management (Active, Suspended, Dormant, Deprecated)
  * - Status-based access control and enforcement
- * - Pausable and upgradeable functionality for emergency stops
+ * - Pausable functionality for emergency stops
  *
- * @dev This contract is the central management hub for upgradeable C3 DApps
- * @author @potti, @patrickcure, @selqui ContinuumDAO
+ * @dev This contract is the central DApp management hub for C3 DApps
+ * @author @potti @patrickcure @selqui ContinuumDAO
  */
 contract C3DAppManagerUpgradeable is IC3DAppManagerUpgradeable, C3GovClientUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;

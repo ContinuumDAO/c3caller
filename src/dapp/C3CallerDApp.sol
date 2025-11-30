@@ -8,9 +8,10 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 /**
  * @title C3CallerDApp
- * @notice Abstract base contract for DApps using the C3 protocol.
- * This contract provides the foundation for DApps to interact with the C3Caller
- * system and handle cross-chain operations.
+ * @notice Abstract base contract for DApps implementing the C3 protocol.
+ * This contract provides the foundation for DApps to interact with the C3Caller protocol and handle cross-chain
+ * operations. Each instance is tied to a DApp ID that can execute transactions on instances on other networks that have
+ * the same DApp ID and were registered by the admin in C3DAppManager
  *
  * Key features:
  * - C3Caller integration
@@ -18,14 +19,13 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
  * - Enables initiation of cross-chain calls
  * - Fallback mechanism for failed operations
  *
- * @dev This contract serves as the base for all user C3Caller DApps
  * @author @potti ContinuumDAO
  */
 abstract contract C3CallerDApp is IC3CallerDApp {
     /// @notice The DApp identifier (to/from which cross-chain calls may be made)
     uint256 public dappID;
 
-    /// @notice The C3Caller proxy address
+    /// @notice The C3Caller address
     address public c3caller;
 
     /**

@@ -17,21 +17,24 @@ import {C3ErrorParam} from "./utils/C3CallerUtils.sol";
  * @title C3Caller
  * @dev Main contract for handling cross-chain calls in the Continuum Cross-Chain protocol.
  * This contract serves as the central hub for initiating and executing cross-chain transactions.
- * It integrates with governance, UUID management, and DApp functionality.
+ * It integrates with governance functionality, UUID management, and DApp management.
  *
  * Key features
  * Source Network:
  * - Cross-chain call initiation (c3call)
  * - Cross-chain multiple calls functionality (c3broadcast)
  * - Fallback mechanism for failed calls (c3Fallback)
+ * - Fee calculation and charging based on calldata payload size
  * Destination Network:
  * - Cross-chain message execution (execute)
+ * - Fee calculation and charging based on gas cost
  *
  * - Pausable functionality for emergency stops
  * - Governance integration for access control
+ * - MPC address management
  *
  * @notice This contract is the primary entry point for cross-chain operations
- * @author @potti ContinuumDAO
+ * @author @potti @patrickcure ContinuumDAO
  */
 contract C3Caller is IC3Caller, C3GovClient {
     using Address for address;
@@ -70,6 +73,7 @@ contract C3Caller is IC3Caller, C3GovClient {
 
     /**
      * @param _uuidKeeper Address of the UUID keeper contract
+     * @param _dappManager Address of the DApp Manager contract
      * @dev Initializes the Owner of the contract to the msg.sender
      */
     constructor(address _uuidKeeper, address _dappManager) C3GovClient(msg.sender) {

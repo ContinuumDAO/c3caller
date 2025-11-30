@@ -10,18 +10,19 @@ import {C3GovClientUpgradeable} from "../gov/C3GovClientUpgradeable.sol";
 /**
  * @title C3UUIDKeeperUpgradeable
  * @notice Upgradeable contract for managing Universally Unique Identifiers (UUIDs) in the C3 protocol.
- * This contract is responsible for generating, tracking, and validating UUIDs
- * for cross-chain operations to prevent replay attacks and ensure uniqueness.
+ * This contract is responsible for generating, tracking, and validating UUIDs for cross-chain operations to prevent
+ * replay attacks and ensure uniqueness.
+ * This contract provides the same functionality as C3UUIDKeeper but with
+ * upgradeable capabilities using the UUPS (Universal Upgradeable Proxy Standard) pattern.
  *
  * Key features:
  * - UUID generation with nonce-based uniqueness
  * - UUID completion tracking
  * - UUID revocation capabilities
- * - Utilities to calculate UUID before OR after it happens
+ * - Utilities to calculate UUID before, as OR after it happens
  * - Upgradeable functionality via UUPS pattern
  *
- * @dev This contract is critical for cross-chain security and uniqueness. It is the upgradeable
- * version of the UUID management system
+ * @dev This contract is critical for cross-chain security and uniqueness
  * @author @potti ContinuumDAO
  */
 contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgradeable, UUPSUpgradeable {
@@ -57,6 +58,7 @@ contract C3UUIDKeeperUpgradeable is IC3UUIDKeeperUpgradeable, C3GovClientUpgrade
 
     /**
      * @notice Initialize the upgradeable C3UUIDKeeper contract
+     * @dev Initializes the contract with the deployer as governance address
      * @dev This function can only be called once during deployment
      */
     function initialize() public initializer {

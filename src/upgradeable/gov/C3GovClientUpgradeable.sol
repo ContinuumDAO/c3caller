@@ -10,23 +10,21 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
  * @title C3GovClientUpgradeable
- * @notice Upgradeable base contract for governance client functionality in the C3 protocol.
- * This contract provides governance and operator management capabilities that can be inherited by other contracts
- * in the C3 ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
+ * @notice Base upgradeable contract for governance client functionality in the C3 protocol.
+ * This contract provides governance management capabilities that can be inherited by other contracts in the C3
+ * ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
  * contain a DApp ID, as it is designed to provide governance functionality without cross-chain functionality.
- * It features upgradeable storage using the ERC-7201 storage pattern.
  *
- * Examples of contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol
- * contracts and therefore do not need to be a C3GovernDApp.
+ * Contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol contracts and
+ * therefore do not need to be a C3GovernDApp.
  *
  * Key features:
- * - Governance address management with pending changes
- * - Operator management (add/remove operators)
- * - Access control modifiers for governance and operators
- * - Event emission for governance changes
+ * - Governance address management with confirmation from the new address required (double-lock)
+ * - C3Caller address management
+ * - Access control modifiers for governance and C3Caller
+ * - Event emission for governance changes and C3Caller address changes
  * - Upgradeable storage using ERC-7201 pattern
  *
- * @dev This contract provides the foundation for upgradeable governance functionality
  * @author @potti ContinuumDAO
  */
 contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradeable {
@@ -76,7 +74,7 @@ contract C3GovClientUpgradeable is IC3GovClient, Initializable, PausableUpgradea
 
     /**
      * @notice Modifier to restrict access to governance only
-     * @dev Reverts if the caller is not the governor
+     * @dev Reverts if the caller is not the governance address
      */
     modifier onlyGov() {
         if (msg.sender != gov()) {

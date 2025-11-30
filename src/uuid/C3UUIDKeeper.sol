@@ -8,8 +8,8 @@ import {IC3UUIDKeeper} from "./IC3UUIDKeeper.sol";
 /**
  * @title C3UUIDKeeper
  * @notice Contract for managing Universally Unique Identifiers (UUIDs) in the C3 protocol.
- * This contract is responsible for generating, tracking, and validating UUIDs
- * for cross-chain operations to prevent replay attacks and ensure uniqueness.
+ * This contract is responsible for generating, tracking, and validating UUIDs for cross-chain operations to prevent
+ * replay attacks and ensure uniqueness.
  *
  * Key features:
  * - UUID generation with nonce-based uniqueness

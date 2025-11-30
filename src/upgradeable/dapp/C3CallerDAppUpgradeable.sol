@@ -10,9 +10,10 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
  * @title C3CallerDAppUpgradeable
- * @notice Abstract base contract for upgradeable DApps using the C3 protocol.
- * This contract provides the foundation for DApps to interact with the C3Caller
- * system and handle cross-chain operations in an upgradeable context.
+ * @notice Abstract base upgradeable contract for DApps implementing the C3 protocol.
+ * This contract provides the foundation for DApps to interact with the C3Caller protocol and handle cross-chain
+ * operations. Each instance is tied to a DApp ID that can execute transactions on instances on other networks that have
+ * the same DApp ID and were registered by the admin in C3DAppManager
  *
  * Key features:
  * - C3Caller integration
@@ -21,7 +22,6 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
  * - Fallback mechanism for failed operations
  * - Upgradeable storage using ERC-7201 pattern
  *
- * @dev This contract serves as the base for all upgradeable C3Caller DApps
  * @author @potti ContinuumDAO
  */
 abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
@@ -30,7 +30,7 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
      * @custom:storage-location erc7201:c3caller.storage.C3CallerDApp
      */
     struct C3CallerDAppStorage {
-        /// @notice The DApp identifier
+        /// @notice The DApp identifier (to/from which cross-chain calls may be made)
         uint256 dappID;
         /// @notice The C3Caller address
         address c3caller;
@@ -71,7 +71,7 @@ abstract contract C3CallerDAppUpgradeable is IC3CallerDApp, Initializable {
 
     /**
      * @notice Internal initializer for the upgradeable C3CallerDApp contract
-     * @param _c3caller The C3Caller proxy address
+     * @param _c3caller The C3Caller address
      * @param _dappID The DApp identifier
      */
     function __C3CallerDApp_init(address _c3caller, uint256 _dappID) internal onlyInitializing {

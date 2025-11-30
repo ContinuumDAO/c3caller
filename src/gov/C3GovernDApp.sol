@@ -10,18 +10,16 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 /**
  * @title C3GovernDApp
  * @notice Base contract that extends C3CallerDApp for governance functionality in the C3 protocol.
- * This contract provides governance-specific features including delayed governance changes and MPC address validation.
+ * This contract provides governance-specific features with delayed governance changes.
  *
  * The key difference with C3GovClient is that this contract registers a DApp ID. DApp developers can implement it
  * in their C3DApp to allow governance functionality.
  *
  * Key features:
  * - Delayed governance address changes
- * - MPC address validation
  * - Governance-driven cross-chain operations
  * - Fallback mechanism for failed operations
  *
- * @dev This contract provides governance functionality for DApps
  * @author @potti ContinuumDAO
  */
 abstract contract C3GovernDApp is C3CallerDApp, IC3GovernDApp {

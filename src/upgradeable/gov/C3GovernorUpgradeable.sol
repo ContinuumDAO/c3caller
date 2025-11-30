@@ -11,17 +11,18 @@ import {C3CallerUtils, C3ErrorParam} from "../../utils/C3CallerUtils.sol";
 
 /**
  * @title C3GovernorUpgradeable
- * @notice This contract acts as a wrapper for C3GovernDApp, for the purpose of cross-chain governance.
+ * @notice Upgradeable contract that acts as a proxy to enable governance protocols to execute their decisions to other
+ * networks.
  * A client is deployed on every applicable network and clients communicate with one another to send/receive data.
  * The most typical use case is with OpenZeppelin's Governor. A successful proposal can have as one of its actions a
  * call to this contract's function `sendParams` with an array of target contracts, their chain IDs, and calldata.
  * Included as a feature is the ability to retry reverted transactions, mirroring the execute function in Governor.
  * If one or more actions from a proposal fail, anyone may retry them until they succeed, obviating the need for
- * a duplicate proposal. This contract provides the same functionality as C3Caller but with upgradeable capabilities
- * using the UUPS (Universal Upgradeable Proxy Standard) pattern.
+ * a duplicate proposal.
+ * This contract provides the same functionality as C3Governor but with upgradeable capabilities using the UUPS
+ * (Universal Upgradeable Proxy Standard) pattern.
  *
- * @dev This contract is the upgradeable version of the cross-chain governance client
- * @author @patrickcure, @potti, @Selqui (ContinuumDAO)
+ * @author @patrickcure @potti @Selqui (ContinuumDAO)
  */
 contract C3GovernorUpgradeable is IC3GovernorUpgradeable, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using C3CallerUtils for string;

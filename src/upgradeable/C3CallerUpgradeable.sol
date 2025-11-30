@@ -17,21 +17,29 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
 
 /**
  * @title C3CallerUpgradeable
- * @notice Upgradeable version of the main C3Caller contract for handling cross-chain calls.
- * This contract provides the same functionality as C3Caller but with upgradeable capabilities
- * using the UUPS (Universal Upgradeable Proxy Standard) pattern.
+ * @dev Main upgradeable contract for handling cross-chain calls in the Continuum Cross-Chain protocol.
+ * This contract serves as the central hub for initiating and executing cross-chain transactions.
+ * It integrates with governance functionality, UUID management, and DApp management.
+ * This contract provides the same functionality as C3Caller but with upgradeable capabilities using the UUPS
+ * (Universal Upgradeable Proxy Standard) pattern.
  *
- * Key features:
+ * Key features
+ * Source Network:
  * - Cross-chain call initiation (c3call)
- * - Cross-chain broadcast functionality (c3broadcast)
- * - Cross-chain message execution (execute)
+ * - Cross-chain multiple calls functionality (c3broadcast)
  * - Fallback mechanism for failed calls (c3Fallback)
+ * - Fee calculation and charging based on calldata payload size
+ * Destination Network:
+ * - Cross-chain message execution (execute)
+ * - Fee calculation and charging based on gas cost
+ *
  * - Pausable functionality for emergency stops
  * - Governance integration for access control
+ * - MPC address management
  * - Upgradeable functionality via UUPS pattern
  *
- * @dev This contract is the upgradeable version of the primary entry point for cross-chain operations
- * @author @potti ContinuumDAO
+ * @notice This contract is the primary entry point for cross-chain operations
+ * @author @potti @patrickcure ContinuumDAO
  */
 contract C3CallerUpgradeable is IC3CallerUpgradeable, C3GovClientUpgradeable, UUPSUpgradeable {
     using Address for address;
@@ -73,6 +81,7 @@ contract C3CallerUpgradeable is IC3CallerUpgradeable, C3GovClientUpgradeable, UU
      * @param _uuidKeeper Address of the UUID keeper contract
      * @param _dappManager Address of the DApp Manager contract
      * @dev This function can only be called once during deployment
+     * @dev Initializes the Owner of the contract to the msg.sender
      */
     function initialize(address _uuidKeeper, address _dappManager) public initializer {
         __C3GovClient_init(msg.sender);

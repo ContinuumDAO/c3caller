@@ -9,17 +9,18 @@ import {IC3GovClient} from "./IC3GovClient.sol";
 /**
  * @title C3GovClient
  * @notice Base contract for governance client functionality in the C3 protocol.
- * This contract provides governance and operator management capabilities that can be inherited by other contracts
- * in the C3 ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
+ * This contract provides governance management capabilities that can be inherited by other contracts in the C3
+ * ecosystem. The key difference between this contract and C3GovernDApp is that this contract does not
  * contain a DApp ID, as it is designed to provide governance functionality without cross-chain functionality.
  *
- * Examples of contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol
- * contracts and therefore do not need to be a C3GovernDApp.
+ * Contracts that implement this contract are C3Caller, C3UUIDKeeper and C3DAppManager. These are protocol contracts and
+ * therefore do not need to be a C3GovernDApp.
  *
  * Key features:
- * - Governance address management with pending changes
- * - Access control modifiers for governance and mpcAddrs
- * - Event emission for governance changes
+ * - Governance address management with confirmation from the new address required (double-lock)
+ * - C3Caller address management
+ * - Access control modifiers for governance and C3Caller
+ * - Event emission for governance changes and C3Caller address changes
  *
  * @dev This contract provides the foundation for governance functionality
  * @author @potti ContinuumDAO
@@ -87,7 +88,7 @@ contract C3GovClient is IC3GovClient, Pausable {
 
     /**
      * @notice Apply the pending governance change
-     * @notice Reverts if there is no pending governance address
+     * @dev Reverts if there is no pending governance address
      * @dev Anyone can call this function to finalize the governance change
      */
     function applyGov() external {
