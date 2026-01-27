@@ -42,26 +42,26 @@ chainDirs.forEach(chainId => {
         const deploymentData = require(runFilePath)
         
         // Process transactions to extract contract addresses
-        deploymentData.transactions.forEach((tx, index) => {
-            if (tx.transactionType === "CREATE" && tx.contractAddress && !tx.contractName.includes("Proxy")) {
+        deploymentData.transactions.forEach((tx) => {
+            if (tx.transactionType === "CREATE" && tx.contractAddress) {
                 const contractName = tx.contractName
                 const contractAddress = tx.contractAddress
 
                 switch (contractName) {
-                    case "C3UUIDKeeperUpgradeable":
-                        const c3UUIDProxyTx = deploymentData.transactions[index + 1]
-                        list[chainId].c3UUIDProxy = c3UUIDProxyTx.contractAddress
-                        list[chainId].c3UUIDImpl = contractAddress
+                    case "C3UUIDKeeper":
+                        // const c3UUIDProxyTx = deploymentData.transactions[index + 1]
+                        // list[chainId].c3UUIDProxy = c3UUIDProxyTx.contractAddress
+                        list[chainId].uuidKeeper = contractAddress
                         break
-                    case "C3CallerUpgradeable":
-                        const c3callerProxyTx = deploymentData.transactions[index + 1]
-                        list[chainId].c3callerProxy = c3callerProxyTx.contractAddress
-                        list[chainId].c3callerImpl = contractAddress
+                    case "C3Caller":
+                        // const c3callerProxyTx = deploymentData.transactions[index + 1]
+                        // list[chainId].c3callerProxy = c3callerProxyTx.contractAddress
+                        list[chainId].c3caller = contractAddress
                         break
-                    case "C3DAppManagerUpgradeable":
-                        const c3DAppManagerProxyTx = deploymentData.transactions[index + 1]
-                        list[chainId].c3DAppManagerProxy = c3DAppManagerProxyTx.contractAddress
-                        list[chainId].c3DAppManagerImpl = contractAddress
+                    case "C3DAppManager":
+                        // const c3DAppManagerProxyTx = deploymentData.transactions[index + 1]
+                        // list[chainId].c3DAppManagerProxy = c3DAppManagerProxyTx.contractAddress
+                        list[chainId].dappManager = contractAddress
                         break
                 }
             }

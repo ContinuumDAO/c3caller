@@ -5,29 +5,29 @@ pragma solidity 0.8.27;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {C3UUIDKeeperUpgradeable} from "../build/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
-import {C3CallerUpgradeable} from "../build/upgradeable/C3CallerUpgradeable.sol";
-import {C3DAppManagerUpgradeable} from "../build/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
-import {C3CallerProxy} from "../build/utils/C3CallerProxy.sol";
+import {C3UUIDKeeper} from "../build/uuid/C3UUIDKeeper.sol";
+import {C3DAppManager} from "../build/dapp/C3DAppManager.sol";
+import {C3Caller} from "../build/C3Caller.sol";
 
 contract DeployC3Caller is Script {
     function run() public {
         vm.startBroadcast();
 
-        C3UUIDKeeperUpgradeable c3UUIDKeeperImpl = new C3UUIDKeeperUpgradeable();
-        bytes memory c3UUIDKeeperInitData = abi.encodeWithSignature("initialize()");
-        address c3UUIDKeeper = address(new C3CallerProxy(address(c3UUIDKeeperImpl), c3UUIDKeeperInitData));
-        console.log("C3UUIDKeeper", c3UUIDKeeper);
+        // Deploy UUID Keeper
+        C3UUIDKeeper uuidKeeper = new C3UUIDKeeper();
+        console.log("C3UUIDKeeper:", address(uuidKeeper));
 
-        C3CallerUpgradeable c3callerImpl = new C3CallerUpgradeable();
-        bytes memory c3callerInitData = abi.encodeWithSignature("initialize(address)", c3UUIDKeeper);
-        address c3caller = address(new C3CallerProxy(address(c3callerImpl), c3callerInitData));
-        console.log("C3Caller", c3caller);
+        // Deploy DApp Manager
+        C3DAppManager dappManager = new C3DAppManager();
+        console.log("C3DAppManager:", address(dappManager));
 
-        C3DAppManagerUpgradeable c3DAppManagerImpl = new C3DAppManagerUpgradeable();
-        bytes memory c3DAppManagerInitData = abi.encodeWithSignature("initialize()");
-        address c3DAppManager = address(new C3CallerProxy(address(c3DAppManagerImpl), c3DAppManagerInitData));
-        console.log("C3DAppManager", c3DAppManager);
+        // Deploy core C3Caller
+        C3Caller c3caller = new C3Caller(address(uuidKeeper), address(dappManager));
+        console.log("C3Caller:", address(c3caller));
+
+        // Set C3Caller in UUID Keeper and DApp Manager
+        uuidKeeper.setC3Caller(address(c3caller));
+        dappManager.setC3Caller(address(c3caller));
 
         vm.stopBroadcast();
     }

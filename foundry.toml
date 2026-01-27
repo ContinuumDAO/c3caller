@@ -17,6 +17,11 @@
      "forge-std/=dependencies/forge-std-1.11.0/src/"
  ]
 
+[dependencies]
+ forge-std = "1.11.0"
+ "@openzeppelin-contracts" = "5.4.0"
+ "@openzeppelin-contracts-upgradeable" = "5.4.0"
+
 [rpc_endpoints]
  arbitrum-sepolia-rpc-url = "${ARBITRUM_SEPOLIA_RPC_URL}"
  sepolia-rpc-url = "${SEPOLIA_RPC_URL}"
@@ -37,12 +42,6 @@
  opbnb-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5611", key = "${ETHERSCAN_API_KEY}" }
  holesky-key = { url = "https://api.etherscan.io/v2/api?chainid=17000", key = "${ETHERSCAN_API_KEY}" }
  avalanche-fuji-key = { url = "https://api.etherscan.io/v2/api?chainid=43113", key = "${ETHERSCAN_API_KEY}" }
-
-[dependencies]
- forge-std = "1.11.0"
- "@openzeppelin-contracts" = "5.4.0"
- "@openzeppelin-contracts-upgradeable" = "5.4.0"
-
 
 #  localhost = "http://127.0.0.1:8545"
 #  optSepolia = "${OPT_SEPOLIA_RPC_URL}"

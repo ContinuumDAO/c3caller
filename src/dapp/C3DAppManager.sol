@@ -17,7 +17,7 @@ import {C3ErrorParam} from "../utils/C3CallerUtils.sol";
  * configuration, fee management and charging, DApp fee pools, and MPC address management.
  *
  * Key features:
- * - DApp registration 
+ * - DApp registration
  * - Fee configuration, calculation and billing
  * - Fee pool management
  * - MPC address and public key management per-DApp

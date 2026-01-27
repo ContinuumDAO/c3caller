@@ -21,7 +21,7 @@ import {C3ErrorParam} from "../../utils/C3CallerUtils.sol";
  * (Universal Upgradeable Proxy Standard) pattern.
  *
  * Key features:
- * - DApp registration 
+ * - DApp registration
  * - Fee configuration, calculation and billing
  * - Fee pool management
  * - MPC address and public key management per-DApp

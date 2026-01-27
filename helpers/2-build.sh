@@ -6,6 +6,8 @@ echo -e "🔨 Compiling build/dapp..."
 forge build ./build/dapp/
 echo -e "🔨 Compiling build/gov..."
 forge build ./build/gov/
+echo -e "🔨 Compiling build/token..."
+forge build ./build/token/
 echo -e "🔨 Compiling build/upgradeable..."
 forge build ./build/upgradeable/
 echo -e "🔨 Compiling build/utils..."

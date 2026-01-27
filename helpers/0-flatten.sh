@@ -7,6 +7,7 @@ rm -r build/
 mkdir -p build/
 mkdir -p build/dapp/
 mkdir -p build/gov/
+mkdir -p build/token/
 mkdir -p build/upgradeable/
 mkdir -p build/upgradeable/dapp/
 mkdir -p build/upgradeable/gov/
@@ -27,6 +28,9 @@ forge flatten src/dapp/C3DAppManager.sol --output build/dapp/C3DAppManager.sol
 forge flatten src/gov/C3GovClient.sol --output build/gov/C3GovClient.sol
 forge flatten src/gov/C3GovernDApp.sol --output build/gov/C3GovernDApp.sol
 forge flatten src/gov/C3Governor.sol --output build/gov/C3Governor.sol
+
+# token
+forge flatten src/token/CTMERC20.sol --output build/token/CTMERC20.sol
 
 # upgradeable
 forge flatten src/upgradeable/C3CallerUpgradeable.sol --output build/upgradeable/C3CallerUpgradeable.sol

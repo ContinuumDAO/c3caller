@@ -1,74 +1,42 @@
 {
   "97": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x260444bac6ccdfa80c085c241c7db65a11668b75",
+    "dappManager": "0x8cb49480f2cc810e095049db65537021866a86d6",
+    "c3caller": "0xc93298c7091924e0f8b725e55f95fe9f80694008"
   },
   "1946": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0xcd0b74802970b09a82eb5195d96af10d7fe46761",
+    "dappManager": "0x5a4b54de988739e69f6155a285213ac6118e9a73",
+    "c3caller": "0x9f1cb494c64cde757595fcd286485ae1488e2514"
   },
   "5611": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
-  },
-  "17000": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f",
+    "dappManager": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "c3caller": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5"
   },
   "43113": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x1d8a724d413c0a2f556687f6ad3c27ae84583381",
+    "dappManager": "0xb7b76679e52c2957aeb0440466755674b8db6b07",
+    "c3caller": "0x166f8f51b509e3d4a989e06fc836a2618c733ff7"
   },
   "84532": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f",
+    "dappManager": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "c3caller": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5"
   },
   "421614": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x5f54fda0e5ce437405d4c44a0a15278043e58e61",
+    "dappManager": "0x43ea675f71e0fe18c707b65bc15abbdd85bf0cea",
+    "c3caller": "0xd9eb064c665758a8fb3113651ecc653ec3caaeae"
   },
   "534351": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "dappManager": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5",
+    "c3caller": "0x1d8a724d413c0a2f556687f6ad3c27ae84583381"
   },
   "11155111": {
-    "c3UUIDProxy": "0xe605c920c942ea4e807a688c554bf83c59d4db41",
-    "c3UUIDImpl": "0x849a78d9e70d2428c9531981f6f3fcecb378a78f",
-    "c3callerProxy": "0x9e0625366f7d85a174a59b1a5d2e44f1492a9cbb",
-    "c3callerImpl": "0x7a43576da6a2f738f724747697cd2fd2424f0c7d",
-    "c3DAppManagerProxy": "0xdc994071739a301e1c12e2a2212498a4684340d1",
-    "c3DAppManagerImpl": "0x65616aa57d7f027dea7e284ea9a937737baf4d01"
+    "uuidKeeper": "0x1c50e75b50a56d916f3f31df3b30495950d27dbe",
+    "dappManager": "0xcf9cbc932be9823f2ec0a8d1d829c23f8d83c7a0",
+    "c3caller": "0x52cc96cbb791e7bf03ec16908a3c2b3a78aebcae"
   }
 }
