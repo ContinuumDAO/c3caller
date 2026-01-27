@@ -28,8 +28,8 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
         address _from = _msgSender();
         _burn(_from, _amount);
 
-        bytes memory receiveData = abi.encodeWithSignature("c3receive(address,string,uint256)", _from, _toStr, _amount);
-        _c3call(peers[_toChainIDStr], _toChainIDStr, receiveData);
+        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _from, _toStr, _amount);
+        _c3call(peers[_toChainIDStr], _toChainIDStr, receiveCall);
 
         emit C3Transfer(_from, _toStr, _amount, _toChainIDStr);
         return true;
@@ -47,14 +47,14 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
         _spendAllowance(_from, spender, _amount);
         _burn(_from, _amount);
 
-        bytes memory obtainCall = abi.encodeWithSignature("c3receive(address,string,uint256)", _from, _toStr, _amount);
-        _c3call(peers[_toChainIDStr], _toChainIDStr, obtainCall);
+        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _from, _toStr, _amount);
+        _c3call(peers[_toChainIDStr], _toChainIDStr, receiveCall);
 
         emit C3Transfer(_from, _toStr, _amount, _toChainIDStr);
         return true;
     }
 
-    function c3receive(string memory _fromStr, string memory _toStr, uint256 _amount) public virtual onlyC3Caller {
+    function c3receive(string memory _fromStr, string memory _toStr, uint256 _amount) external virtual onlyC3Caller {
         address _to = _toStr.toAddress();
         (, string memory _fromChainID,) = _context();
         _mint(_to, _amount);

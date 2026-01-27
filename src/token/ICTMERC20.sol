@@ -18,6 +18,6 @@ interface ICTMERC20 {
     function c3transferFrom(address _from, string memory _toStr, uint256 _amount, string memory _chainIDStr)
         external
         returns (bool);
-    function c3receive(string memory _fromStr, address _to, uint256 _amount) external;
+    function c3receive(string memory _fromStr, string memory _toStr, uint256 _amount) external;
     function setPeer(string memory _chainIDStr, string memory _peer) external;
 }
