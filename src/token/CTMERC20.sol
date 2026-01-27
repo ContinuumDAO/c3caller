@@ -18,7 +18,7 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
     {}
 
     function c3transfer(string memory _toStr, uint256 _amount, string memory _toChainIDStr)
-        external
+        public
         virtual
         returns (bool)
     {
@@ -36,7 +36,7 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
     }
 
     function c3transferFrom(address _from, string memory _toStr, uint256 _amount, string memory _toChainIDStr)
-        external
+        public
         virtual
         returns (bool)
     {
