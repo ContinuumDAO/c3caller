@@ -70,20 +70,21 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
         emit SetPeer(_toChainIDStr, _peer);
     }
 
-    function _c3Fallback(
-        bytes4,
-        /*_selector*/
-        bytes calldata _data,
-        bytes calldata /*_reason*/
-    )
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         virtual
         override
         returns (bool)
     {
-        (string memory _fromStr,, uint256 _amount) = abi.decode(_data, (string, string, uint256));
-        address _from = _fromStr.toAddress();
-        _mint(_from, _amount);
-        return true;
+        if (_selector == this.c3receive.selector) {
+            (string memory _fromStr, string memory _toStr, uint256 _amount) =
+                abi.decode(_data, (string, string, uint256));
+            address _from = _fromStr.toAddress();
+            _mint(_from, _amount);
+            emit C3Refund(_from, _toStr, _amount, _reason);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -9,6 +9,7 @@ interface ICTMERC20 {
 
     event C3Transfer(address indexed _from, string indexed _toStr, uint256 _amount, string _toChainIDStr);
     event C3Receive(string indexed _fromStr, address indexed _to, uint256 _amount, string _fromChainIDStr);
+    event C3Refund(address indexed _from, string indexed _toStr, uint256 _amount, bytes _reason);
 
     error CTMERC20_InvalidChainID(string _chainIDStr);
     error CTMERC20_InvalidLength(C3ErrorParam);
