@@ -3,12 +3,14 @@
 pragma solidity 0.8.27;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {C3GovernDApp} from "../gov/C3GovernDApp.sol";
 import {C3CallerUtils, C3ErrorParam} from "../utils/C3CallerUtils.sol";
 import {ICTMERC20} from "./ICTMERC20.sol";
 
 abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
     using C3CallerUtils for *;
+    using Strings for address;
 
     mapping(string => string) public peers;
 
@@ -28,7 +30,8 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
         address _from = _msgSender();
         _burn(_from, _amount);
 
-        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _from, _toStr, _amount);
+        string memory _fromStr = _from.toHexString();
+        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _fromStr, _toStr, _amount);
         _c3call(peers[_toChainIDStr], _toChainIDStr, receiveCall);
 
         emit C3Transfer(_from, _toStr, _amount, _toChainIDStr);
@@ -47,7 +50,8 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
         _spendAllowance(_from, spender, _amount);
         _burn(_from, _amount);
 
-        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _from, _toStr, _amount);
+        string memory _fromStr = _from.toHexString();
+        bytes memory receiveCall = abi.encodeWithSelector(this.c3receive.selector, _fromStr, _toStr, _amount);
         _c3call(peers[_toChainIDStr], _toChainIDStr, receiveCall);
 
         emit C3Transfer(_from, _toStr, _amount, _toChainIDStr);
