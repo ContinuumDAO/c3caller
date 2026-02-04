@@ -28,11 +28,38 @@
  base-sepolia-rpc-url = "${BASE_SEPOLIA_RPC_URL}"
  bsc-testnet-rpc-url = "${BSC_TESTNET_RPC_URL}"
  avalanche-fuji-rpc-url = "${AVALANCHE_FUJI_RPC_URL}"
+ fuji-rpc-url = "${FUJI_RPC_URL}"
  holesky-rpc-url = "${HOLESKY_RPC_URL}"
  scroll-sepolia-rpc-url = "${SCROLL_SEPOLIA_RPC_URL}"
  soneium-minato-testnet-rpc-url = "${SONEIUM_MINATO_TESTNET_RPC_URL}"
  opbnb-testnet-rpc-url = "${OPBNB_TESTNET_RPC_URL}"
+ plume-testnet-rpc-url = "${PLUME_TESTNET_RPC_URL}"
+ sonic-blaze-rpc-url = "${SONIC_BLAZE_RPC_URL}"
+ amoy-rpc-url = "${AMOY_RPC_URL}"
+ optimism-sepolia-rpc-url = "${OPTIMISM_SEPOLIA_RPC_URL}"
+ linea-sepolia-rpc-url = "${LINEA_SEPOLIA_RPC_URL}"
+ mantle-sepolia-rpc-url = "${MANTLE_SEPOLIA_RPC_URL}"
+ zksync-testnet-rpc-url = "${ZKSYNC_TESTNET_RPC_URL}"
+ celo-sepolia-rpc-url = "${CELO_SEPOLIA_RPC_URL}"
+ hoodi-rpc-url = "${HOODI_RPC_URL}"
+ monad-testnet-rpc-url = "${MONAD_TESTNET_RPC_URL}"
+ core-testnet-rpc-url = "${CORE_TESTNET_RPC_URL}"
+ rsk-testnet-rpc-url = "${RSK_TESTNET_RPC_URL}"
+ bitlayer-testnet-rpc-url = "${BITLAYER_TESTNET_RPC_URL}"
+ lens-testnet-rpc-url = "${LENS_TESTNET_RPC_URL}"
+ manta-sepolia-rpc-url = "${MANTA_SEPOLIA_RPC_URL}"
+ megaeth-testnet-rpc-url = "${MEGAETH_TESTNET_RPC_URL}"
+ abstract-testnet-rpc-url = "${ABSTRACT_TESTNET_RPC_URL}"
+ mantra-testnet-rpc-url = "${MANTRA_TESTNET_RPC_URL}"
+ shape-sepolia-rpc-url = "${SHAPE_SEPOLIA_RPC_URL}"
+ tempo-moderato-rpc-url = "${TEMPO_MODERATO_RPC_URL}"
+ berachain-bepolia-rpc-url = "${BERACHAIN_BEPOLIA_RPC_URL}"
+ kairos-testnet-rpc-url = "${KAIROS_TESTNET_RPC_URL}"
+ redbelly-testnet-rpc-url = "${REDBELLY_TESTNET_RPC_URL}"
 
+# Explorer verification: most chains use Etherscan API (api.etherscan.io/v2/api).
+# Blockscout chains (use --verifier blockscout --verifier-url <url>/api in deploy script):
+#   soneium-minato-testnet, plume-testnet, rsk-testnet
 [etherscan]
  arbitrum-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=421614", key = "${ETHERSCAN_API_KEY}" }
  sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11155111", key = "${ETHERSCAN_API_KEY}" }
@@ -41,7 +68,31 @@
  scroll-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=534351", key = "${ETHERSCAN_API_KEY}" }
  opbnb-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5611", key = "${ETHERSCAN_API_KEY}" }
  holesky-key = { url = "https://api.etherscan.io/v2/api?chainid=17000", key = "${ETHERSCAN_API_KEY}" }
- avalanche-fuji-key = { url = "https://api.etherscan.io/v2/api?chainid=43113", key = "${ETHERSCAN_API_KEY}" }
+ fuji-key = { url = "https://api.etherscan.io/v2/api?chainid=43113", key = "${ETHERSCAN_API_KEY}" }
+ soneium-minato-testnet-key = { url = "https://explorer.minato.soneium.org/api", key = "${ETHERSCAN_API_KEY}" }
+ plume-testnet-key = { url = "https://testnet-explorer.plume.org/api", key = "${ETHERSCAN_API_KEY}" }
+ sonic-blaze-key = { url = "https://api.etherscan.io/v2/api?chainid=57054", key = "${ETHERSCAN_API_KEY}" }
+ amoy-key = { url = "https://api.etherscan.io/v2/api?chainid=80002", key = "${ETHERSCAN_API_KEY}" }
+ optimism-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11155420", key = "${ETHERSCAN_API_KEY}" }
+ linea-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=59141", key = "${ETHERSCAN_API_KEY}" }
+ mantle-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=5003", key = "${ETHERSCAN_API_KEY}" }
+ zksync-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=300", key = "${ETHERSCAN_API_KEY}" }
+ celo-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11142220", key = "${ETHERSCAN_API_KEY}" }
+ hoodi-key = { url = "https://api.etherscan.io/v2/api?chainid=560048", key = "${ETHERSCAN_API_KEY}" }
+ monad-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=10143", key = "${ETHERSCAN_API_KEY}" }
+ core-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=1114", key = "${ETHERSCAN_API_KEY}" }
+ rsk-testnet-key = { url = "https://rootstock-testnet.blockscout.com/api", key = "${ETHERSCAN_API_KEY}" }
+ bitlayer-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=200810", key = "${ETHERSCAN_API_KEY}" }
+ lens-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=37111", key = "${ETHERSCAN_API_KEY}" }
+ manta-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=3441006", key = "${ETHERSCAN_API_KEY}" }
+ megaeth-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=6342", key = "${ETHERSCAN_API_KEY}" }
+ abstract-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=11124", key = "${ETHERSCAN_API_KEY}" }
+ mantra-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5887", key = "${ETHERSCAN_API_KEY}" }
+ shape-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11011", key = "${ETHERSCAN_API_KEY}" }
+ tempo-moderato-key = { url = "https://api.etherscan.io/v2/api?chainid=42431", key = "${ETHERSCAN_API_KEY}" }
+ berachain-bepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=80069", key = "${BERASCAN_API_KEY}" }
+ kairos-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=1001", key = "${ETHERSCAN_API_KEY}" }
+ redbelly-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=153", key = "${ETHERSCAN_API_KEY}" }
 
 #  localhost = "http://127.0.0.1:8545"
 #  optSepolia = "${OPT_SEPOLIA_RPC_URL}"

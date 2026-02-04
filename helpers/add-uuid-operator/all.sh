@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
     echo "Error: Missing required arguments."
@@ -8,12 +12,35 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-./helpers/add-uuid-operator/arbitrum-sepolia.sh $1 $2
-./helpers/add-uuid-operator/avalanche-fuji.sh $1 $2
-./helpers/add-uuid-operator/base-sepolia.sh $1 $2
-./helpers/add-uuid-operator/bsc-testnet.sh $1 $2
-./helpers/add-uuid-operator/holesky.sh $1 $2
-./helpers/add-uuid-operator/opbnb-testnet.sh $1 $2
-./helpers/add-uuid-operator/scroll-sepolia.sh $1 $2
-./helpers/add-uuid-operator/sepolia.sh $1 $2
-./helpers/add-uuid-operator/soneium-minato-testnet.sh $1 $2
+# Same chain order as helpers/nonces.sh
+./helpers/add-uuid-operator/bsc-testnet.sh "$@"
+./helpers/add-uuid-operator/soneium-minato-testnet.sh "$@"
+./helpers/add-uuid-operator/opbnb-testnet.sh "$@"
+./helpers/add-uuid-operator/plume-testnet.sh "$@"
+./helpers/add-uuid-operator/base-sepolia.sh "$@"
+./helpers/add-uuid-operator/arbitrum-sepolia.sh "$@"
+./helpers/add-uuid-operator/scroll-sepolia.sh "$@"
+./helpers/add-uuid-operator/sonic-blaze.sh "$@"
+./helpers/add-uuid-operator/amoy.sh "$@"
+./helpers/add-uuid-operator/optimism-sepolia.sh "$@"
+./helpers/add-uuid-operator/sepolia.sh "$@"
+./helpers/add-uuid-operator/fuji.sh "$@"
+./helpers/add-uuid-operator/linea-sepolia.sh "$@"
+./helpers/add-uuid-operator/mantle-sepolia.sh "$@"
+./helpers/add-uuid-operator/zksync-testnet.sh "$@"
+./helpers/add-uuid-operator/celo-sepolia.sh "$@"
+./helpers/add-uuid-operator/hoodi.sh "$@"
+./helpers/add-uuid-operator/monad-testnet.sh "$@"
+./helpers/add-uuid-operator/core-testnet.sh "$@"
+./helpers/add-uuid-operator/rsk-testnet.sh "$@"
+./helpers/add-uuid-operator/bitlayer-testnet.sh "$@"
+./helpers/add-uuid-operator/lens-testnet.sh "$@"
+./helpers/add-uuid-operator/manta-sepolia.sh "$@"
+./helpers/add-uuid-operator/megaeth-testnet.sh "$@"
+./helpers/add-uuid-operator/abstract-testnet.sh "$@"
+./helpers/add-uuid-operator/mantra-testnet.sh "$@"
+./helpers/add-uuid-operator/shape-sepolia.sh "$@"
+./helpers/add-uuid-operator/tempo-moderato.sh "$@"
+./helpers/add-uuid-operator/berachain-bepolia.sh "$@"
+./helpers/add-uuid-operator/kairos-testnet.sh "$@"
+./helpers/add-uuid-operator/redbelly-testnet.sh "$@"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
     echo "Error: Missing required arguments."
@@ -8,12 +12,35 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-./helpers/add-mpc/arbitrum-sepolia.sh $1 $2
-./helpers/add-mpc/bsc-testnet.sh $1 $2
-./helpers/add-mpc/sepolia.sh $1 $2
-./helpers/add-mpc/avalanche-fuji.sh $1 $2
-./helpers/add-mpc/base-sepolia.sh $1 $2
-./helpers/add-mpc/holesky.sh $1 $2
-./helpers/add-mpc/opbnb-testnet.sh $1 $2
-./helpers/add-mpc/scroll-sepolia.sh $1 $2
-./helpers/add-mpc/soneium-minato-testnet.sh $1 $2
+# Same chain order as helpers/nonces.sh
+./helpers/add-mpc/bsc-testnet.sh "$@"
+./helpers/add-mpc/soneium-minato-testnet.sh "$@"
+./helpers/add-mpc/opbnb-testnet.sh "$@"
+./helpers/add-mpc/plume-testnet.sh "$@"
+./helpers/add-mpc/base-sepolia.sh "$@"
+./helpers/add-mpc/arbitrum-sepolia.sh "$@"
+./helpers/add-mpc/scroll-sepolia.sh "$@"
+./helpers/add-mpc/sonic-blaze.sh "$@"
+./helpers/add-mpc/amoy.sh "$@"
+./helpers/add-mpc/optimism-sepolia.sh "$@"
+./helpers/add-mpc/sepolia.sh "$@"
+./helpers/add-mpc/fuji.sh "$@"
+./helpers/add-mpc/linea-sepolia.sh "$@"
+./helpers/add-mpc/mantle-sepolia.sh "$@"
+./helpers/add-mpc/zksync-testnet.sh "$@"
+./helpers/add-mpc/celo-sepolia.sh "$@"
+./helpers/add-mpc/hoodi.sh "$@"
+./helpers/add-mpc/monad-testnet.sh "$@"
+./helpers/add-mpc/core-testnet.sh "$@"
+./helpers/add-mpc/rsk-testnet.sh "$@"
+./helpers/add-mpc/bitlayer-testnet.sh "$@"
+./helpers/add-mpc/lens-testnet.sh "$@"
+./helpers/add-mpc/manta-sepolia.sh "$@"
+./helpers/add-mpc/megaeth-testnet.sh "$@"
+./helpers/add-mpc/abstract-testnet.sh "$@"
+./helpers/add-mpc/mantra-testnet.sh "$@"
+./helpers/add-mpc/shape-sepolia.sh "$@"
+./helpers/add-mpc/tempo-moderato.sh "$@"
+./helpers/add-mpc/berachain-bepolia.sh "$@"
+./helpers/add-mpc/kairos-testnet.sh "$@"
+./helpers/add-mpc/redbelly-testnet.sh "$@"

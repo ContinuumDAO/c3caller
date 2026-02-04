@@ -20,6 +20,7 @@ build/
 
 # Dotenv file
 .env
+.env.example
 
 # Account
 .auth.c3caller

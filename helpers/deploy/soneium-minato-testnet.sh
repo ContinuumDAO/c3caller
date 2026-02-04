@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
     echo "Error: Missing required arguments."
@@ -36,7 +40,7 @@ forge script script/DeployC3Caller.s.sol \
 --chain soneium-minato-testnet \
 --verify \
 --verifier blockscout \
---verifier-url https://soneium-minato.blockscout.com/api/ \
+--verifier-url https://soneium-minato.blockscout.com/api \
 --broadcast
 
 echo "Deployment and verification complete."

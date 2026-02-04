@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
     echo "Error: Missing required arguments."
@@ -9,11 +13,11 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the operation
-forge script script/AddUUIDOperator.s.sol \
+forge script script/AddMPC.s.sol \
 --account $1 \
 --password-file $2 \
---rpc-url holesky-rpc-url \
---chain holesky
+--rpc-url amoy-rpc-url \
+--chain amoy
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -21,21 +25,21 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-read -p "Continue with add operator operation? [Y/n] " -n 1 -r
+read -p "Continue with add MPC operation? [Y/n] " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! $REPLY =~ ^$ ]]; then
-    echo "Add operator operation cancelled."
+    echo "Add MPC operation cancelled."
     exit 1
 fi
 
-echo "Proceeding with add operator operation..."
+echo "Proceeding with add MPC operation..."
 
-forge script script/AddUUIDOperator.s.sol \
+forge script script/AddMPC.s.sol \
 --account $1 \
 --password-file $2 \
 --slow \
---rpc-url holesky-rpc-url \
---chain holesky \
+--rpc-url amoy-rpc-url \
+--chain amoy \
 --broadcast
 
-echo "Add operator operation complete."
+echo "Add MPC operation complete."

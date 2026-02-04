@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 1 ]; then
     echo "Error: Missing required arguments."
@@ -13,7 +17,7 @@ C3CALLER=$1
 echo -e "\nSepolia:"
 
 cast call $C3CALLER \
-    "getAllOperators()(address[])" \
+    "getAllMPCAddrs()(address[])" \
     --rpc-url sepolia-rpc-url \
     --chain sepolia | \
 tr -d '[]' | \

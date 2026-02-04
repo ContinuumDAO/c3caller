@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+[ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
+
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
     echo "Error: Missing required arguments."
@@ -10,8 +14,8 @@ fi
 
 # Simulate the deployment
 forge script script/DeployC3Caller.s.sol \
---rpc-url avalanche-fuji-rpc-url \
---chain avalanche-fuji
+--rpc-url mantle-sepolia-rpc-url \
+--chain mantle-sepolia
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,10 +36,10 @@ forge script script/DeployC3Caller.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
---etherscan-api-key avalanche-fuji-key \
+--etherscan-api-key mantle-sepolia-key \
 --slow \
---rpc-url avalanche-fuji-rpc-url \
---chain avalanche-fuji \
+--rpc-url mantle-sepolia-rpc-url \
+--chain mantle-sepolia \
 --broadcast
 
 echo "Deployment and verification complete."
