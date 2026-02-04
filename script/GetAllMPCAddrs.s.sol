@@ -4,10 +4,10 @@ pragma solidity 0.8.27;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {IC3Caller} from "../build/gov/C3Caller.sol";
+import {IC3Caller} from "../build/C3Caller.sol";
 
-contract GetAllOperators is Script {
-    function run() public {
+contract GetAllMPCAddrs is Script {
+    function run() public view {
         address c3caller;
 
         try vm.envAddress("C3CALLER") returns (address _c3caller) {
