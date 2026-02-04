@@ -13,9 +13,9 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --rpc-url core-testnet-rpc-url \
---chain core-testnet
+--chain-id 1114
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,14 +32,14 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
 --etherscan-api-key core-testnet-key \
 --slow \
 --rpc-url core-testnet-rpc-url \
---chain core-testnet \
+--chain-id 1114 \
 --broadcast
 
 echo "Deployment and verification complete."

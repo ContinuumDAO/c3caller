@@ -13,9 +13,9 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --rpc-url plume-testnet-rpc-url \
---chain plume-testnet
+--chain-id 98867
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,7 +32,7 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
@@ -40,7 +40,8 @@ forge script script/DeployC3Caller.s.sol \
 --verifier-url https://testnet-explorer.plume.org/api \
 --slow \
 --rpc-url plume-testnet-rpc-url \
---chain plume-testnet \
+--chain-id 98867 \
 --broadcast
 
 echo "Deployment and verification complete."
+054

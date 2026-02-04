@@ -40,10 +40,12 @@ contract MockC3CallerDAppUpgradeable is C3CallerDAppUpgradeable {
         return _c3call(_target.toHexString(), _toChainID, data, "");
     }
 
-    function mockC3CallWithExtra(address _target, string memory _toChainID, string memory _message, string memory extra)
-        public
-        returns (bytes32)
-    {
+    function mockC3CallWithExtra(
+        address _target,
+        string memory _toChainID,
+        string memory _message,
+        string memory extra
+    ) public returns (bytes32) {
         bytes memory data = abi.encodeWithSelector(this.mockC3Executable.selector, _message);
         return _c3call(_target.toHexString(), _toChainID, data, bytes(extra));
     }

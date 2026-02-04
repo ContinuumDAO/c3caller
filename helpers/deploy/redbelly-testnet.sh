@@ -13,9 +13,10 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
+--sender $(cast wallet address --account $1 --password-file $2) \
 --rpc-url redbelly-testnet-rpc-url \
---chain redbelly-testnet
+--chain-id 153
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,14 +33,14 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
 --etherscan-api-key redbelly-testnet-key \
 --slow \
 --rpc-url redbelly-testnet-rpc-url \
---chain redbelly-testnet \
+--chain-id 153 \
 --broadcast
 
 echo "Deployment and verification complete."
