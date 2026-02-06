@@ -14,6 +14,7 @@ interface ICTMERC20 {
     error CTMERC20_InvalidChainID(string _chainIDStr);
     error CTMERC20_InvalidLength(C3ErrorParam);
 
+    function globalSupply() external view returns (uint256);
     function peers(string memory _chainIDStr) external view returns (string memory);
     function c3transfer(string memory _toStr, uint256 _amount, string memory _chainIDStr) external returns (bool);
     function c3transferFrom(address _from, string memory _toStr, uint256 _amount, string memory _chainIDStr)
