@@ -8,14 +8,14 @@
  evm_version = "cancun"
  no_match_coverage = "^(build/|script/|test/|dependencies/)"
 
-[lint]
- lint_on_build = false
-
  remappings = [
      "@openzeppelin/contracts-upgradeable/=dependencies/@openzeppelin-contracts-upgradeable-5.4.0/",
      "@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.4.0/",
      "forge-std/=dependencies/forge-std-1.11.0/src/"
  ]
+
+[lint]
+ lint_on_build = false
 
 [dependencies]
  forge-std = "1.11.0"
