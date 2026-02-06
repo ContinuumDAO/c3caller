@@ -34,3 +34,16 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ./helpers/get-all-mpc-addrs/tempo-moderato.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/berachain-bepolia.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/redbelly-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/cronos-zkevm-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/arc-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/boba-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/citrea-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/metis-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/mode-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/ink-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/pharos-atlantic-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/world-chain-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/polynomial-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/bob-sepolia.sh $C3CALLER
+./helpers/get-all-mpc-addrs/kiteai-testnet.sh $C3CALLER
+./helpers/get-all-mpc-addrs/lightlink-pegasus-testnet.sh $C3CALLER
