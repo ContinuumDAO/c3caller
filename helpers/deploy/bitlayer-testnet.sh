@@ -12,10 +12,11 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+# Simulate the deployment (--legacy to avoid EIP-1559 fee API)
+forge script script/DeployProtocolContracts.s.sol \
 --rpc-url bitlayer-testnet-rpc-url \
---chain bitlayer-testnet
+--chain-id 200810 \
+--legacy
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,14 +33,15 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
 --etherscan-api-key bitlayer-testnet-key \
 --slow \
 --rpc-url bitlayer-testnet-rpc-url \
---chain bitlayer-testnet \
+--chain-id 200810 \
+--legacy \
 --broadcast
 
 echo "Deployment and verification complete."

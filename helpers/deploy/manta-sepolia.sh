@@ -13,9 +13,9 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --rpc-url manta-sepolia-rpc-url \
---chain manta-sepolia
+--chain-id 3441006
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,14 +32,14 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
 --etherscan-api-key manta-sepolia-key \
 --slow \
 --rpc-url manta-sepolia-rpc-url \
---chain manta-sepolia \
+--chain-id 3441006 \
 --broadcast
 
 echo "Deployment and verification complete."

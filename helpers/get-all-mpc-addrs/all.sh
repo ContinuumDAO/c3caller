@@ -28,11 +28,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ./helpers/get-all-mpc-addrs/bitlayer-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/lens-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/manta-sepolia.sh $C3CALLER
-./helpers/get-all-mpc-addrs/megaeth-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/abstract-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/mantra-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/shape-sepolia.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/tempo-moderato.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/berachain-bepolia.sh $C3CALLER
-./helpers/get-all-mpc-addrs/kairos-testnet.sh $C3CALLER
 ./helpers/get-all-mpc-addrs/redbelly-testnet.sh $C3CALLER

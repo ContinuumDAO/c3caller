@@ -99,9 +99,6 @@ cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_F
 echo -e "\nNonce for manta-sepolia (3441006):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url manta-sepolia-rpc-url
 
-echo -e "\nNonce for megaeth-testnet (6342):"
-cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url megaeth-testnet-rpc-url
-
 echo -e "\nNonce for abstract-testnet (11124):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url abstract-testnet-rpc-url
 
@@ -116,9 +113,6 @@ cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_F
 
 echo -e "\nNonce for berachain-bepolia (80069):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url berachain-bepolia-rpc-url
-
-echo -e "\nNonce for kairos-testnet (1001):"
-cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url kairos-testnet-rpc-url
 
 echo -e "\nNonce for redbelly-testnet (153):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url redbelly-testnet-rpc-url

@@ -54,7 +54,6 @@
  shape-sepolia-rpc-url = "${SHAPE_SEPOLIA_RPC_URL}"
  tempo-moderato-rpc-url = "${TEMPO_MODERATO_RPC_URL}"
  berachain-bepolia-rpc-url = "${BERACHAIN_BEPOLIA_RPC_URL}"
- kairos-testnet-rpc-url = "${KAIROS_TESTNET_RPC_URL}"
  redbelly-testnet-rpc-url = "${REDBELLY_TESTNET_RPC_URL}"
 
 # Explorer verification: most chains use Etherscan API (api.etherscan.io/v2/api).
@@ -85,13 +84,12 @@
  bitlayer-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=200810", key = "${ETHERSCAN_API_KEY}" }
  lens-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=37111", key = "${ETHERSCAN_API_KEY}" }
  manta-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=3441006", key = "${ETHERSCAN_API_KEY}" }
- megaeth-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=6342", key = "${ETHERSCAN_API_KEY}" }
+ megaeth-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=6343", key = "${ETHERSCAN_API_KEY}" }
  abstract-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=11124", key = "${ETHERSCAN_API_KEY}" }
  mantra-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5887", key = "${ETHERSCAN_API_KEY}" }
  shape-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11011", key = "${ETHERSCAN_API_KEY}" }
  tempo-moderato-key = { url = "https://api.etherscan.io/v2/api?chainid=42431", key = "${ETHERSCAN_API_KEY}" }
  berachain-bepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=80069", key = "${BERASCAN_API_KEY}" }
- kairos-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=1001", key = "${ETHERSCAN_API_KEY}" }
  redbelly-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=153", key = "${ETHERSCAN_API_KEY}" }
 
 #  localhost = "http://127.0.0.1:8545"

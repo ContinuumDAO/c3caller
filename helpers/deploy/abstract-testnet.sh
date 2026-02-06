@@ -13,7 +13,7 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --rpc-url abstract-testnet-rpc-url \
 --chain abstract-testnet
 
@@ -32,7 +32,7 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployC3Caller.s.sol \
+forge script script/DeployProtocolContracts.s.sol \
 --account $1 \
 --password-file $2 \
 --verify \
