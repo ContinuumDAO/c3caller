@@ -1,0 +1,35 @@
+# 1. Arbitrum Sepolia
+[arbitrum-sepolia]
+endpoint_url = "${ARBITRUM_SEPOLIA_RPC_URL}"
+
+[arbitrum-sepolia.address]
+dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+fee_token = "0x0000000000000000000000000000000000000000"
+
+[arbitrum-sepolia.string]
+dapp_key = "v1.ctm.continuumdao"
+metadata = '{"version":1,"name":"CTM","description":"CTM Mintable on Arbitrum Sepolia","email":"continuumdao@proton.me","url":"continuumdao.org"}'
+
+# 2. Sepolia
+[sepolia]
+endpoint_url = "${SEPOLIA_RPC_URL}"
+
+[sepolia.address]
+dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+fee_token = "0x0000000000000000000000000000000000000000"
+
+[sepolia.string]
+dapp_key = "v1.ctm.continuumdao"
+metadata = '{"version":1,"name":"CTM","description":"CTM on Sepolia","email":"continuumdao@proton.me","url":"continuumdao.org"}'
+
+# 3. BSC Testnet
+[bsc-testnet]
+endpoint_url = "${BSC_TESTNET_RPC_URL}"
+
+[bsc-testnet.address]
+dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+fee_token = "0x0000000000000000000000000000000000000000"
+
+[bsc-testnet.string]
+dapp_key = "v1.ctm.continuumdao"
+metadata = '{"version":1,"name":"CTM","description":"CTM on BSC Testnet","email":"continuumdao@proton.me","url":"continuumdao.org"}'
