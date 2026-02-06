@@ -23,8 +23,6 @@ dapp_key = "v1.ctm.continuumdao"
 metadata = '{"version":1,"name":"CTM","description":"CTM on Sepolia","email":"continuumdao@proton.me","url":"continuumdao.org"}'
 
 # 3. BSC Testnet
-[bsc-testnet]
-endpoint_url = "${BSC_TESTNET_RPC_URL}"
 
 [bsc-testnet.address]
 dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
