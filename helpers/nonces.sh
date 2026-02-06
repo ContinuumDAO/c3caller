@@ -116,3 +116,42 @@ cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_F
 
 echo -e "\nNonce for redbelly-testnet (153):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url redbelly-testnet-rpc-url
+
+echo -e "\nNonce for cronos-zkevm-testnet (240):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url cronos-zkevm-testnet-rpc-url
+
+echo -e "\nNonce for arc-testnet (5042002):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url arc-testnet-rpc-url
+
+echo -e "\nNonce for boba-sepolia (28882):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url boba-sepolia-rpc-url
+
+echo -e "\nNonce for citrea-testnet (5115):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url citrea-testnet-rpc-url
+
+echo -e "\nNonce for metis-sepolia (59902):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url metis-sepolia-rpc-url
+
+echo -e "\nNonce for mode-testnet (919):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url mode-testnet-rpc-url
+
+echo -e "\nNonce for ink-sepolia (763373):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url ink-sepolia-rpc-url
+
+echo -e "\nNonce for pharos-atlantic-testnet (688689):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url pharos-atlantic-testnet-rpc-url
+
+echo -e "\nNonce for world-chain-sepolia (4801):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url world-chain-sepolia-rpc-url
+
+echo -e "\nNonce for polynomial-sepolia (80008):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url polynomial-sepolia-rpc-url
+
+echo -e "\nNonce for bob-sepolia (808813):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url bob-sepolia-rpc-url
+
+echo -e "\nNonce for kiteai-testnet (2368):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url kiteai-testnet-rpc-url
+
+echo -e "\nNonce for lightlink-pegasus-testnet (1891):"
+cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url lightlink-pegasus-testnet-rpc-url

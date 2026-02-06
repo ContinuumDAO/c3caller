@@ -55,10 +55,23 @@
  tempo-moderato-rpc-url = "${TEMPO_MODERATO_RPC_URL}"
  berachain-bepolia-rpc-url = "${BERACHAIN_BEPOLIA_RPC_URL}"
  redbelly-testnet-rpc-url = "${REDBELLY_TESTNET_RPC_URL}"
+ cronos-zkevm-testnet-rpc-url = "${CRONOS_ZKEVM_TESTNET_RPC_URL}"
+ arc-testnet-rpc-url = "${ARC_TESTNET_RPC_URL}"
+ boba-sepolia-rpc-url = "${BOBA_SEPOLIA_RPC_URL}"
+ citrea-testnet-rpc-url = "${CITREA_TESTNET_RPC_URL}"
+ metis-sepolia-rpc-url = "${METIS_SEPOLIA_TESTNET_RPC_URL}"
+ mode-testnet-rpc-url = "${MODE_TESTNET_RPC_URL}"
+ ink-sepolia-rpc-url = "${INK_SEPOLIA_RPC_URL}"
+ pharos-atlantic-testnet-rpc-url = "${PHAROS_ATLANTIC_TESTNET_RPC_URL}"
+ world-chain-sepolia-rpc-url = "${WORLD_CHAIN_SEPOLIA_RPC_URL}"
+ polynomial-sepolia-rpc-url = "${POLYNOMIAL_SEPOLIA_RPC_URL}"
+ bob-sepolia-rpc-url = "${BOB_SEPOLIA_RPC_URL}"
+ kiteai-testnet-rpc-url = "${KITEAI_TESTNET_RPC_URL}"
+ lightlink-pegasus-testnet-rpc-url = "${LIGHTLINK_PEGASUS_TESTNET_RPC_URL}"
 
 # Explorer verification: most chains use Etherscan API (api.etherscan.io/v2/api).
 # Blockscout chains (use --verifier blockscout --verifier-url <url>/api in deploy script):
-#   soneium-minato-testnet, plume-testnet, rsk-testnet
+#   soneium-minato-testnet, plume-testnet, rsk-testnet, ink-sepolia, bob-sepolia, lightlink-pegasus-testnet
 [etherscan]
  arbitrum-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=421614", key = "${ETHERSCAN_API_KEY}" }
  sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=11155111", key = "${ETHERSCAN_API_KEY}" }
@@ -91,6 +104,19 @@
  tempo-moderato-key = { url = "https://api.etherscan.io/v2/api?chainid=42431", key = "${ETHERSCAN_API_KEY}" }
  berachain-bepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=80069", key = "${BERASCAN_API_KEY}" }
  redbelly-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=153", key = "${ETHERSCAN_API_KEY}" }
+ cronos-zkevm-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=240", key = "${ETHERSCAN_API_KEY}" }
+ arc-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5042002", key = "${ETHERSCAN_API_KEY}" }
+ boba-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=28882", key = "${ETHERSCAN_API_KEY}" }
+ citrea-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=5115", key = "${ETHERSCAN_API_KEY}" }
+ metis-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=59902", key = "${ETHERSCAN_API_KEY}" }
+ mode-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=919", key = "${ETHERSCAN_API_KEY}" }
+ ink-sepolia-key = { url = "https://explorer-sepolia.inkonchain.com/api", key = "${ETHERSCAN_API_KEY}" }
+ pharos-atlantic-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=688689", key = "${ETHERSCAN_API_KEY}" }
+ world-chain-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=4801", key = "${ETHERSCAN_API_KEY}" }
+ polynomial-sepolia-key = { url = "https://api.etherscan.io/v2/api?chainid=80008", key = "${ETHERSCAN_API_KEY}" }
+ bob-sepolia-key = { url = "https://bob-sepolia.explorer.gobob.xyz/api", key = "${ETHERSCAN_API_KEY}" }
+ kiteai-testnet-key = { url = "https://api.etherscan.io/v2/api?chainid=2368", key = "${ETHERSCAN_API_KEY}" }
+ lightlink-pegasus-testnet-key = { url = "https://pegasus.lightlink.io/api", key = "${ETHERSCAN_API_KEY}" }
 
 #  localhost = "http://127.0.0.1:8545"
 #  optSepolia = "${OPT_SEPOLIA_RPC_URL}"
