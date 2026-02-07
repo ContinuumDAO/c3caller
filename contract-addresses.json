@@ -2,211 +2,288 @@
   "31": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "97": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "300": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "919": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "uuidKeeper": "0x260444bac6ccdfa80c085c241c7db65a11668b75",
+    "dappManager": "0x8cb49480f2cc810e095049db65537021866a86d6",
+    "c3caller": "0xc93298c7091924e0f8b725e55f95fe9f80694008",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM on BSC Testnet\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "240": {
     "uuidKeeper": "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c",
     "dappManager": "0x8ABD54D49252169eF746Bbf229512502E703c8e8",
-    "c3caller": "0x0580453F9adC4Aca73242b4f2ad09FBf0F32A904"
+    "c3caller": "0x0580453F9adC4Aca73242b4f2ad09FBf0F32A904",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "300": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "919": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "1114": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "5003": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "5115": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "5611": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "5887": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "11011": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "11124": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "10143": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "11142220": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "43113": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "42431": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "4801": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "5042002": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "534351": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "57054": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "59141": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "59902": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "37111": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "80002": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "80008": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "84532": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "80069": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
-  },
-  "808813": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "1891": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "1946": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "uuidKeeper": "0xcd0b74802970b09a82eb5195d96af10d7fe46761",
+    "dappManager": "0x5a4b54de988739e69f6155a285213ac6118e9a73",
+    "c3caller": "0x9f1cb494c64cde757595fcd286485ae1488e2514",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "2368": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "3441006": {
+  "4801": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "763373": {
+  "5003": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "421614": {
+  "5115": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "560048": {
+  "5611": {
+    "uuidKeeper": "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f",
+    "dappManager": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "c3caller": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "5887": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "98867": {
+  "10143": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "11155111": {
+  "11011": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "11155420": {
+  "11124": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "200810": {
-    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
-    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+  "17000": {
+    "uuidKeeper": "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f",
+    "dappManager": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "c3caller": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
   "28882": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "1001": {
+  "37111": {
     "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
     "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
-    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8"
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   },
-  "153": {
-    "uuidKeeper": "0x95ae66aD780E73eF2D2a80611458883C950a1356",
-    "dappManager": "0x2d7E6446fd6938e692173F88946a9DeC52442A8b",
-    "c3caller": "0x255FA368B2ccBd51623FE55e7248078f783b2410"
+  "42431": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "43113": {
+    "uuidKeeper": "0x1d8a724d413c0a2f556687f6ad3c27ae84583381",
+    "dappManager": "0xb7b76679e52c2957aeb0440466755674b8db6b07",
+    "c3caller": "0x166f8f51b509e3d4a989e06fc836a2618c733ff7",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "57054": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "59141": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "59902": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "80002": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "80008": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "80069": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "84532": {
+    "uuidKeeper": "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f",
+    "dappManager": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "c3caller": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "98867": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "200810": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "421614": {
+    "uuidKeeper": "0x5f54fda0e5ce437405d4c44a0a15278043e58e61",
+    "dappManager": "0x43ea675f71e0fe18c707b65bc15abbdd85bf0cea",
+    "c3caller": "0xd9eb064c665758a8fb3113651ecc653ec3caaeae",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM Mintable on Arbitrum Sepolia\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "534351": {
+    "uuidKeeper": "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0",
+    "dappManager": "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5",
+    "c3caller": "0x1d8a724d413c0a2f556687f6ad3c27ae84583381",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "560048": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "763373": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "808813": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "3441006": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "5042002": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "11142220": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "11155111": {
+    "uuidKeeper": "0x1c50e75b50a56d916f3f31df3b30495950d27dbe",
+    "dappManager": "0xcf9cbc932be9823f2ec0a8d1d829c23f8d83c7a0",
+    "c3caller": "0x52cc96cbb791e7bf03ec16908a3c2b3a78aebcae",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM on Sepolia\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
+  },
+  "11155420": {
+    "uuidKeeper": "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3",
+    "dappManager": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+    "c3caller": "0x8abd54d49252169ef746bbf229512502e703c8e8",
+    "dapp_key": "v1.ctm.continuumdao",
+    "metadata": "{\"version\":1,\"name\":\"CTM\",\"description\":\"CTM\",\"email\":\"continuumdao@proton.me\",\"url\":\"continuumdao.org\"}"
   }
 }

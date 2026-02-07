@@ -42,3 +42,5 @@ fi
 ./helpers/deploy-test-usd/tempo-moderato.sh "$@"
 ./helpers/deploy-test-usd/berachain-bepolia.sh "$@"
 ./helpers/deploy-test-usd/redbelly-testnet.sh "$@"
+
+echo "Fee token addresses have been saved to deployments.toml and fee-token.json by each chain script."

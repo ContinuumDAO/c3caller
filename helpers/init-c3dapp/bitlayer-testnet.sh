@@ -12,10 +12,11 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the dapp initiation
+# Simulate the dapp initiation (--legacy to avoid EIP-1559 fee API, same as deploy)
 forge script script/InitC3DApp.s.sol \
---rpc-url abstract-testnet-rpc-url \
---chain abstract-testnet
+--rpc-url bitlayer-testnet-rpc-url \
+--chain-id 200810 \
+--legacy
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then

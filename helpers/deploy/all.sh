@@ -55,3 +55,7 @@ fi
 ./helpers/deploy/bob-sepolia.sh "$@"
 ./helpers/deploy/kiteai-testnet.sh "$@"
 ./helpers/deploy/lightlink-pegasus-testnet.sh "$@"
+
+echo "Saving all addresses to deployments.toml and contract-addresses.json..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/run-save-addresses.sh"

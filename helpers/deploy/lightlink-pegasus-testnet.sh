@@ -49,3 +49,5 @@ forge script script/DeployProtocolContracts.s.sol \
 --broadcast
 
 echo "Deployment and verification complete."
+echo "Saving addresses to deployments.toml and contract-addresses.json..."
+"$SCRIPT_DIR/run-save-addresses.sh"

@@ -14,8 +14,8 @@ fi
 
 # Simulate the dapp initiation
 forge script script/InitC3DApp.s.sol \
---rpc-url abstract-testnet-rpc-url \
---chain abstract-testnet
+--rpc-url rsk-testnet-rpc-url \
+--chain-id 31
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then

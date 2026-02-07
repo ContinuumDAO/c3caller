@@ -13,7 +13,7 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the deployment (--legacy to avoid EIP-1559 fee API)
-forge script script/DeployTestUSD.s.sol \
+forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --rpc-url bitlayer-testnet-rpc-url \
 --chain-id 200810 \
 --legacy
@@ -33,7 +33,7 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployTestUSD.s.sol \
+forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --account $1 \
 --password-file $2 \
 --verify \
@@ -45,3 +45,6 @@ forge script script/DeployTestUSD.s.sol \
 --broadcast
 
 echo "Deployment and verification complete."
+CHAIN_NAME=$(basename "$0" .sh)
+echo "Saving fee token to deployments.toml and fee-token.json..."
+"$SCRIPT_DIR/run-save-fee-token.sh" "$CHAIN_NAME"

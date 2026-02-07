@@ -1,80 +1,138 @@
-const fs = require("fs")
-const path = require("path")
+/**
+ * Uses deployments.toml as the source of truth.
+ * - Reads deployments.toml and (if present) broadcast/DeployC3Caller.s.sol/<chainId>/run-latest.json.
+ * - Merges broadcast addresses (uuidKeeper, dappManager, c3caller) into the config for deployed chains.
+ * - Writes contract-addresses.json. If broadcast was merged, patches deployments.toml in place (address lines only) so comments are preserved.
+ *
+ * Run after deploy to push new addresses from broadcast into both deployments.toml and contract-addresses.json.
+ */
 
-// Get the broadcast directory path
-const broadcastDir = path.join(__dirname, "../broadcast/DeployC3Caller.s.sol")
+const fs = require("fs");
+const path = require("path");
+const TOML = require("@iarna/toml");
 
-if (!fs.existsSync(broadcastDir)) {
-    console.error("Error: Broadcast directory not found")
-    console.error(`Expected directory: ${broadcastDir}`)
-    process.exit(1)
-}
+const rootDir = path.join(__dirname, "..");
+const deploymentsPath = path.join(rootDir, "deployments.toml");
+const broadcastDir = path.join(rootDir, "broadcast/DeployC3Caller.s.sol");
+const feeTokenPath = path.join(rootDir, "fee-token.json");
+const outputJsonPath = path.join(rootDir, "contract-addresses.json");
 
-// Get all chain ID directories
-const chainDirs = fs.readdirSync(broadcastDir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
-
-if (chainDirs.length === 0) {
-    console.error("Error: No chain directories found in broadcast/DeployC3Caller.s.sol/")
-    process.exit(1)
-}
-
-let list = {}
-
-// Process each chain directory
-chainDirs.forEach(chainId => {
-    if (chainId == 31337) return
-
-    const runFilePath = path.join(broadcastDir, chainId, "run-latest.json")
-
-    list[chainId] = {}
-
-    if (!fs.existsSync(runFilePath)) {
-        console.warn(`Warning: run-latest.json not found for chain ID ${chainId}`)
-        return
+// Build chain name -> chain ID from fee-token.json so we support both numeric and name keys in deployments.toml
+let chainNameToId = {};
+if (fs.existsSync(feeTokenPath)) {
+  try {
+    const feeToken = JSON.parse(fs.readFileSync(feeTokenPath, "utf8"));
+    for (const entry of feeToken) {
+      if (entry.chain && entry.chainId != null) chainNameToId[entry.chain] = String(entry.chainId);
     }
-    
-    console.log(`Processing chain ID: ${chainId}`)
-    
+  } catch (e) {
+    // ignore
+  }
+}
+function toChainId(key) {
+  if (/^\d+$/.test(String(key))) return String(key);
+  return chainNameToId[key] || null;
+}
+
+if (!fs.existsSync(deploymentsPath)) {
+  console.error("Error: deployments.toml not found");
+  console.error(`Expected: ${deploymentsPath}`);
+  process.exit(1);
+}
+
+// Load deployments.toml (source of truth)
+const tomlContent = fs.readFileSync(deploymentsPath, "utf8");
+let config;
+try {
+  config = TOML.parse(tomlContent);
+} catch (err) {
+  console.error("Error parsing deployments.toml:", err.message);
+  process.exit(1);
+}
+
+let mergedFromBroadcast = false;
+const mergedChainIds = [];
+
+// Optionally merge in addresses from broadcast
+if (fs.existsSync(broadcastDir)) {
+  const chainDirs = fs.readdirSync(broadcastDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && d.name !== "31337")
+    .map((d) => d.name);
+
+  for (const chainId of chainDirs) {
+    const runPath = path.join(broadcastDir, chainId, "run-latest.json");
+    if (!fs.existsSync(runPath)) continue;
+
     try {
-        // Load the deployment data
-        const deploymentData = require(runFilePath)
-        
-        // Process transactions to extract contract addresses
-        deploymentData.transactions.forEach((tx) => {
-            if (tx.transactionType === "CREATE" && tx.contractAddress) {
-                const contractName = tx.contractName
-                const contractAddress = tx.contractAddress
-
-                switch (contractName) {
-                    case "C3UUIDKeeper":
-                        // const c3UUIDProxyTx = deploymentData.transactions[index + 1]
-                        // list[chainId].c3UUIDProxy = c3UUIDProxyTx.contractAddress
-                        list[chainId].uuidKeeper = contractAddress
-                        break
-                    case "C3Caller":
-                        // const c3callerProxyTx = deploymentData.transactions[index + 1]
-                        // list[chainId].c3callerProxy = c3callerProxyTx.contractAddress
-                        list[chainId].c3caller = contractAddress
-                        break
-                    case "C3DAppManager":
-                        // const c3DAppManagerProxyTx = deploymentData.transactions[index + 1]
-                        // list[chainId].c3DAppManagerProxy = c3DAppManagerProxyTx.contractAddress
-                        list[chainId].dappManager = contractAddress
-                        break
-                }
-            }
-        })
-    } catch (error) {
-        console.error(`Error processing chain ID ${chainId}:`, error.message)
+      const run = require(runPath);
+      const addresses = {};
+      for (const tx of run.transactions || []) {
+        if (tx.transactionType !== "CREATE" || !tx.contractAddress) continue;
+        switch (tx.contractName) {
+          case "C3UUIDKeeper":
+            addresses.uuidKeeper = tx.contractAddress;
+            break;
+          case "C3DAppManager":
+            addresses.dappManager = tx.contractAddress;
+            break;
+          case "C3Caller":
+            addresses.c3caller = tx.contractAddress;
+            break;
+        }
+      }
+      if (addresses.uuidKeeper || addresses.dappManager || addresses.c3caller) {
+        const key = String(chainId);
+        if (!config[key]) config[key] = {};
+        if (!config[key].address) config[key].address = {};
+        if (addresses.uuidKeeper) config[key].address.uuidKeeper = addresses.uuidKeeper;
+        if (addresses.dappManager) config[key].address.dappManager = addresses.dappManager;
+        if (addresses.c3caller) config[key].address.c3caller = addresses.c3caller;
+        mergedFromBroadcast = true;
+        mergedChainIds.push(String(chainId));
+        console.log(`Merged broadcast addresses for chain ${chainId}`);
+      }
+    } catch (e) {
+      console.warn(`Warning: could not process chain ${chainId}:`, e.message);
     }
-})
+  }
+}
 
-// Write the contract addresses file to the root directory
-const outputPath = path.join(__dirname, "../contract-addresses.json")
-fs.writeFileSync(outputPath, JSON.stringify(list, null, 2))
+// Build contract-addresses.json from config (same shape as before). Support numeric or chain-name keys.
+const contractAddresses = {};
+for (const [key, chain] of Object.entries(config)) {
+  const chainId = toChainId(key);
+  if (!chainId || !chain || typeof chain !== "object") continue;
+  const addr = chain.address;
+  const str = chain.string;
+  if (!addr || !addr.dappManager) continue;
+  contractAddresses[chainId] = {
+    uuidKeeper: addr.uuidKeeper || "",
+    dappManager: addr.dappManager,
+    c3caller: addr.c3caller || "",
+    dapp_key: (str && str.dapp_key) || "v1.ctm.continuumdao",
+    metadata: (str && str.metadata) || '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@proton.me","url":"continuumdao.org"}',
+  };
+}
 
-console.log(`Contract addresses file generated successfully for chain IDs: ${Object.keys(list).join(", ")}`)
-console.log(`Output file: ${outputPath}`)
-console.log(`Total chain IDs processed: ${Object.keys(list).length}`)
+// Write contract-addresses.json
+fs.writeFileSync(outputJsonPath, JSON.stringify(contractAddresses, null, 2), "utf8");
+console.log(`Source: ${deploymentsPath}`);
+console.log(`Generated: ${outputJsonPath}`);
+console.log(`Chains: ${Object.keys(contractAddresses).join(", ")}`);
+
+// If we merged from broadcast, patch deployments.toml in place (address lines only) to preserve comments
+if (mergedFromBroadcast && mergedChainIds.length > 0) {
+  let tomlText = fs.readFileSync(deploymentsPath, "utf8");
+  for (const chainId of mergedChainIds) {
+    const addr = config[chainId] && config[chainId].address;
+    if (!addr || !addr.dappManager) continue;
+    const blockRe = new RegExp(
+      `(\\[${chainId}\\.address\\]\\n)(uuidKeeper = ")[^"]*("\\n)(dappManager = ")[^"]*("\\n)(c3caller = ")[^"]*("\\n)`,
+      "g"
+    );
+    const replacement = `$1$2${addr.uuidKeeper}$3$4${addr.dappManager}$5$6${addr.c3caller}$7`;
+    tomlText = tomlText.replace(blockRe, replacement);
+  }
+  fs.writeFileSync(deploymentsPath, tomlText, "utf8");
+  console.log(`Updated: ${deploymentsPath} (chains ${mergedChainIds.join(", ")})`);
+}

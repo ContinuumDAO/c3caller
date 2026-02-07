@@ -12,10 +12,10 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the dapp initiation
+# Simulate the dapp initiation (--chain-id: forge does not accept chain name "plume-testnet")
 forge script script/InitC3DApp.s.sol \
---rpc-url abstract-testnet-rpc-url \
---chain abstract-testnet
+--rpc-url plume-testnet-rpc-url \
+--chain-id 98867
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -44,4 +44,3 @@ forge script script/InitC3DApp.s.sol \
 --broadcast
 
 echo "DApp initiation and verification complete."
-054

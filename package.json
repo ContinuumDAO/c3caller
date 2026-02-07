@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@openzeppelin/upgrades-core": "^1.44.1"
+    "@openzeppelin/upgrades-core": "^1.44.1",
+    "@iarna/toml": "^2.2.5"
   }
 }

@@ -12,7 +12,7 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Same chain order as helpers/nonces.sh
+# Same chain order as helpers/deploy/all.sh, excluding redbelly-testnet and pharos-atlantic-testnet
 ./helpers/init-c3dapp/bsc-testnet.sh "$@"
 ./helpers/init-c3dapp/soneium-minato-testnet.sh "$@"
 ./helpers/init-c3dapp/opbnb-testnet.sh "$@"
@@ -39,6 +39,17 @@ fi
 ./helpers/init-c3dapp/abstract-testnet.sh "$@"
 ./helpers/init-c3dapp/mantra-testnet.sh "$@"
 ./helpers/init-c3dapp/shape-sepolia.sh "$@"
-./helpers/init-c3dapp/tempo-moderato.sh "$@"
+#./helpers/init-c3dapp/tempo-moderato.sh "$@"
 ./helpers/init-c3dapp/berachain-bepolia.sh "$@"
-./helpers/init-c3dapp/redbelly-testnet.sh "$@"
+./helpers/init-c3dapp/cronos-zkevm-testnet.sh "$@"
+./helpers/init-c3dapp/arc-testnet.sh "$@"
+./helpers/init-c3dapp/boba-sepolia.sh "$@"
+./helpers/init-c3dapp/citrea-testnet.sh "$@"
+./helpers/init-c3dapp/metis-sepolia.sh "$@"
+./helpers/init-c3dapp/mode-testnet.sh "$@"
+./helpers/init-c3dapp/ink-sepolia.sh "$@"
+./helpers/init-c3dapp/world-chain-sepolia.sh "$@"
+./helpers/init-c3dapp/polynomial-sepolia.sh "$@"
+./helpers/init-c3dapp/bob-sepolia.sh "$@"
+./helpers/init-c3dapp/kiteai-testnet.sh "$@"
+./helpers/init-c3dapp/lightlink-pegasus-testnet.sh "$@"
