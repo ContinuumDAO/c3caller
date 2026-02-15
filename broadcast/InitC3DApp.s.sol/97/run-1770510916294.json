@@ -1,0 +1,57 @@
+{
+  "transactions": [
+    {
+      "hash": null,
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+      "function": "setFeeConfig(address,uint256,uint256)",
+      "arguments": [
+        "0x375E2A148102bF179AE7743A28A34cF959bE9499",
+        "1000",
+        "1000000000000000000000"
+      ],
+      "transaction": {
+        "from": "0xa55e7e6dcebd02ea56d2f268fa22a50c807d759f",
+        "to": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+        "gas": "0x1cd8c",
+        "value": "0x0",
+        "input": "0x236fcdac000000000000000000000000375e2a148102bf179ae7743a28a34cf959be949900000000000000000000000000000000000000000000000000000000000003e800000000000000000000000000000000000000000000003635c9adc5dea00000",
+        "nonce": "0x6",
+        "chainId": "0x61"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": null,
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+      "function": "initDAppConfig(string,address,string)",
+      "arguments": [
+        "v1.ctm.continuumdao",
+        "0x375E2A148102bF179AE7743A28A34cF959bE9499",
+        "{\\\"version\\\":1,\\\"name\\\":\\\"CTM\\\",\\\"description\\\":\\\"CTM on BSC Testnet\\\",\\\"email\\\":\\\"continuumdao@proton.me\\\",\\\"url\\\":\\\"continuumdao.org\\\"}"
+      ],
+      "transaction": {
+        "from": "0xa55e7e6dcebd02ea56d2f268fa22a50c807d759f",
+        "to": "0xd384b9908baf9fd39cf75a51a45102b4c19d953c",
+        "gas": "0x65d36",
+        "value": "0x0",
+        "input": "0x4152ded30000000000000000000000000000000000000000000000000000000000000060000000000000000000000000375e2a148102bf179ae7743a28a34cf959be949900000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000001376312e63746d2e636f6e74696e75756d64616f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000777b2276657273696f6e223a312c226e616d65223a2243544d222c226465736372697074696f6e223a2243544d206f6e2042534320546573746e6574222c22656d61696c223a22636f6e74696e75756d64616f4070726f746f6e2e6d65222c2275726c223a22636f6e74696e75756d64616f2e6f7267227d000000000000000000",
+        "nonce": "0x7",
+        "chainId": "0x61"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [],
+  "returns": {},
+  "timestamp": 1770510916294,
+  "chain": 97,
+  "commit": "d786b9f"
+}

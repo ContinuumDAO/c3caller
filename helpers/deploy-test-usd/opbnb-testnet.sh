@@ -12,10 +12,14 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the deployment
-forge script script/DeployTestUSD.s.sol \
+SENDER=$(cast wallet address --account "$1" --password-file "$2")
+
+# Simulate the deployment (--sender so _mint recipient is explicit)
+forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
+--sender "$SENDER" \
 --rpc-url opbnb-testnet-rpc-url \
---chain opbnb-testnet
+--chain opbnb-testnet \
+-- "$SENDER"
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -32,7 +36,7 @@ fi
 
 echo "Proceeding with deployment..."
 
-forge script script/DeployTestUSD.s.sol \
+forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --account $1 \
 --password-file $2 \
 --verify \
@@ -40,6 +44,7 @@ forge script script/DeployTestUSD.s.sol \
 --slow \
 --rpc-url opbnb-testnet-rpc-url \
 --chain opbnb-testnet \
---broadcast
+--broadcast \
+-- "$SENDER"
 
 echo "Deployment and verification complete."

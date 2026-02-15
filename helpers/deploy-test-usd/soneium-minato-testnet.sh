@@ -12,10 +12,14 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the deployment
+SENDER=$(cast wallet address --account "$1" --password-file "$2")
+
+# Simulate the deployment (--sender so _mint recipient is explicit)
 forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
+--sender "$SENDER" \
 --rpc-url soneium-minato-testnet-rpc-url \
---chain soneium-minato-testnet
+--chain soneium-minato-testnet \
+-- "$SENDER"
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -41,7 +45,8 @@ forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --verify \
 --verifier blockscout \
 --verifier-url https://soneium-minato.blockscout.com/api \
---broadcast
+--broadcast \
+-- "$SENDER"
 
 echo "Deployment and verification complete."
 CHAIN_NAME=$(basename "$0" .sh)

@@ -12,11 +12,14 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the deployment
+SENDER=$(cast wallet address --account "$1" --password-file "$2")
+
+# Simulate the deployment (--sender so _mint recipient is explicit)
 forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
---sender $(cast wallet address --account $1 --password-file $2) \
+--sender "$SENDER" \
 --rpc-url redbelly-testnet-rpc-url \
---chain-id 153
+--chain-id 153 \
+-- "$SENDER"
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -41,7 +44,8 @@ forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --slow \
 --rpc-url redbelly-testnet-rpc-url \
 --chain-id 153 \
---broadcast
+--broadcast \
+-- "$SENDER"
 
 echo "Deployment and verification complete."
 CHAIN_NAME=$(basename "$0" .sh)

@@ -9,16 +9,16 @@
 endpoint_url = "${BSC_TESTNET_RPC_URL}"
 
 [97.address]
-uuidKeeper = "0x260444bac6ccdfa80c085c241c7db65a11668b75"
-dappManager = "0x8cb49480f2cc810e095049db65537021866a86d6"
-c3caller = "0xc93298c7091924e0f8b725e55f95fe9f80694008"
-fee_token = "0x375e2a148102bf179ae7743a28a34cf959be9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[97.fee_tokens]]
-address = "0x375e2a148102bf179ae7743a28a34cf959be9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "1000000000000000000000"
 gasToken = "BNB"
+gasTokenPriceUSD = "1000000000000000000000"
 
 [97.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -29,16 +29,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM on BSC Testnet","email"
 endpoint_url = "${SONEIUM_MINATO_TESTNET_RPC_URL}"
 
 [1946.address]
-uuidKeeper = "0xcd0b74802970b09a82eb5195d96af10d7fe46761"
-dappManager = "0x5a4b54de988739e69f6155a285213ac6118e9a73"
-c3caller = "0x9f1cb494c64cde757595fcd286485ae1488e2514"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[1946.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [1946.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -49,16 +49,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${OPBNB_TESTNET_RPC_URL}"
 
 [5611.address]
-uuidKeeper = "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f"
-dappManager = "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0"
-c3caller = "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[5611.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "1000000000000000000000"
 gasToken = "BNB"
+# 1000 USD
+gasTokenPriceUSD = "1000000000000000000000"
 
 [5611.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -69,16 +70,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${PLUME_TESTNET_RPC_URL}"
 
 [98867.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[98867.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "100000000000000000"
 gasToken = "PLUME"
+# 0.1c
+gasTokenPriceUSD = "100000000000000000"
 
 [98867.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -89,16 +91,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${BASE_SEPOLIA_RPC_URL}"
 
 [84532.address]
-uuidKeeper = "0x84356cd71bc4b972a7cecb564cf06a3eb5cd210f"
-dappManager = "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0"
-c3caller = "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[84532.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [84532.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -109,16 +111,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${ARBITRUM_SEPOLIA_RPC_URL}"
 
 [421614.address]
-uuidKeeper = "0x5f54fda0e5ce437405d4c44a0a15278043e58e61"
-dappManager = "0x43ea675f71e0fe18c707b65bc15abbdd85bf0cea"
-c3caller = "0xd9eb064c665758a8fb3113651ecc653ec3caaeae"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
+fee_token = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 
 [[421614.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [421614.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -129,16 +132,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM Mintable on Arbitrum Se
 endpoint_url = "${SCROLL_SEPOLIA_RPC_URL}"
 
 [534351.address]
-uuidKeeper = "0xb73fcfcd5933228bcf7e81ccbde2f970a11a70c0"
-dappManager = "0x1af132f1ab6d50f37a82e2cf2e0980a49354b0a5"
-c3caller = "0x1d8a724d413c0a2f556687f6ad3c27ae84583381"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[534351.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [534351.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -149,16 +152,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${SONIC_BLAZE_RPC_URL}"
 
 [57054.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[57054.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "500000000000000000"
 gasToken = "S"
+# 0.5 USD
+gasTokenPriceUSD = "500000000000000000"
 
 [57054.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -169,16 +173,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${AMOY_RPC_URL}"
 
 [80002.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[80002.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "1000000000000000000"
 gasToken = "POL"
+# 1 USD
+gasTokenPriceUSD = "1000000000000000000"
 
 [80002.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -189,16 +194,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${OPTIMISM_SEPOLIA_RPC_URL}"
 
 [11155420.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[11155420.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [11155420.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -209,16 +214,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${SEPOLIA_RPC_URL}"
 
 [11155111.address]
-uuidKeeper = "0x1c50e75b50a56d916f3f31df3b30495950d27dbe"
-dappManager = "0xcf9cbc932be9823f2ec0a8d1d829c23f8d83c7a0"
-c3caller = "0x52cc96cbb791e7bf03ec16908a3c2b3a78aebcae"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[11155111.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [11155111.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -229,16 +234,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM on Sepolia","email":"co
 endpoint_url = "${FUJI_RPC_URL}"
 
 [43113.address]
-uuidKeeper = "0x1d8a724d413c0a2f556687f6ad3c27ae84583381"
-dappManager = "0xb7b76679e52c2957aeb0440466755674b8db6b07"
-c3caller = "0x166f8f51b509e3d4a989e06fc836a2618c733ff7"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
+c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 
 [[43113.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "300000000000000000"
 gasToken = "AVAX"
+# 0.3 USD
+gasTokenPriceUSD = "300000000000000000"
 
 [43113.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -249,16 +255,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${LINEA_SEPOLIA_RPC_URL}"
 
 [59141.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[59141.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [59141.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -269,16 +275,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${MANTLE_SEPOLIA_RPC_URL}"
 
 [5003.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[5003.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
-gasToken = "ETH"
+gasPerEtherFee = "130000000000000000"
+gasToken = "MNT"
+# 1.30 USD
+gasTokenPriceUSD = "130000000000000000"
 
 [5003.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -289,16 +296,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${ZKSYNC_TESTNET_RPC_URL}"
 
 [300.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[300.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [300.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -309,16 +316,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${CELO_SEPOLIA_RPC_URL}"
 
 [11142220.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[11142220.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "50000000000000000"
 gasToken = "CELO"
+# 0.5 USD
+gasTokenPriceUSD = "50000000000000000"
 
 [11142220.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -329,16 +337,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${HOODI_RPC_URL}"
 
 [560048.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[560048.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [560048.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -349,16 +357,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${MONAD_TESTNET_RPC_URL}"
 
 [10143.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[10143.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "20000000000000000"
 gasToken = "MON"
+# 0.2 USD
+gasTokenPriceUSD = "20000000000000000"
 
 [10143.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -369,16 +378,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${CORE_TESTNET_RPC_URL}"
 
 [1114.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[1114.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "12000000000000000"
 gasToken = "CORE"
+# 0.12 USD
+gasTokenPriceUSD = "12000000000000000"
 
 [1114.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -389,16 +399,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${RSK_TESTNET_RPC_URL}"
 
 [31.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[31.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "125000000000000000000000"
 gasToken = "tRBTC"
+# 125,000 USD
+gasTokenPriceUSD = "125000000000000000000000"
 
 [31.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -409,16 +420,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${BITLAYER_TESTNET_RPC_URL}"
 
 [200810.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[200810.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "125000000000000000000000"
 gasToken = "BTC"
+# 125,000 USD
+gasTokenPriceUSD = "125000000000000000000000"
 
 [200810.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -429,16 +441,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${LENS_TESTNET_RPC_URL}"
 
 [37111.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[37111.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "40000000000000000"
 gasToken = "GRASS"
+# 0.4 USD
+gasTokenPriceUSD = "40000000000000000"
 
 [37111.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -449,16 +462,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${MANTA_SEPOLIA_RPC_URL}"
 
 [3441006.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[3441006.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [3441006.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -469,16 +482,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${ABSTRACT_TESTNET_RPC_URL}"
 
 [11124.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[11124.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [11124.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -489,16 +502,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${MANTRA_TESTNET_RPC_URL}"
 
 [5887.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[5887.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "10000000000000000"
 gasToken = "OM"
+# 0.1 USD
+gasTokenPriceUSD = "10000000000000000"
 
 [5887.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -509,16 +523,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${SHAPE_SEPOLIA_RPC_URL}"
 
 [11011.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[11011.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [11011.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -529,16 +543,18 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${TEMPO_MODERATO_RPC_URL}"
 
 [42431.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
 fee_token = "0x20c0000000000000000000000000000000000000"
 
 [[42431.fee_tokens]]
 address = "0x20c0000000000000000000000000000000000000"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "100000000000000000"
 gasToken = "USD"
+# 1 USD
+gasTokenPriceUSD = "100000000000000000"
 
 [42431.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -549,16 +565,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${BERACHAIN_BEPOLIA_RPC_URL}"
 
 [80069.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[80069.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "100000000000000000"
 gasToken = "BERA"
+# 1 USD
+gasTokenPriceUSD = "100000000000000000"
 
 [80069.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -577,8 +594,10 @@ fee_token = "0x3d68902c7b679e911FcC4075a5C3326F5160670d"
 [[240.fee_tokens]]
 address = "0x3d68902c7b679e911FcC4075a5C3326F5160670d"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "12000000000000000"
 gasToken = "zkTCRO"
+# 0.12 USD
+gasTokenPriceUSD = "12000000000000000"
 
 [240.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -589,16 +608,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${ARC_TESTNET_RPC_URL}"
 
 [5042002.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[5042002.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "100000000000000000"
 gasToken = "USDC"
+gasTokenPriceUSD = "100000000000000000"
 
 [5042002.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -609,16 +628,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${BOBA_SEPOLIA_RPC_URL}"
 
 [28882.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[28882.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "6000000000000000"
 gasToken = "BOBA"
+# 0.06 USD
+gasTokenPriceUSD = "6000000000000000"
 
 [28882.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -629,16 +649,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${CITREA_TESTNET_RPC_URL}"
 
 [5115.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[5115.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "125000000000000000000000"
 gasToken = "cBTC"
+# 125,000 USD
+gasTokenPriceUSD = "125000000000000000000000"
 
 [5115.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -649,16 +670,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${METIS_SEPOLIA_TESTNET_RPC_URL}"
 
 [59902.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[59902.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "1000000000000000000"
 gasToken = "METIS"
+# 10 USD
+gasTokenPriceUSD = "1000000000000000000"
 
 [59902.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -669,16 +691,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${MODE_TESTNET_RPC_URL}"
 
 [919.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[919.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [919.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -689,16 +711,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${INK_SEPOLIA_RPC_URL}"
 
 [763373.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[763373.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "100000000000000"
 gasToken = "INK"
+# 0.001 USD
+gasTokenPriceUSD = "100000000000000"
 
 [763373.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -709,16 +732,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${WORLD_CHAIN_SEPOLIA_RPC_URL}"
 
 [4801.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[4801.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [4801.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -729,16 +752,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${POLYNOMIAL_SEPOLIA_RPC_URL}"
 
 [80008.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[80008.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [80008.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -749,16 +772,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${BOB_SEPOLIA_RPC_URL}"
 
 [808813.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[808813.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [808813.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -769,16 +792,17 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${KITEAI_TESTNET_RPC_URL}"
 
 [2368.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[2368.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = ""
+gasPerEtherFee = "500000000000"
 gasToken = "KITE"
+# 0.0000005 USD
+gasTokenPriceUSD = "500000000000"
 
 [2368.string]
 dapp_key = "v1.ctm.continuumdao"
@@ -789,16 +813,16 @@ metadata = '{"version":1,"name":"CTM","description":"CTM","email":"continuumdao@
 endpoint_url = "${LIGHTLINK_PEGASUS_TESTNET_RPC_URL}"
 
 [1891.address]
-uuidKeeper = "0x55ad6df6d8f8824486c3fd3373f1cf29ececf0a3"
-dappManager = "0xd384b9908baf9fd39cf75a51a45102b4c19d953c"
+uuidKeeper = "0x55aD6Df6d8f8824486C3fd3373f1CF29eCecF0A3"
+dappManager = "0xD384b9908baF9fD39Cf75A51A45102b4C19d953c"
 c3caller = "0x8abd54d49252169ef746bbf229512502e703c8e8"
-fee_token = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
 
 [[1891.fee_tokens]]
-address = "0x375E2A148102bF179AE7743A28A34cF959bE9499"
+address = "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2"
 payloadPerByteFee = "1000"
-gasPerEtherFee = "100000000000000000"
+gasPerEtherFee = "4000000000000000000000"
 gasToken = "ETH"
+gasTokenPriceUSD = "4000000000000000000000"
 
 [1891.string]
 dapp_key = "v1.ctm.continuumdao"

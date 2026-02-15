@@ -10,8 +10,15 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
+# Fee config env vars for InitC3DApp (script runs setFeeConfig then initDAppConfig)
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 1891)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
 # Lightlink Pegasus RPC does not support EIP-1559; use legacy txs.
+# Simulate the dapp initiation (setFeeConfig + initDAppConfig in one script). Use same account as broadcast so onlyGov (setFeeConfig) passes.
 forge script script/InitC3DApp.s.sol \
+--account $1 \
+--password-file $2 \
 --rpc-url lightlink-pegasus-testnet-rpc-url \
 --chain-id 1891 \
 --legacy
@@ -30,17 +37,17 @@ fi
 
 echo "Proceeding with dapp initiation..."
 
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 1891)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
 forge script script/InitC3DApp.s.sol \
 --account $1 \
 --password-file $2 \
---verify \
---verifier blockscout \
---verifier-url https://pegasus.lightlink.io/api \
---etherscan-api-key lightlink-pegasus-testnet-key \
 --slow \
 --rpc-url lightlink-pegasus-testnet-rpc-url \
 --chain-id 1891 \
 --legacy \
+--gas-estimate-multiplier ${INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER:-120} \
 --broadcast
 
-echo "DApp initiation and verification complete."
+echo "DApp initiation complete."

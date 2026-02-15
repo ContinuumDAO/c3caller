@@ -138,8 +138,8 @@ cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_F
 echo -e "\nNonce for ink-sepolia (763373):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url ink-sepolia-rpc-url
 
-echo -e "\nNonce for pharos-atlantic-testnet (688689):"
-cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url pharos-atlantic-testnet-rpc-url
+# echo -e "\nNonce for pharos-atlantic-testnet (688689):"
+# cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url pharos-atlantic-testnet-rpc-url
 
 echo -e "\nNonce for world-chain-sepolia (4801):"
 cast nonce $(cast wallet address --account $DEPLOYER --password-file $PASSWORD_FILE) --rpc-url world-chain-sepolia-rpc-url

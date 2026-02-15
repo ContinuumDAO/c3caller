@@ -14,12 +14,16 @@ contract TestUSD is ERC20 {
     function decimals() public pure override returns (uint8) {
         return 6;
     }
+
+    function mint(address to, uint256 amount) public {
+        _mint(to, amount);
+    }
 }
 
 contract DeployFeeToken is Script {
-    function run() public {
+    function run(address sender) public {
         vm.startBroadcast();
-        TestUSD testUSD = new TestUSD(msg.sender);
+        TestUSD testUSD = new TestUSD(sender);
         vm.stopBroadcast();
 
         console.log("Test USD deployed to ");

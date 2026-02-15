@@ -10,7 +10,14 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
+# Fee config env vars for InitC3DApp (script runs setFeeConfig then initDAppConfig)
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 28882)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
+# Simulate the dapp initiation (setFeeConfig + initDAppConfig in one script). Use same account as broadcast so onlyGov (setFeeConfig) passes.
 forge script script/InitC3DApp.s.sol \
+--account $1 \
+--password-file $2 \
 --rpc-url boba-sepolia-rpc-url \
 --chain-id 28882
 
@@ -28,14 +35,16 @@ fi
 
 echo "Proceeding with dapp initiation..."
 
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 28882)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
 forge script script/InitC3DApp.s.sol \
 --account $1 \
 --password-file $2 \
---verify \
---etherscan-api-key boba-sepolia-key \
 --slow \
 --rpc-url boba-sepolia-rpc-url \
 --chain-id 28882 \
+--gas-estimate-multiplier ${INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER:-120} \
 --broadcast
 
-echo "DApp initiation and verification complete."
+echo "DApp initiation complete."

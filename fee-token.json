@@ -2,7 +2,7 @@
   {
     "chainId": 97,
     "chain": "bsc-testnet",
-    "address": "0x375e2a148102bf179ae7743a28a34cf959be9499",
+    "address": "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2",
     "error": null
   },
   {
@@ -32,7 +32,7 @@
   {
     "chainId": 421614,
     "chain": "arbitrum-sepolia",
-    "address": "0x375E2A148102bF179AE7743A28A34cF959bE9499",
+    "address": "0x70b52c6cdda7c6b881de77196edfdf5a704b55f2",
     "error": null
   },
   {
@@ -92,7 +92,7 @@
   {
     "chainId": 11142220,
     "chain": "celo-sepolia",
-    "address": "0x375E2A148102bF179AE7743A28A34cF959bE9499",
+    "address": "0xad89de4788b422f85eb18b7c5dfcfc2afadfe138",
     "error": null
   },
   {

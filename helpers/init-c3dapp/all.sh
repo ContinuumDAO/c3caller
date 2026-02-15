@@ -12,22 +12,25 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
+# 20% gas estimate multiplier for broadcast (override with INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER if needed).
+export INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER=${INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER:-120}
+
 # Same chain order as helpers/deploy/all.sh, excluding redbelly-testnet and pharos-atlantic-testnet
-./helpers/init-c3dapp/bsc-testnet.sh "$@"
-./helpers/init-c3dapp/soneium-minato-testnet.sh "$@"
-./helpers/init-c3dapp/opbnb-testnet.sh "$@"
-./helpers/init-c3dapp/plume-testnet.sh "$@"
-./helpers/init-c3dapp/base-sepolia.sh "$@"
-./helpers/init-c3dapp/arbitrum-sepolia.sh "$@"
-./helpers/init-c3dapp/scroll-sepolia.sh "$@"
-./helpers/init-c3dapp/sonic-blaze.sh "$@"
-./helpers/init-c3dapp/amoy.sh "$@"
-./helpers/init-c3dapp/optimism-sepolia.sh "$@"
-./helpers/init-c3dapp/sepolia.sh "$@"
-./helpers/init-c3dapp/fuji.sh "$@"
-./helpers/init-c3dapp/linea-sepolia.sh "$@"
-./helpers/init-c3dapp/mantle-sepolia.sh "$@"
-./helpers/init-c3dapp/zksync-testnet.sh "$@"
+# ./helpers/init-c3dapp/bsc-testnet.sh "$@"
+# ./helpers/init-c3dapp/soneium-minato-testnet.sh "$@"
+# ./helpers/init-c3dapp/opbnb-testnet.sh "$@"
+# ./helpers/init-c3dapp/plume-testnet.sh "$@"
+# ./helpers/init-c3dapp/base-sepolia.sh "$@"
+# ./helpers/init-c3dapp/arbitrum-sepolia.sh "$@"
+# ./helpers/init-c3dapp/scroll-sepolia.sh "$@"
+# ./helpers/init-c3dapp/sonic-blaze.sh "$@"
+# ./helpers/init-c3dapp/amoy.sh "$@"
+# ./helpers/init-c3dapp/optimism-sepolia.sh "$@"
+# ./helpers/init-c3dapp/sepolia.sh "$@"
+# ./helpers/init-c3dapp/fuji.sh "$@"
+# ./helpers/init-c3dapp/linea-sepolia.sh "$@"
+# ./helpers/init-c3dapp/mantle-sepolia.sh "$@"
+# ./helpers/init-c3dapp/zksync-testnet.sh "$@"
 ./helpers/init-c3dapp/celo-sepolia.sh "$@"
 ./helpers/init-c3dapp/hoodi.sh "$@"
 ./helpers/init-c3dapp/monad-testnet.sh "$@"

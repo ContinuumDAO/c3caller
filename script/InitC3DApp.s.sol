@@ -16,13 +16,21 @@ contract InitC3DApp is Script, Config {
         console.log("Initing DApp config on chain:", chainId);
 
         address dappManagerAddr = config.get("dappManager").toAddress();
-        address feeToken = config.get("fee_token").toAddress();
+        // Primary fee token = first address in [[chainId.fee_tokens]] (fee_token field no longer exists)
+        string memory tomlContent = vm.resolveEnv(vm.readFile("./deployments.toml"));
+        address feeToken = vm.parseTomlAddress(tomlContent, string.concat("$.", vm.toString(chainId), ".fee_tokens.0.address"));
         string memory dappKey = config.get("dapp_key").toString();
         string memory metadata = config.get("metadata").toString();
 
         C3DAppManager dappManager = C3DAppManager(dappManagerAddr);
 
         vm.startBroadcast();
+        // setFeeConfig must run before initDAppConfig (initDAppConfig depends on it). Env vars from get-fee-config.js.
+        uint256 payloadPerByteFee = vm.envOr("PAYLOAD_PER_BYTE_FEE", uint256(0));
+        uint256 gasPerEtherFee = vm.envOr("GAS_PER_ETHER_FEE", uint256(0));
+        if (payloadPerByteFee != 0 && gasPerEtherFee != 0) {
+            dappManager.setFeeConfig(feeToken, payloadPerByteFee, gasPerEtherFee);
+        }
         dappManager.initDAppConfig(dappKey, feeToken, metadata);
         vm.stopBroadcast();
 

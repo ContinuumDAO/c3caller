@@ -12,11 +12,15 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the deployment (--legacy to avoid EIP-1559 fee API)
+SENDER=$(cast wallet address --account "$1" --password-file "$2")
+
+# Simulate the deployment (--sender so _mint recipient is explicit; --legacy to avoid EIP-1559 fee API)
 forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
+--sender "$SENDER" \
 --rpc-url bitlayer-testnet-rpc-url \
 --chain-id 200810 \
---legacy
+--legacy \
+-- "$SENDER"
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -42,7 +46,8 @@ forge script script/DeployFeeToken.s.sol --tc DeployFeeToken \
 --rpc-url bitlayer-testnet-rpc-url \
 --chain-id 200810 \
 --legacy \
---broadcast
+--broadcast \
+-- "$SENDER"
 
 echo "Deployment and verification complete."
 CHAIN_NAME=$(basename "$0" .sh)

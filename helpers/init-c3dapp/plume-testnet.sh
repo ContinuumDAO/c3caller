@@ -12,8 +12,14 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-# Simulate the dapp initiation (--chain-id: forge does not accept chain name "plume-testnet")
+# Fee config env vars for InitC3DApp (script runs setFeeConfig then initDAppConfig)
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 98867)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
+# Simulate the dapp initiation (setFeeConfig + initDAppConfig in one script) (--chain-id: forge does not accept chain name "plume-testnet"). Use same account as broadcast so onlyGov (setFeeConfig) passes.
 forge script script/InitC3DApp.s.sol \
+--account $1 \
+--password-file $2 \
 --rpc-url plume-testnet-rpc-url \
 --chain-id 98867
 
@@ -32,15 +38,16 @@ fi
 
 echo "Proceeding with dapp initiation..."
 
+eval $(node "$PROJECT_ROOT/js-helpers/get-fee-config.js" --chain-id 98867)
+export DAPP_MANAGER FEE_TOKEN PAYLOAD_PER_BYTE_FEE GAS_PER_ETHER_FEE
+
 forge script script/InitC3DApp.s.sol \
 --account $1 \
 --password-file $2 \
---verify \
---verifier blockscout \
---verifier-url https://testnet-explorer.plume.org/api \
 --slow \
 --rpc-url plume-testnet-rpc-url \
 --chain-id 98867 \
+--gas-estimate-multiplier ${INIT_C3DAPP_GAS_ESTIMATE_MULTIPLIER:-120} \
 --broadcast
 
-echo "DApp initiation and verification complete."
+echo "DApp initiation complete."
