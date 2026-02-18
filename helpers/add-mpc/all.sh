@@ -5,10 +5,10 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 [ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
 
 # Check if required arguments are provided
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo "Error: Missing required arguments."
-    echo "Usage: $0 <ACCOUNT> <PASSWORD_FILE>"
-    echo "Example: $0 0x1234... /path/to/password.txt"
+    echo "Usage: $0 <ACCOUNT> <PASSWORD_FILE> <MPC_ADDRESS>"
+    echo "Example: $0 0x1234... /path/to/password.txt 0xabcd..."
     exit 1
 fi
 
@@ -27,7 +27,7 @@ fi
 ./helpers/add-mpc/fuji.sh "$@"
 ./helpers/add-mpc/linea-sepolia.sh "$@"
 ./helpers/add-mpc/mantle-sepolia.sh "$@"
-./helpers/add-mpc/zksync-testnet.sh "$@"
+#./helpers/add-mpc/zksync-testnet.sh "$@"
 ./helpers/add-mpc/celo-sepolia.sh "$@"
 ./helpers/add-mpc/hoodi.sh "$@"
 ./helpers/add-mpc/monad-testnet.sh "$@"
@@ -37,21 +37,21 @@ fi
 ./helpers/add-mpc/lens-testnet.sh "$@"
 ./helpers/add-mpc/manta-sepolia.sh "$@"
 ./helpers/add-mpc/abstract-testnet.sh "$@"
-./helpers/add-mpc/mantra-testnet.sh "$@"
+#./helpers/add-mpc/mantra-testnet.sh "$@"
 ./helpers/add-mpc/shape-sepolia.sh "$@"
-./helpers/add-mpc/tempo-moderato.sh "$@"
+#./helpers/add-mpc/tempo-moderato.sh "$@"
 ./helpers/add-mpc/berachain-bepolia.sh "$@"
-./helpers/add-mpc/redbelly-testnet.sh "$@"
-./helpers/add-mpc/cronos-zkevm-testnet.sh "$@"
+#./helpers/add-mpc/redbelly-testnet.sh "$@"
+#./helpers/add-mpc/cronos-zkevm-testnet.sh "$@"
 ./helpers/add-mpc/arc-testnet.sh "$@"
 ./helpers/add-mpc/boba-sepolia.sh "$@"
 ./helpers/add-mpc/citrea-testnet.sh "$@"
 ./helpers/add-mpc/metis-sepolia.sh "$@"
 ./helpers/add-mpc/mode-testnet.sh "$@"
 ./helpers/add-mpc/ink-sepolia.sh "$@"
-./helpers/add-mpc/pharos-atlantic-testnet.sh "$@"
+#./helpers/add-mpc/pharos-atlantic-testnet.sh "$@"
 ./helpers/add-mpc/world-chain-sepolia.sh "$@"
-./helpers/add-mpc/polynomial-sepolia.sh "$@"
+#./helpers/add-mpc/polynomial-sepolia.sh "$@"
 ./helpers/add-mpc/bob-sepolia.sh "$@"
 ./helpers/add-mpc/kiteai-testnet.sh "$@"
-./helpers/add-mpc/lightlink-pegasus-testnet.sh "$@"
+#./helpers/add-mpc/lightlink-pegasus-testnet.sh "$@"

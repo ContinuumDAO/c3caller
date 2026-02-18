@@ -5,19 +5,22 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 [ -f "$PROJECT_ROOT/.env" ] && set -a && source "$PROJECT_ROOT/.env" && set +a
 
 # Check if required arguments are provided
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo "Error: Missing required arguments."
-    echo "Usage: $0 <ACCOUNT> <PASSWORD_FILE>"
-    echo "Example: $0 0x1234... /path/to/password.txt"
+    echo "Usage: $0 <ACCOUNT> <PASSWORD_FILE> <MPC_ADDRESS>"
+    echo "Example: $0 0x1234... /path/to/password.txt 0xabcd..."
     exit 1
 fi
+
+export MPC="$3"
 
 # Simulate the operation
 forge script script/AddMPC.s.sol \
 --account $1 \
 --password-file $2 \
 --rpc-url arc-testnet-rpc-url \
---chain-id 5042002
+--chain-id 5042002 \
+--legacy
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -40,6 +43,8 @@ forge script script/AddMPC.s.sol \
 --slow \
 --rpc-url arc-testnet-rpc-url \
 --chain-id 5042002 \
+--gas-estimate-multiplier 200 \
+--legacy \
 --broadcast
 
 echo "Add MPC operation complete."

@@ -30,7 +30,7 @@ contract UpdateC3DApp is Script, Config {
         uint256 dappID = dappManager.deriveDAppID(admin, dappKey);
 
         (, address oldFeeToken,,,) = dappManager.dappConfig(dappID);
-        if (oldFeeToken != feeToken) {
+        // if (oldFeeToken != feeToken) {
             vm.startBroadcast();
             dappManager.removeFeeConfig(oldFeeToken);
 
@@ -48,15 +48,15 @@ contract UpdateC3DApp is Script, Config {
             // Can be called by gov or admin
             dappManager.updateDAppConfig(dappID, admin, feeToken, metadata);
 
-            // Deposit new fee token
-            uint256 depositAmount = vm.envOr("DEPOSIT_AMOUNT", uint256(0));
-            if (depositAmount != 0) {
-                IERC20(feeToken).approve(address(dappManager), depositAmount);
-                dappManager.deposit(dappID, feeToken, depositAmount);
-            }
+            // // Deposit new fee token
+            // uint256 depositAmount = vm.envOr("DEPOSIT_AMOUNT", uint256(0));
+            // if (depositAmount != 0) {
+            //     IERC20(feeToken).approve(address(dappManager), depositAmount);
+            //     dappManager.deposit(dappID, feeToken, depositAmount);
+            // }
 
             vm.stopBroadcast();
-        }
+        // }
 
         console.log("updateDAppConfig done for dapp_key:", dappKey);
     }
