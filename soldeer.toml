@@ -1,0 +1,4 @@
+[package]
+name = "c3caller"
+version = "0.3.0"
+description = "A smart contract suite for arbitrary execution of data across cross-chain DApps using the ContinuumDAO MPC network."
