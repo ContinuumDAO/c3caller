@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { Script } from "forge-std/Script.sol";
-import { Config } from "forge-std/Config.sol";
-import { console } from "forge-std/console.sol";
-import { IC3Caller } from "../build/C3Caller.sol";
+import {Script} from "forge-std/Script.sol";
+import {Config} from "forge-std/Config.sol";
+import {console} from "forge-std/console.sol";
+import {IC3Caller} from "../build/C3Caller.sol";
 
 /**
  * Calls C3Caller.addMPC(mpc). C3Caller address from deployments.toml for current chain.

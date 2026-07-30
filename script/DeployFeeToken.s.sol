@@ -7,7 +7,7 @@ import {console} from "forge-std/console.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract TestUSD is ERC20 {
-    constructor (address sender) ERC20("Test USD", "TUSD") {
+    constructor(address sender) ERC20("Test USD", "TUSD") {
         _mint(sender, 100_000_000 * 10 ** decimals());
     }
 

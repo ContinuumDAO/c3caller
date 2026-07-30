@@ -140,17 +140,21 @@ abstract contract CTMERC20 is ICTMERC20, ERC20, C3GovernDApp {
     }
 
     /**
-     * @notice Virtual function to increment the supply that exists locally and across all peer network instances.
+     * @notice Hook to increment the supply that exists locally and across all peer network instances.
      * @param _amount The amount to increment global supply by (the mint amount).
-     * @dev Implement this wherever supply is increased, such as constructor for initial mint or function `mint`.
+     * @dev Call this wherever supply is increased, such as constructor for initial mint or function `mint`.
      */
-    function _incrementGlobalSupply(uint256 _amount) internal virtual;
+    function _incrementGlobalSupply(uint256 _amount) internal virtual {
+        globalSupply += _amount;
+    }
 
     /**
-     * @notice Virtual function to decrement the supply that exists locally and across all peer network instances.
+     * @notice Hook to decrement the supply that exists locally and across all peer network instances.
      * @param _amount The amount to decrement global supply by (the burn amount).
-     * @dev Implement this wherever supply is decreased, such as function `burn`. If global supply is never burned,
-     * implement this function with no body.
+     * @dev Call this wherever supply is decreased, such as function `burn`. If global supply is not burned on the
+     * deployed network, don't use this hook (globalSupply will remain zero).
      */
-    function _decrementGlobalSupply(uint256 _amount) internal virtual;
+    function _decrementGlobalSupply(uint256 _amount) internal virtual {
+        globalSupply -= _amount;
+    }
 }
