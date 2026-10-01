@@ -32,6 +32,7 @@ node_modules/
 # User
 checklist.md
 fallback_instructions.md
+MIGRATION.md
 
 # Soldeer
 /dependencies
