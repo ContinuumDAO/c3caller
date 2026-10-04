@@ -12,12 +12,9 @@ import {IC3Caller} from "../../src/IC3Caller.sol";
 import {C3ErrorParam, C3CallerUtils} from "../../src/utils/C3CallerUtils.sol";
 
 contract MockCTMERC20 is CTMERC20 {
-    constructor (
-        string memory _name,
-        string memory _symbol,
-        address _c3caller,
-        uint256 _dappID
-    ) CTMERC20(_name, _symbol, _c3caller, _dappID) {
+    constructor(string memory _name, string memory _symbol, address _c3caller, uint256 _dappID)
+        CTMERC20(_name, _symbol, _c3caller, _dappID)
+    {
         _incrementGlobalSupply(100 ether);
         _mint(msg.sender, 100 ether);
     }
@@ -69,12 +66,7 @@ contract CTMERC20Test is Helpers {
 
         // Deploy CTMERC20 with gov as the governance contract
         vm.startPrank(gov);
-        ctmerc20 = new MockCTMERC20(
-            "MockCTMERC20",
-            "CTM",
-            address(c3caller),
-            ctmerc20DAppID
-        );
+        ctmerc20 = new MockCTMERC20("MockCTMERC20", "CTM", address(c3caller), ctmerc20DAppID);
         dappManager.setDAppAddr(ctmerc20DAppID, address(ctmerc20), true);
         dappManager.deposit(ctmerc20DAppID, address(usdc), 100 * 10 ** usdc.decimals());
         vm.stopPrank();
@@ -110,12 +102,20 @@ contract CTMERC20Test is Helpers {
     // ==================================
 
     function test_SetPeer_RevertWhen_CallerNotGov() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
+            )
+        );
         ctmerc20.setPeer("0", "0xabc");
     }
 
     function test_C3Receive_RevertWhen_CallerNotC3Caller() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3CallerDApp.C3CallerDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.C3Caller
+            )
+        );
         ctmerc20.c3receive("from_account", "to_account", 100);
     }
 
@@ -143,7 +143,9 @@ contract CTMERC20Test is Helpers {
     }
 
     function test_C3Transfer_RevertWhen_InsufficientBalance() public {
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(this), 0, 100 ether));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(this), 0, 100 ether)
+        );
         ctmerc20.c3transfer("to_account", 100 ether, "1");
     }
 
@@ -181,7 +183,9 @@ contract CTMERC20Test is Helpers {
 
     function test_C3TransferFrom_RevertWhen_InsufficientAllowance() public {
         ctmerc20.mint(address(user), 100 ether);
-        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(this), 0, 100 ether));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(this), 0, 100 ether)
+        );
         ctmerc20.c3transferFrom(user, "to_account", 100 ether, "1");
     }
 
@@ -310,9 +314,8 @@ contract CTMERC20Test is Helpers {
         string memory toStr = user.toHexString();
         bytes memory data = abi.encodeWithSelector(ctmerc20.c3receive.selector, fromStr, toStr, amount);
         bytes32 uuid = keccak256("ctmerc20-receive");
-        IC3Caller.C3EvmMessage memory message = IC3Caller.C3EvmMessage(
-            uuid, address(ctmerc20), "1", "source-tx-hash", gov.toHexString(), data
-        );
+        IC3Caller.C3EvmMessage memory message =
+            IC3Caller.C3EvmMessage(uuid, address(ctmerc20), "1", "source-tx-hash", gov.toHexString(), data);
 
         vm.prank(mpc1);
         c3caller.execute(ctmerc20DAppID, message);
@@ -340,8 +343,7 @@ contract CTMERC20Test is Helpers {
         string memory toChainID = "1";
         string memory peer = ctmerc20.peers(toChainID);
         uint256 amount = 1 ether;
-        bytes memory receiveCall =
-            abi.encodeWithSelector(ctmerc20.c3receive.selector, gov.toHexString(), toStr, amount);
+        bytes memory receiveCall = abi.encodeWithSelector(ctmerc20.c3receive.selector, gov.toHexString(), toStr, amount);
         bytes32 uuid = uuidKeeper.calcCallerUUID(address(c3caller), ctmerc20DAppID, peer, toChainID, receiveCall);
 
         vm.prank(gov);
